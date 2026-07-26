@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA Input Nilai</title>
+<link rel="manifest" href="manifest.json">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+    .hidden { display: none; }
+    input, select, button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
+    button { background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:disabled { background-color: #ccc; }
+    .badge { display: inline-block; padding: 5px 10px; font-size: 12px; border-radius: 4px; color: white; }
+    .online { background-color: #28a745; }
+    .offline { background-color: #dc3545; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <!-- Status Koneksi -->
+    <div style="text-align: right;">
+      <span id="status-koneksi" class="badge online">Online</span>
+    </div>
+
+    <!-- 1. FORM LOGIN -->
+    <div id="section-login">
+      <h2>Login PWA Nilai</h2>
+      <input type="text" id="login-username" placeholder="Username / NIP / NISN">
+      <input type="password" id="login-password" placeholder="Password">
+      <button onclick="prosesLogin()">Login</button>
+    </div>
+
+    <!-- DASHBOARD / INPUT NILAI (GURU) -->
+<div id="section-app" class="hidden">
+  <h3>Input Nilai Guru</h3>
+  <p id="user-info"></p>
+
+  <label for="select-siswa">Pilih Siswa:</label>
+  <select id="select-siswa">
+    <option value="">-- Pilih Siswa --</option>
+  </select>
+
+  <label for="select-mapel" style="margin-top: 10px; display: block;">Mata Pelajaran:</label>
+  <select id="select-mapel">
+    <option value="">-- Pilih Mapel --</option>
+  </select>
+
+ <label for="select-jenis" style="margin-top: 10px; display: block;">Jenis Penilaian:</label>
+<select id="select-jenis">
+  <!-- TUGAS 1 - 10 -->
+  <option value="Tugas 1">Tugas 1</option>
+  <option value="Tugas 2">Tugas 2</option>
+  <option value="Tugas 3">Tugas 3</option>
+  <option value="Tugas 4">Tugas 4</option>
+  <option value="Tugas 5">Tugas 5</option>
+  <option value="Tugas 6">Tugas 6</option>
+  <option value="Tugas 7">Tugas 7</option>
+  <option value="Tugas 8">Tugas 8</option>
+  <option value="Tugas 9">Tugas 9</option>
+  <option value="Tugas 10">Tugas 10</option>
+
+  <!-- ULANGAN HARIAN (UH 1 - 5) -->
+  <option value="UH 1">UH 1</option>
+  <option value="UH 2">UH 2</option>
+  <option value="UH 3">UH 3</option>
+  <option value="UH 4">UH 4</option>
+  <option value="UH 5">UH 5</option>
+
+  <!-- PTS & PAS -->
+  <option value="PTS">PTS</option>
+  <option value="PAS">PAS</option>
+</select>
+
+  <label for="input-nilai" style="margin-top: 10px; display: block;">Nilai (0-100):</label>
+  <input type="number" id="input-nilai" placeholder="85" min="0" max="100">
+
+  <button onclick="simpanNilai()" style="margin-top: 15px;">Simpan Nilai</button>
+  <button id="btn-sync" onclick="syncData()" style="background-color: #ffc107; color: #000; margin-top: 5px;">
+    Sync Data Offline (<span id="sync-count">0</span>)
+  </button>
+  <button onclick="logout()" style="background-color: #6c757d; margin-top: 5px;">Logout</button>
+
+  <hr style="margin: 20px 0;">
+
+  <!-- RIWAYAT NILAI YANG SUDAH DIINPUT -->
+  <h4>Riwayat Nilai Terinput</h4>
+  <div style="overflow-x: auto;">
+    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+      <thead>
+        <tr style="background-color: #e9ecef;">
+          <th>Siswa</th>
+          <th>Mapel</th>
+          <th>Jenis</th>
+          <th>Nilai</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tabel-riwayat-body">
+        <tr><td colspan="5" style="text-align:center;">Belum ada data</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
