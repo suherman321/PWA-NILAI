@@ -33,59 +33,73 @@
       <button onclick="prosesLogin()">Login</button>
     </div>
 
-    <!-- DASHBOARD / INPUT NILAI (GURU) -->
+<!-- DASHBOARD GURU -->
 <div id="section-app" class="hidden">
-  <h3>Input Nilai Guru</h3>
-  <p id="user-info"></p>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h3 id="user-info" style="margin: 0;">Input Nilai Guru</h3>
+    <button onclick="logout()" style="width: auto; background-color: #6c757d; margin: 0; padding: 5px 10px;">Logout</button>
+  </div>
+  <hr style="margin: 15px 0;">
 
-  <label for="select-siswa">Pilih Siswa:</label>
-  <select id="select-siswa">
-    <option value="">-- Pilih Siswa --</option>
-  </select>
+  <!-- TAMPILAN 1: MENU DAFTAR KELAS -->
+  <div id="view-daftar-kelas">
+    <h4 style="margin-bottom: 10px;">Pilih Kelas Binaan:</h4>
+    <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+      <!-- Kartu Kelas akan dipasang di sini via JavaScript -->
+    </div>
+  </div>
 
-  <label for="select-mapel" style="margin-top: 10px; display: block;">Mata Pelajaran:</label>
-  <select id="select-mapel">
-    <option value="">-- Pilih Mapel --</option>
-  </select>
+  <!-- TAMPILAN 2: FORM INPUT NILAI (DISEMBUNYIKAN AWALNYA) -->
+  <div id="view-form-nilai" class="hidden">
+    <button onclick="kembaliKeDaftarKelas()" style="background-color: #6c757d; margin-bottom: 15px;">← Kembali ke Pilih Kelas</button>
+    <h4 id="judul-kelas-aktif" style="color: #007bff; margin-top: 0;"></h4>
 
- <label for="select-jenis" style="margin-top: 10px; display: block;">Jenis Penilaian:</label>
-<select id="select-jenis">
-  <!-- TUGAS 1 - 10 -->
-  <option value="Tugas 1">Tugas 1</option>
-  <option value="Tugas 2">Tugas 2</option>
-  <option value="Tugas 3">Tugas 3</option>
-  <option value="Tugas 4">Tugas 4</option>
-  <option value="Tugas 5">Tugas 5</option>
-  <option value="Tugas 6">Tugas 6</option>
-  <option value="Tugas 7">Tugas 7</option>
-  <option value="Tugas 8">Tugas 8</option>
-  <option value="Tugas 9">Tugas 9</option>
-  <option value="Tugas 10">Tugas 10</option>
+    <label for="select-siswa">Pilih Siswa:</label>
+    <select id="select-siswa">
+      <option value="">-- Pilih Siswa --</option>
+    </select>
 
-  <!-- ULANGAN HARIAN (UH 1 - 5) -->
-  <option value="UH 1">UH 1</option>
-  <option value="UH 2">UH 2</option>
-  <option value="UH 3">UH 3</option>
-  <option value="UH 4">UH 4</option>
-  <option value="UH 5">UH 5</option>
+    <label for="select-mapel" style="margin-top: 10px; display: block;">Mata Pelajaran:</label>
+    <select id="select-mapel">
+      <option value="">-- Pilih Mapel --</option>
+    </select>
 
-  <!-- PTS & PAS -->
-  <option value="PTS">PTS</option>
-  <option value="PAS">PAS</option>
-</select>
+    <label for="select-jenis" style="margin-top: 10px; display: block;">Jenis Penilaian:</label>
+    <select id="select-jenis">
+      <!-- TUGAS 1 - 10 -->
+      <option value="Tugas 1">Tugas 1</option>
+      <option value="Tugas 2">Tugas 2</option>
+      <option value="Tugas 3">Tugas 3</option>
+      <option value="Tugas 4">Tugas 4</option>
+      <option value="Tugas 5">Tugas 5</option>
+      <option value="Tugas 6">Tugas 6</option>
+      <option value="Tugas 7">Tugas 7</option>
+      <option value="Tugas 8">Tugas 8</option>
+      <option value="Tugas 9">Tugas 9</option>
+      <option value="Tugas 10">Tugas 10</option>
+      <!-- UH 1 - 5 -->
+      <option value="UH 1">UH 1</option>
+      <option value="UH 2">UH 2</option>
+      <option value="UH 3">UH 3</option>
+      <option value="UH 4">UH 4</option>
+      <option value="UH 5">UH 5</option>
+      <!-- PTS & PAS -->
+      <option value="PTS">PTS</option>
+      <option value="PAS">PAS</option>
+    </select>
 
-  <label for="input-nilai" style="margin-top: 10px; display: block;">Nilai (0-100):</label>
-  <input type="number" id="input-nilai" placeholder="85" min="0" max="100">
+    <label for="input-nilai" style="margin-top: 10px; display: block;">Nilai (0-100):</label>
+    <input type="number" id="input-nilai" placeholder="85" min="0" max="100">
 
-  <button onclick="simpanNilai()" style="margin-top: 15px;">Simpan Nilai</button>
-  <button id="btn-sync" onclick="syncData()" style="background-color: #ffc107; color: #000; margin-top: 5px;">
-    Sync Data Offline (<span id="sync-count">0</span>)
-  </button>
-  <button onclick="logout()" style="background-color: #6c757d; margin-top: 5px;">Logout</button>
+    <button onclick="simpanNilai()" style="margin-top: 15px;">Simpan Nilai</button>
+    <button id="btn-sync" onclick="syncData()" style="background-color: #ffc107; color: #000; margin-top: 5px;">
+      Sync Data Offline (<span id="sync-count">0</span>)
+    </button>
+  </div>
 
   <hr style="margin: 20px 0;">
 
-  <!-- RIWAYAT NILAI YANG SUDAH DIINPUT -->
+  <!-- RIWAYAT NILAI -->
   <h4>Riwayat Nilai Terinput</h4>
   <div style="overflow-x: auto;">
     <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
