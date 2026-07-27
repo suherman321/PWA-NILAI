@@ -1,6 +1,7 @@
 // ==========================================
-// CONFIGURATION & GLOBAL VARIABLES
+// 1. CONFIGURATION & GLOBAL VARIABLES
 // ==========================================
+// GANTI DENGAN URL APPS SCRIPT ANDA DI SINI
 const API_URL = "https://script.google.com/macros/s/AKfycbyzdMJgP3qnc5uWmiw9Lm8pLWEweI8oLMzcOhZDIvYyHU8wf-caygBWjMwj90Kyyam2xg/exec"; 
 
 const DB_NAME = "PWA_Nilai_DB";
@@ -8,9 +9,10 @@ const DB_VERSION = 1;
 
 let masterSiswaGlobal = [];
 let masterMapelGlobal = [];
+let kelasAktif = ""; // Menyimpan status kelas yang sedang dibuka
 
 // ==========================================
-// 1. DATABASE INDEXEDDB
+// 2. DATABASE INDEXEDDB
 // ==========================================
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -27,14 +29,14 @@ function openDB() {
 }
 
 // ==========================================
-// 2. INITIALIZATION (ON LOAD / REFRESH)
+// 3. INITIALIZATION (ON LOAD / REFRESH)
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("online", updateOnlineStatus);
   window.addEventListener("offline", updateOnlineStatus);
   updateOnlineStatus();
 
-  // Load Sesi & Master Data dari LocalStorage jika ada (Agar tidak hilang saat refresh)
+  // Load Sesi & Master Data dari LocalStorage agar data kelas tidak hilang saat refresh
   const savedUser = localStorage.getItem("user_session");
   const savedMaster = localStorage.getItem("master_data");
 
@@ -62,7 +64,7 @@ function updateOnlineStatus() {
 }
 
 // ==========================================
-// 3. AUTHENTICATION (LOGIN & LOGOUT)
+// 4. AUTHENTICATION (LOGIN & LOGOUT)
 // ==========================================
 async function prosesLogin() {
   const usernameInput = document.getElementById("login-username").value.trim();
@@ -88,7 +90,6 @@ async function prosesLogin() {
     if (result.success) {
       alert("Login berhasil!");
       
-      // Simpan User & Master Data ke LocalStorage
       localStorage.setItem("user_session", JSON.stringify(result.user));
       const masterObj = {
         list_siswa: result.list_siswa || [],
@@ -126,13 +127,12 @@ function logout() {
 }
 
 // ==========================================
-// 4. MASTER DATA & TAMPILAN KELAS
+// 5. MASTER DATA & TAMPILAN KELAS
 // ==========================================
 function renderMasterData(listSiswa, listMapel, listKelas) {
   masterSiswaGlobal = listSiswa || [];
   masterMapelGlobal = listMapel || [];
 
-  // Render Kartu Kelas Binaan
   const container = document.getElementById("container-kelas");
   if (container) {
     container.innerHTML = "";
@@ -149,7 +149,6 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
     }
   }
 
-  // Pre-fill Dropdown Mapel Guru
   const selectMapel = document.getElementById("select-mapel");
   if (selectMapel) {
     selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
@@ -165,9 +164,13 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
 }
 
 function bukaFormInputNilai(kelas) {
+  kelasAktif = kelas;
   document.getElementById("view-daftar-kelas").classList.add("hidden");
   document.getElementById("view-form-nilai").classList.remove("hidden");
   document.getElementById("judul-kelas-aktif").textContent = `Input Nilai - Kelas ${kelas}`;
+  
+  const elJudulRiwayat = document.getElementById("judul-riwayat");
+  if (elJudulRiwayat) elJudulRiwayat.textContent = `Riwayat Nilai - Kelas ${kelas}`;
 
   const siswaKelasIni = masterSiswaGlobal.filter(s => String(s.kelas).trim().toUpperCase() === String(kelas).trim().toUpperCase());
 
@@ -181,15 +184,23 @@ function bukaFormInputNilai(kelas) {
     opt.dataset.nama = siswa.nama_siswa;
     selectSiswa.appendChild(opt);
   });
+
+  tampilkanRiwayatNilai();
 }
 
 function kembaliKeDaftarKelas() {
+  kelasAktif = "";
   document.getElementById("view-form-nilai").classList.add("hidden");
   document.getElementById("view-daftar-kelas").classList.remove("hidden");
+
+  const elJudulRiwayat = document.getElementById("judul-riwayat");
+  if (elJudulRiwayat) elJudulRiwayat.textContent = "Riwayat Nilai Terinput (Semua Kelas)";
+  
+  tampilkanRiwayatNilai();
 }
 
 // ==========================================
-// 5. INPUT & SIMPAN NILAI (FIXED)
+// 6. INPUT & SIMPAN NILAI (OFFLINE FIRST)
 // ==========================================
 async function simpanNilai() {
   const selectSiswa = document.getElementById("select-siswa");
@@ -217,11 +228,11 @@ async function simpanNilai() {
     jenis_penilaian: jenis,
     nilai: Number(nilai),
     ref_id_guru: userSession.ref_id || "",
+    kelas: kelasAktif,
     synced: false,
     timestamp: new Date().toISOString()
   };
 
-  // Simpan ke IndexedDB dengan penanganan Promise yang benar
   try {
     const db = await openDB();
     await new Promise((resolve, reject) => {
@@ -236,56 +247,153 @@ async function simpanNilai() {
     await tampilkanRiwayatNilai();
     await updateSyncCount();
 
-    // Jika Online, langsung otomatis sinkronkan ke Google Sheets
     if (navigator.onLine) {
-      await syncData(true); // true = silent/otomatis
+      await syncData(true);
     } else {
-      alert("Nilai disimpan secara Offline di HP/Browser.");
+      alert("Nilai disimpan secara Offline di HP.");
     }
   } catch (err) {
-    console.error("Gagal menyimpan ke IndexedDB:", err);
+    console.error("Gagal menyimpan:", err);
     alert("Gagal menyimpan data nilai.");
   }
 }
 
+// ==========================================
+// 7. TAMPILKAN RIWAYAT NILAI, EDIT & HAPUS
+// ==========================================
 async function tampilkanRiwayatNilai() {
   const tbody = document.getElementById("tabel-riwayat-body");
   if (!tbody) return;
 
-  try {
-    const db = await openDB();
-    const listNilai = await new Promise((resolve, reject) => {
-      const tx = db.transaction("nilai_offline", "readonly");
-      const store = tx.objectStore("nilai_offline");
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+  let listNilai = [];
+  const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
 
-    if (!listNilai || listNilai.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data tersimpan di HP/Lokal</td></tr>';
-      return;
+  // 1. Ambil Data dari Google Sheets saat Online
+  if (navigator.onLine) {
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "getNilai",
+          ref_id_guru: userSession.ref_id || ""
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        listNilai = result.data.map(item => ({ ...item, synced: true }));
+      }
+    } catch (err) {
+      console.error("Gagal ambil dari server:", err);
+    }
+  } 
+  
+  // 2. Jika Offline / Ambil Server Kosong, Ambil dari IndexedDB
+  if (listNilai.length === 0) {
+    try {
+      const db = await openDB();
+      listNilai = await new Promise((resolve, reject) => {
+        const tx = db.transaction("nilai_offline", "readonly");
+        const store = tx.objectStore("nilai_offline");
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (err) {
+      console.error("Gagal membaca lokal:", err);
+    }
+  }
+
+  // 3. Filter Nilai berdasarkan Kelas Aktif
+  if (kelasAktif !== "") {
+    listNilai = listNilai.filter(item => {
+      if (item.kelas) {
+        return String(item.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
+      }
+      const siswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(item.ref_id_siswa));
+      return siswa && String(siswa.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
+    });
+  }
+
+  if (!listNilai || listNilai.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Belum ada data nilai</td></tr>';
+    return;
+  }
+
+  // 4. Render ke Tabel
+  tbody.innerHTML = "";
+  listNilai.reverse().forEach(item => {
+    const tr = document.createElement("tr");
+    
+    let btnAksi = "-";
+    if (navigator.onLine && item.row_index) {
+      btnAksi = `
+        <button onclick="editNilai(${item.row_index}, '${item.nama_siswa}', ${item.nilai})" style="padding: 2px 6px; font-size: 11px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
+        <button onclick="hapusNilai(${item.row_index}, '${item.nama_siswa}')" style="padding: 2px 6px; font-size: 11px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Hapus</button>
+      `;
     }
 
-    tbody.innerHTML = "";
-    listNilai.reverse().forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${item.nama_siswa || item.ref_id_siswa}</td>
-        <td>${item.mapel}</td>
-        <td>${item.jenis_penilaian}</td>
-        <td><strong>${item.nilai}</strong></td>
-        <td><span style="color: ${item.synced ? "green" : "orange"}; font-weight: bold;">${item.synced ? "Tersinkron" : "Lokal (Offline)"}</span></td>
-      `;
-      tbody.appendChild(tr);
+    tr.innerHTML = `
+      <td>${item.nama_siswa || item.ref_id_siswa}</td>
+      <td>${item.mapel}</td>
+      <td>${item.jenis_penilaian}</td>
+      <td><strong>${item.nilai}</strong></td>
+      <td><span style="color: ${item.synced ? "green" : "orange"}; font-weight: bold;">${item.synced ? "Tersinkron" : "Lokal"}</span></td>
+      <td>${btnAksi}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function editNilai(rowIndex, namaSiswa, nilaiLama) {
+  const nilaiBaru = prompt(`Edit nilai untuk ${namaSiswa}:`, nilaiLama);
+  if (nilaiBaru === null || nilaiBaru.trim() === "" || isNaN(nilaiBaru)) return;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "updateNilai",
+        row_index: rowIndex,
+        nilai: Number(nilaiBaru)
+      })
     });
+    const result = await response.json();
+    if (result.success) {
+      alert("Nilai berhasil diubah!");
+      await tampilkanRiwayatNilai();
+    } else {
+      alert("Gagal mengedit nilai: " + result.message);
+    }
   } catch (err) {
-    console.error("Gagal mengambil riwayat nilai:", err);
+    alert("Terjadi kesalahan jaringan.");
+  }
+}
+
+async function hapusNilai(rowIndex, namaSiswa) {
+  if (!confirm(`Yakin ingin menghapus nilai untuk ${namaSiswa}?`)) return;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "deleteNilai",
+        row_index: rowIndex
+      })
+    });
+    const result = await response.json();
+    if (result.success) {
+      alert("Nilai berhasil dihapus!");
+      await tampilkanRiwayatNilai();
+    } else {
+      alert("Gagal menghapus nilai: " + result.message);
+    }
+  } catch (err) {
+    alert("Terjadi kesalahan jaringan.");
   }
 }
 
 // ==========================================
-// 6. SINKRONISASI DATA KE GOOGLE SHEETS
+// 8. SINKRONISASI DATA KE GOOGLE SHEETS
 // ==========================================
 async function updateSyncCount() {
   const syncCountEl = document.getElementById("sync-count");
@@ -342,7 +450,6 @@ async function syncData(isAuto = false) {
     const result = await response.json();
 
     if (result.success) {
-      // Tandai data sebagai 'synced: true'
       for (const item of unsynced) {
         item.synced = true;
         await new Promise((resolve) => {
