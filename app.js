@@ -9,7 +9,7 @@ const DB_VERSION = 1;
 
 let masterSiswaGlobal = [];
 let masterMapelGlobal = [];
-let kelasAktif = ""; // Menyimpan status kelas yang sedang dibuka
+let kelasAktif = ""; 
 
 // ==========================================
 // 2. DATABASE INDEXEDDB
@@ -36,18 +36,19 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("offline", updateOnlineStatus);
   updateOnlineStatus();
 
-  // Load Sesi & Master Data dari LocalStorage agar data kelas tidak hilang saat refresh
   const savedUser = localStorage.getItem("user_session");
   const savedMaster = localStorage.getItem("master_data");
 
   if (savedUser) {
     const user = JSON.parse(savedUser);
-    showAppScreen(user);
-
+    
+    // Harus memuat master data dulu sebelum menampilkan layar, agar nama siswa terbaca
     if (savedMaster) {
       const master = JSON.parse(savedMaster);
       renderMasterData(master.list_siswa, master.list_mapel, master.list_kelas);
     }
+    
+    showAppScreen(user);
   }
 });
 
@@ -98,8 +99,9 @@ async function prosesLogin() {
       };
       localStorage.setItem("master_data", JSON.stringify(masterObj));
 
-      showAppScreen(result.user);
+      // Urutan wajib: Render Master dulu, baru Tampilkan Layar
       renderMasterData(masterObj.list_siswa, masterObj.list_mapel, masterObj.list_kelas);
+      showAppScreen(result.user);
     } else {
       alert("Login gagal: " + result.message);
     }
@@ -112,8 +114,22 @@ async function prosesLogin() {
 function showAppScreen(user) {
   document.getElementById("section-login").classList.add("hidden");
   document.getElementById("section-app").classList.remove("hidden");
-  document.getElementById("user-info").innerText = `${user.username || user.nama || 'Guru'}`;
-  tampilkanRiwayatNilai();
+  
+  const role = String(user.role || "").toUpperCase();
+  let namaTampil = user.username; // Default Tampilan
+
+  // Jika yang login Siswa, cari nama aslinya di daftar masterSiswa
+  if (role === "SISWA") {
+    const dataSiswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(user.ref_id));
+    if (dataSiswa && dataSiswa.nama_siswa) {
+      namaTampil = dataSiswa.nama_siswa;
+    }
+  } else {
+    // Jika Guru
+    namaTampil = user.nama || user.username || 'Guru';
+  }
+
+  document.getElementById("user-info").innerText = namaTampil;
   updateSyncCount();
 }
 
@@ -133,24 +149,44 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
   masterSiswaGlobal = listSiswa || [];
   masterMapelGlobal = listMapel || [];
 
+  const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
+  const role = String(userSession.role || "").toUpperCase();
+
   const container = document.getElementById("container-kelas");
+  
   if (container) {
     container.innerHTML = "";
-    if (listKelas && listKelas.length > 0) {
-      listKelas.forEach(kelas => {
-        const card = document.createElement("div");
-        card.style = "background: #007bff; color: white; padding: 15px 10px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
-        card.innerHTML = `<div style="font-size: 16px;">Kelas ${kelas}</div><div style="font-size: 11px; opacity: 0.8; font-weight: normal; margin-top: 4px;">Klik untuk input</div>`;
-        card.onclick = () => bukaFormInputNilai(kelas);
-        container.appendChild(card);
-      });
-    } else {
-      container.innerHTML = "<p style='grid-column: span 2;'>Tidak ada kelas binaan.</p>";
+    
+    // LOGIKA ROLE: Jika Siswa, sembunyikan menu kelas
+    if (role === "SISWA") {
+      container.style.display = "none";
+      if (container.previousElementSibling) {
+        container.previousElementSibling.style.display = "none"; // Sembunyikan tulisan "Pilih Kelas Binaan"
+      }
+    } 
+    // LOGIKA ROLE: Jika Guru, tampilkan menu kelas
+    else {
+      container.style.display = ""; 
+      if (container.previousElementSibling) {
+        container.previousElementSibling.style.display = "";
+      }
+
+      if (listKelas && listKelas.length > 0) {
+        listKelas.forEach(kelas => {
+          const card = document.createElement("div");
+          card.style = "background: #007bff; color: white; padding: 15px 10px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
+          card.innerHTML = `<div style="font-size: 16px;">Kelas ${kelas}</div><div style="font-size: 11px; opacity: 0.8; font-weight: normal; margin-top: 4px;">Klik untuk input</div>`;
+          card.onclick = () => bukaFormInputNilai(kelas);
+          container.appendChild(card);
+        });
+      } else {
+        container.innerHTML = "<p style='grid-column: span 2;'>Tidak ada kelas binaan.</p>";
+      }
     }
   }
 
   const selectMapel = document.getElementById("select-mapel");
-  if (selectMapel) {
+  if (selectMapel && role !== "SISWA") {
     selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
     masterMapelGlobal.forEach(mapel => {
       const opt = document.createElement("option");
@@ -200,7 +236,7 @@ function kembaliKeDaftarKelas() {
 }
 
 // ==========================================
-// 6. INPUT & SIMPAN NILAI (OFFLINE FIRST)
+// 6. INPUT & SIMPAN NILAI 
 // ==========================================
 async function simpanNilai() {
   const selectSiswa = document.getElementById("select-siswa");
@@ -267,15 +303,19 @@ async function tampilkanRiwayatNilai() {
 
   let listNilai = [];
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
+  const role = String(userSession.role || "").toUpperCase();
 
   // 1. Ambil Data dari Google Sheets saat Online
   if (navigator.onLine) {
     try {
+      // Jika siswa, minta semua data (lalu difilter di bawah), jika guru minta data miliknya saja
+      const payloadRefId = role === "SISWA" ? "" : (userSession.ref_id || "");
+      
       const response = await fetch(API_URL, {
         method: "POST",
         body: JSON.stringify({
           action: "getNilai",
-          ref_id_guru: userSession.ref_id || ""
+          ref_id_guru: payloadRefId 
         })
       });
       const result = await response.json();
@@ -303,15 +343,21 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // 3. Filter Nilai berdasarkan Kelas Aktif
-  if (kelasAktif !== "") {
-    listNilai = listNilai.filter(item => {
-      if (item.kelas) {
-        return String(item.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
-      }
-      const siswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(item.ref_id_siswa));
-      return siswa && String(siswa.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
-    });
+  // 3. FILTER NILAI BERDASARKAN ROLE (GURU / SISWA)
+  if (role === "SISWA") {
+    // Siswa HANYA boleh melihat riwayat nilainya sendiri
+    listNilai = listNilai.filter(item => String(item.ref_id_siswa) === String(userSession.ref_id));
+  } else {
+    // Guru melihat berdasarkan Filter Kelas Aktif
+    if (kelasAktif !== "") {
+      listNilai = listNilai.filter(item => {
+        if (item.kelas) {
+          return String(item.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
+        }
+        const siswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(item.ref_id_siswa));
+        return siswa && String(siswa.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
+      });
+    }
   }
 
   if (!listNilai || listNilai.length === 0) {
@@ -325,7 +371,8 @@ async function tampilkanRiwayatNilai() {
     const tr = document.createElement("tr");
     
     let btnAksi = "-";
-    if (navigator.onLine && item.row_index) {
+    // SISWA TIDAK PUNYA TOMBOL EDIT & HAPUS
+    if (role !== "SISWA" && navigator.onLine && item.row_index) {
       btnAksi = `
         <button onclick="editNilai(${item.row_index}, '${item.nama_siswa}', ${item.nilai})" style="padding: 2px 6px; font-size: 11px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
         <button onclick="hapusNilai(${item.row_index}, '${item.nama_siswa}')" style="padding: 2px 6px; font-size: 11px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Hapus</button>
