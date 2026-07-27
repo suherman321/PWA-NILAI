@@ -2,7 +2,7 @@
 // CONFIGURATION & GLOBAL VARIABLES
 // ==========================================
 // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
-const API_URL = "https://script.google.com/macros/s/AKfycb.../exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbyzdMJgP3qnc5uWmiw9Lm8pLWEweI8oLMzcOhZDIvYyHU8wf-caygBWjMwj90Kyyam2xg/exec"; 
 
 const DB_NAME = "PWA_Nilai_DB";
 const DB_VERSION = 1;
