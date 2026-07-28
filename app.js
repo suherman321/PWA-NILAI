@@ -390,9 +390,9 @@ async function tampilkanRiwayatNilai() {
   if (!tbody) return;
 
   // Set indikator memuat data
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #64748b;">Memuat data nilai...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data nilai...</td></tr>';
 
-  // Ambil session user (mendukung variasi penyimpanan localStorage)
+  // 1. Ambil session user & master data
   let rawSession = localStorage.getItem("user_session") || localStorage.getItem("user") || "{}";
   let userSession = {};
   try {
@@ -401,17 +401,19 @@ async function tampilkanRiwayatNilai() {
     userSession = {};
   }
 
-  // Jika data user terbungkus dalam properti .user
-  if (userSession.user) {
-    userSession = userSession.user;
-  }
+  if (userSession.user) userSession = userSession.user;
 
   const role = String(userSession.role || "").toUpperCase();
-  const userRefId = String(userSession.ref_id || userSession.username || "").trim();
+  const userRefId = String(userSession.ref_id || userSession.username || userSession.nis || "").trim();
+
+  // Cari data siswa di master_data untuk fallback nama & pencarian
+  const masterData = JSON.parse(localStorage.getItem("master_data") || "{}");
+  const listSiswaMaster = masterData.list_siswa || masterSiswaGlobal || [];
+  const currentSiswa = listSiswaMaster.find(s => String(s.ref_id) === String(userRefId) || String(s.username) === String(userRefId));
 
   let listNilai = [];
 
-  // Fetch ke Server Google Apps Script
+  // 2. Fetch data dari Google Apps Script Server
   if (navigator.onLine) {
     try {
       const response = await fetch(API_URL, {
@@ -432,50 +434,76 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // Jika data kosong atau offline, ambil dari IndexedDB lokal
-  if (listNilai.length === 0) {
+  // 3. Fallback: Ambil dari IndexedDB lokal jika offline / server kosong
+  if (listNilai.length === 0 && typeof openDB === "function") {
     try {
-      if (typeof openDB === "function") {
-        const db = await openDB();
-        const localData = await new Promise((resolve, reject) => {
-          const tx = db.transaction("nilai_offline", "readonly");
-          const store = tx.objectStore("nilai_offline");
-          const req = store.getAll();
-          req.onsuccess = () => resolve(req.result || []);
-          req.onerror = () => reject(req.error);
-        });
+      const db = await openDB();
+      const localData = await new Promise((resolve, reject) => {
+        const tx = db.transaction("nilai_offline", "readonly");
+        const store = tx.objectStore("nilai_offline");
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
 
-        if (role === "SISWA") {
-          listNilai = localData.filter(item => String(item.ref_id_siswa).trim().toLowerCase() === userRefId.toLowerCase());
-        }
+      if (role === "SISWA") {
+        listNilai = localData.filter(item => {
+          const itemRef = String(item.ref_id_siswa || item.nis || "").trim().toLowerCase();
+          return itemRef === userRefId.toLowerCase();
+        });
+      } else {
+        listNilai = localData;
       }
     } catch (err) {
       console.error("Gagal membaca dari IndexedDB:", err);
     }
   }
 
-  // Render Data ke Tabel
+  // Filter khusus untuk Guru jika sedang memilih kelas tertentu
+  if (role !== "SISWA" && kelasAktif) {
+    listNilai = listNilai.filter(item => String(item.kelas || "").trim().toUpperCase() === String(kelasAktif).trim().toUpperCase());
+  }
+
+  // 4. Render Data ke Tabel
   if (!listNilai || listNilai.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #94a3b8;">Belum ada data nilai terinput</td></tr>';
     return;
   }
 
   tbody.innerHTML = "";
-  listNilai.slice().reverse().forEach(item => {
+  listNilai.slice().reverse().forEach((item, index) => {
     const tr = document.createElement("tr");
     tr.style.borderBottom = "1px solid #f1f5f9";
 
-    const badgeStatus = item.synced 
+    const badgeStatus = item.synced !== false 
       ? `<span style="background: #dcfce7; color: #166534; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px;">Tersinkron</span>`
       : `<span style="background: #fef3c7; color: #92400e; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px;">Lokal</span>`;
 
+    const namaSiswaTampil = item.nama_siswa || (currentSiswa ? currentSiswa.nama_siswa : item.ref_id_siswa);
+    const mapelTampil = item.mapel || item.mata_pelajaran || "-";
+    const jenisTampil = item.jenis_penilaian || item.jenis || "-";
+    const nilaiTampil = item.nilai !== undefined ? item.nilai : "-";
+
+    // Tombol Aksi (Edit/Hapus) khusus Guru
+    let kolomAksi = "-";
+    if (role !== "SISWA" && item.row_index) {
+      kolomAksi = `
+        <button onclick="editNilai(${item.row_index}, '${namaSiswaTampil}', ${nilaiTampil})" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; margin-right:4px;">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        <button onclick="hapusNilai(${item.row_index}, '${namaSiswaTampil}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      `;
+    }
+
     tr.innerHTML = `
-      <td style="padding: 8px 4px; font-weight: 600;">${item.nama_siswa || item.ref_id_siswa}</td>
-      <td style="padding: 8px 4px;">${item.mapel}</td>
-      <td style="padding: 8px 4px;">${item.jenis_penilaian}</td>
-      <td style="padding: 8px 4px;"><strong>${item.nilai}</strong></td>
+      <td style="padding: 8px 4px; font-weight: 600;">${namaSiswaTampil}</td>
+      <td style="padding: 8px 4px;">${mapelTampil}</td>
+      <td style="padding: 8px 4px;">${jenisTampil}</td>
+      <td style="padding: 8px 4px; font-weight: 800; color: #2563eb;">${nilaiTampil}</td>
       <td style="padding: 8px 4px;">${badgeStatus}</td>
-      <td style="padding: 8px 4px; text-align: center;">-</td>
+      <td style="padding: 8px 4px; text-align: center;">${kolomAksi}</td>
     `;
     tbody.appendChild(tr);
   });
