@@ -1,7 +1,6 @@
 // ==========================================
-// 0. HELPER UI (BARU)
+// 0. HELPER UI & FORM INTERACTION
 // ==========================================
-// Mengubah teks Peran saat dropdown berubah
 function updateRoleText() {
   const roleSelect = document.getElementById("login-role");
   if (!roleSelect) return;
@@ -14,7 +13,6 @@ function updateRoleText() {
   if (btnLoginText) btnLoginText.innerText = `Masuk sebagai ${selectedRole}`;
 }
 
-// Toggle mata intip Password
 function togglePasswordVisibility() {
   const passInput = document.getElementById("login-password");
   const icon = document.getElementById("toggle-password");
@@ -34,7 +32,6 @@ function togglePasswordVisibility() {
 // ==========================================
 // 1. CONFIGURATION & GLOBAL VARIABLES
 // ==========================================
-// GANTI DENGAN URL APPS SCRIPT ANDA DI SINI
 const API_URL = "https://script.google.com/macros/s/AKfycbyzdMJgP3qnc5uWmiw9Lm8pLWEweI8oLMzcOhZDIvYyHU8wf-caygBWjMwj90Kyyam2xg/exec"; 
 
 const DB_NAME = "PWA_Nilai_DB";
@@ -62,7 +59,7 @@ function openDB() {
 }
 
 // ==========================================
-// 3. INITIALIZATION (ON LOAD / REFRESH)
+// 3. INITIALIZATION (ON LOAD)
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("online", updateOnlineStatus);
@@ -74,27 +71,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (savedUser) {
     const user = JSON.parse(savedUser);
-    
-    // Harus memuat master data dulu sebelum menampilkan layar, agar nama siswa terbaca
     if (savedMaster) {
       const master = JSON.parse(savedMaster);
       renderMasterData(master.list_siswa, master.list_mapel, master.list_kelas);
     }
-    
     showAppScreen(user);
   }
 });
 
 function updateOnlineStatus() {
-  const badge = document.getElementById("status-koneksi");
-  if (!badge) return;
-  if (navigator.onLine) {
-    badge.textContent = "Online";
-    badge.style.backgroundColor = "#28a745";
-  } else {
-    badge.textContent = "Offline";
-    badge.style.backgroundColor = "#dc3545";
-  }
+  const badgeHeader = document.getElementById("status-koneksi");
+  const badgeLogin = document.getElementById("status-koneksi-login");
+  const isOnline = navigator.onLine;
+
+  [badgeHeader, badgeLogin].forEach(badge => {
+    if (!badge) return;
+    if (isOnline) {
+      badge.innerHTML = '<span class="dot"></span> Online';
+      badge.style.color = "#10b981";
+    } else {
+      badge.innerHTML = '<span class="dot" style="background:#ef4444"></span> Offline';
+      badge.style.color = "#ef4444";
+    }
+  });
 }
 
 // ==========================================
@@ -122,8 +121,6 @@ async function prosesLogin() {
     const result = await response.json();
 
     if (result.success) {
-      alert("Login berhasil!");
-      
       localStorage.setItem("user_session", JSON.stringify(result.user));
       const masterObj = {
         list_siswa: result.list_siswa || [],
@@ -132,7 +129,6 @@ async function prosesLogin() {
       };
       localStorage.setItem("master_data", JSON.stringify(masterObj));
 
-      // Urutan wajib: Render Master dulu, baru Tampilkan Layar
       renderMasterData(masterObj.list_siswa, masterObj.list_mapel, masterObj.list_kelas);
       showAppScreen(result.user);
     } else {
@@ -140,7 +136,7 @@ async function prosesLogin() {
     }
   } catch (error) {
     console.error("Error login:", error);
-    alert("Gagal terhubung ke server. Pastikan API_URL benar dan koneksi internet stabil.");
+    alert("Gagal terhubung ke server. Pastikan koneksi internet stabil.");
   }
 }
 
@@ -151,38 +147,50 @@ function showAppScreen(user) {
   const role = String(user.role || "").toUpperCase();
   let namaTampil = user.username;
 
-  const tabSiswaNav = document.getElementById("siswa-tab-nav");
+  const dashboardSiswa = document.getElementById("siswa-dashboard");
+  const dashboardGuru = document.getElementById("guru-dashboard");
 
   if (role === "SISWA") {
-    // Tampilkan tombol navigasi tab jika login sebagai Siswa
-    if (tabSiswaNav) tabSiswaNav.classList.remove("hidden");
-    
+    if (dashboardSiswa) dashboardSiswa.classList.remove("hidden");
+    if (dashboardGuru) dashboardGuru.classList.add("hidden");
+
     const dataSiswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(user.ref_id));
     if (dataSiswa && dataSiswa.nama_siswa) {
       namaTampil = dataSiswa.nama_siswa;
     }
-    // Default buka Tab Nilai
-    switchSiswaTab('nilai');
+    
+    const elemWelcome = document.getElementById("siswa-nama-welcome");
+    if (elemWelcome) elemWelcome.innerText = namaTampil;
+
+    tutupMenuSiswa();
   } else {
-    // Sembunyikan navigasi tab jika login sebagai Guru
-    if (tabSiswaNav) tabSiswaNav.classList.add("hidden");
-    document.getElementById("view-tab-nilai").classList.remove("hidden");
-    document.getElementById("view-tab-kasus").classList.add("hidden");
+    if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
+    if (dashboardGuru) dashboardGuru.classList.remove("hidden");
     
     namaTampil = user.nama || user.username || 'Guru';
+    document.getElementById("user-info").innerText = namaTampil;
   }
 
-  document.getElementById("user-info").innerText = namaTampil;
   updateSyncCount();
 }
 
 function logout() {
   localStorage.removeItem("user_session");
   localStorage.removeItem("master_data");
+
   document.getElementById("section-app").classList.add("hidden");
   document.getElementById("section-login").classList.remove("hidden");
-  document.getElementById("login-username").value = "";
-  document.getElementById("login-password").value = "";
+
+  if (document.getElementById("login-username")) document.getElementById("login-username").value = "";
+  if (document.getElementById("login-password")) document.getElementById("login-password").value = "";
+
+  const pesanEl = document.getElementById("pesan-logout");
+  if (pesanEl) {
+    pesanEl.classList.remove("hidden");
+    setTimeout(() => {
+      pesanEl.classList.add("hidden");
+    }, 5000);
+  }
 }
 
 // ==========================================
@@ -196,35 +204,18 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
   const role = String(userSession.role || "").toUpperCase();
 
   const container = document.getElementById("container-kelas");
-  
-  if (container) {
+  if (container && role !== "SISWA") {
     container.innerHTML = "";
-    
-    // LOGIKA ROLE: Jika Siswa, sembunyikan menu kelas
-    if (role === "SISWA") {
-      container.style.display = "none";
-      if (container.previousElementSibling) {
-        container.previousElementSibling.style.display = "none"; // Sembunyikan tulisan "Pilih Kelas Binaan"
-      }
-    } 
-    // LOGIKA ROLE: Jika Guru, tampilkan menu kelas
-    else {
-      container.style.display = ""; 
-      if (container.previousElementSibling) {
-        container.previousElementSibling.style.display = "";
-      }
-
-      if (listKelas && listKelas.length > 0) {
-        listKelas.forEach(kelas => {
-          const card = document.createElement("div");
-          card.style = "background: #007bff; color: white; padding: 15px 10px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
-          card.innerHTML = `<div style="font-size: 16px;">Kelas ${kelas}</div><div style="font-size: 11px; opacity: 0.8; font-weight: normal; margin-top: 4px;">Klik untuk input</div>`;
-          card.onclick = () => bukaFormInputNilai(kelas);
-          container.appendChild(card);
-        });
-      } else {
-        container.innerHTML = "<p style='grid-column: span 2;'>Tidak ada kelas binaan.</p>";
-      }
+    if (listKelas && listKelas.length > 0) {
+      listKelas.forEach(kelas => {
+        const card = document.createElement("div");
+        card.style = "background: #007bff; color: white; padding: 15px 10px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
+        card.innerHTML = `<div style="font-size: 16px;">Kelas ${kelas}</div><div style="font-size: 11px; opacity: 0.8; font-weight: normal; margin-top: 4px;">Klik untuk input</div>`;
+        card.onclick = () => bukaFormInputNilai(kelas);
+        container.appendChild(card);
+      });
+    } else {
+      container.innerHTML = "<p style='grid-column: span 2;'>Tidak ada kelas binaan.</p>";
     }
   }
 
@@ -279,7 +270,7 @@ function kembaliKeDaftarKelas() {
 }
 
 // ==========================================
-// 6. INPUT & SIMPAN NILAI 
+// 6. INPUT & SIMPAN NILAI (GURU)
 // ==========================================
 async function simpanNilai() {
   const selectSiswa = document.getElementById("select-siswa");
@@ -338,7 +329,7 @@ async function simpanNilai() {
 }
 
 // ==========================================
-// 7. TAMPILKAN RIWAYAT NILAI, EDIT & HAPUS
+// 7. RIWAYAT NILAI, EDIT & HAPUS
 // ==========================================
 async function tampilkanRiwayatNilai() {
   const tbody = document.getElementById("tabel-riwayat-body");
@@ -348,7 +339,6 @@ async function tampilkanRiwayatNilai() {
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
   const role = String(userSession.role || "").toUpperCase();
 
-  // 1. Ambil Data dari Google Sheets saat Online dengan filter kualifikasi pengguna
   if (navigator.onLine) {
     try {
       const response = await fetch(API_URL, {
@@ -369,7 +359,6 @@ async function tampilkanRiwayatNilai() {
     }
   } 
   
-  // 2. Jika Offline / Ambil Server Kosong, Ambil dari IndexedDB
   if (listNilai.length === 0) {
     try {
       const db = await openDB();
@@ -381,7 +370,6 @@ async function tampilkanRiwayatNilai() {
         req.onerror = () => reject(req.error);
       });
 
-      // Filter lokal berdasarkan Role
       if (role === "SISWA") {
         listNilai = localData.filter(item => String(item.ref_id_siswa) === String(userSession.ref_id));
       } else {
@@ -392,7 +380,6 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // 3. Filter Tambahan Kelas Aktif khusus Guru (jika sedang memilih kelas tertentu)
   if (role !== "SISWA" && kelasAktif !== "") {
     listNilai = listNilai.filter(item => {
       if (item.kelas) {
@@ -408,7 +395,6 @@ async function tampilkanRiwayatNilai() {
     return;
   }
 
-  // 4. Render ke Tabel
   tbody.innerHTML = "";
   listNilai.reverse().forEach(item => {
     const tr = document.createElement("tr");
@@ -560,29 +546,34 @@ async function syncData(isAuto = false) {
     if (!isAuto) alert("Gagal melakukan sinkronisasi ke server.");
   }
 }
+
 // ==========================================
-// 9. LOGIKA NAVIGASI TAB SISWA & FETCH BUKU KASUS
+// 9. LOGIKA NAVIGASI SISWA & FETCH BUKU KASUS
 // ==========================================
 function switchSiswaTab(tabName) {
-  const btnNilai = document.getElementById("btn-tab-nilai");
-  const btnKasus = document.getElementById("btn-tab-kasus");
   const viewNilai = document.getElementById("view-tab-nilai");
   const viewKasus = document.getElementById("view-tab-kasus");
+  const btnBackNilai = document.getElementById("btn-back-siswa-nilai");
+  const btnBackKasus = document.getElementById("btn-back-siswa-kasus");
 
   if (tabName === 'nilai') {
-    viewNilai.classList.remove("hidden");
-    viewKasus.classList.add("hidden");
-    btnNilai.style.backgroundColor = "#007bff";
-    btnKasus.style.backgroundColor = "#6c757d";
+    if (viewNilai) viewNilai.classList.remove("hidden");
+    if (viewKasus) viewKasus.classList.add("hidden");
+    if (btnBackNilai) btnBackNilai.classList.remove("hidden");
+    tampilkanRiwayatNilai();
   } else if (tabName === 'kasus') {
-    viewNilai.classList.add("hidden");
-    viewKasus.classList.remove("hidden");
-    btnNilai.style.backgroundColor = "#6c757d";
-    btnKasus.style.backgroundColor = "#007bff";
-    
-    // Muat data buku kasus dari server Apps Script
+    if (viewNilai) viewNilai.classList.add("hidden");
+    if (viewKasus) viewKasus.classList.remove("hidden");
+    if (btnBackKasus) btnBackKasus.classList.remove("hidden");
     loadBukuKasusSiswa();
   }
+}
+
+function tutupMenuSiswa() {
+  const viewNilai = document.getElementById("view-tab-nilai");
+  const viewKasus = document.getElementById("view-tab-kasus");
+  if (viewNilai) viewNilai.classList.add("hidden");
+  if (viewKasus) viewKasus.classList.add("hidden");
 }
 
 async function loadBukuKasusSiswa() {
@@ -593,7 +584,6 @@ async function loadBukuKasusSiswa() {
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
   const masterData = JSON.parse(localStorage.getItem("master_data") || "{}");
   
-  // Cari NISN siswa berdasarkan ref_id login
   const listSiswa = masterData.list_siswa || [];
   const currentSiswa = listSiswa.find(s => String(s.ref_id) === String(userSession.ref_id));
   
@@ -622,7 +612,7 @@ async function loadBukuKasusSiswa() {
       result.data.forEach(item => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><strong>${item.hari}</strong>, ${item.tanggal}<br><small color="#666">${item.waktu}</small></td>
+          <td><strong>${item.hari}</strong>, ${item.tanggal}<br><small style="color:#666">${item.waktu}</small></td>
           <td style="color: #dc3545; font-weight: bold;">${item.kasus}</td>
           <td>${item.tindak_lanjut}</td>
           <td>${item.guru_piket}</td>

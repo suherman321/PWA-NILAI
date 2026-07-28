@@ -201,7 +201,7 @@
       margin-top: 15px;
     }
 
-    /* DASHBOARD CONTAINERS (TETAP SAMA) */
+    /* DASHBOARD CONTAINERS */
     .app-card {
       background: #ffffff;
       color: #333333;
@@ -218,7 +218,7 @@
   <!-- 1. FORM LOGIN MODERN -->
   <div id="section-login" class="login-card">
     <div class="status-container">
-      <div id="status-koneksi" class="badge-online">
+      <div id="status-koneksi-login" class="badge-online">
         <span class="dot"></span> Online
       </div>
     </div>
@@ -230,6 +230,12 @@
       <div class="divider-text">
         <span>Sistem Informasi Digital</span>
       </div>
+    </div>
+
+    <!-- BANNER PESAN LOGOUT (KEREN & RAMAH) -->
+    <div id="pesan-logout" class="hidden" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-size: 12px; line-height: 1.5;">
+      Anda telah keluar dari aplikasi.<br>
+      <strong style="color: #ffffff;">Sampai jumpa kembali di SIDIG – SMP Negeri 2 Puriala 👋</strong>
     </div>
 
     <!-- Pilihan Peran / Role -->
@@ -278,49 +284,113 @@
 
   <!-- 2. SECTION DASHBOARD (DITAMPILKAN SETELAH LOGIN) -->
   <div id="section-app" class="app-card hidden">
+    
+    <!-- HEADER BAR ATAS -->
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <h3 id="user-info" style="margin: 0; color: #1e293b;">Dashboard</h3>
-      <button onclick="logout()" style="width: auto; background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Logout</button>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div id="status-koneksi" class="badge-online" style="background: #ecfdf5; border-color: #a7f3d0; color: #059669;">
+          <span class="dot"></span> Online
+        </div>
+        <button onclick="logout()" style="width: auto; background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Logout</button>
+      </div>
     </div>
     <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
 
-    <!-- TAB NAVIGASI SISWA -->
-    <div id="siswa-tab-nav" class="hidden" style="display: flex; gap: 10px; margin-bottom: 15px;">
-      <button id="btn-tab-nilai" onclick="switchSiswaTab('nilai')" style="flex: 1; padding: 10px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">📊 Nilai Rapor</button>
-      <button id="btn-tab-kasus" onclick="switchSiswaTab('kasus')" style="flex: 1; padding: 10px; background-color: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer;">📋 Buku Kasus</button>
+    <!-- ========================================== -->
+    <!-- A. DASHBOARD KHUSUS SISWA (DESIGN KARTU)   -->
+    <!-- ========================================== -->
+    <div id="siswa-dashboard" class="hidden" style="text-align: center; padding: 10px 0;">
+      
+      <!-- Ucapan Selamat Datang -->
+      <div style="margin: 10px 0 25px;">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #000; text-transform: uppercase;">SELAMAT DATANG</div>
+        <h1 id="siswa-nama-welcome" style="font-size: 32px; font-weight: 800; color: #3b82f6; margin: 4px 0; text-transform: uppercase;">-</h1>
+        <p style="margin: 0; color: #475569; font-size: 13px;">di Website SIDIG SMP Negeri 2 Puriala</p>
+        <small style="color: #94a3b8; font-size: 11px;">Sistem Informasi Digital Sekolah</small>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
+
+      <!-- Menu Grid Kartu Siswa -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        
+        <!-- Kartu Nilai Rapor -->
+        <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+          <div style="width: 48px; height: 48px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #2563eb; font-size: 18px;">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+          <h3 style="margin: 0 0 4px; font-size: 16px; color: #0f172a;">Nilai Rapor</h3>
+          <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Lihat nilai dan hasil belajar terbaru</p>
+          <button onclick="switchSiswaTab('nilai')" style="width: 100%; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;">Buka Menu</button>
+        </div>
+
+        <!-- Kartu Buku Kasus -->
+        <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+          <div style="width: 48px; height: 48px; background: #fff7ed; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #ea580c; font-size: 18px;">
+            <i class="fa-solid fa-clipboard-list"></i>
+          </div>
+          <h3 style="margin: 0 0 4px; font-size: 16px; color: #0f172a;">Buku Kasus</h3>
+          <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Lihat catatan pembinaan dan kedisiplinan</p>
+          <button onclick="switchSiswaTab('kasus')" style="width: 100%; background: #ea580c; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;">Buka Menu</button>
+        </div>
+
+      </div>
     </div>
 
-    <!-- TAB 1: DATA NILAI -->
+    <!-- ========================================== -->
+    <!-- B. TAMPILAN TAB 1: DATA NILAI              -->
+    <!-- ========================================== -->
     <div id="view-tab-nilai">
+      <!-- Tombol kembali khusus untuk siswa jika membuka tabel nilai -->
+      <button id="btn-back-siswa-nilai" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #334155;">← Kembali ke Dashboard</button>
+
       <div id="view-daftar-kelas">
         <h4 style="margin-bottom: 10px; color: #1e293b;">Pilih Kelas Binaan:</h4>
         <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;"></div>
       </div>
 
+      <!-- FORM INPUT NILAI GURU (PERSIS 100% SEPERTI KODE ASLI ANDA) -->
       <div id="view-form-nilai" class="hidden">
-        <button onclick="kembaliKeDaftarKelas()" style="background-color: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; margin-bottom: 15px; cursor: pointer;">← Kembali ke Pilih Kelas</button>
-        <h4 id="judul-kelas-aktif" style="color: #2563eb; margin-top: 0;"></h4>
+        <button onclick="kembaliKeDaftarKelas()" style="background-color: #6c757d; margin-bottom: 15px; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">← Kembali ke Pilih Kelas</button>
+        <h4 id="judul-kelas-aktif" style="color: #007bff; margin-top: 0;"></h4>
 
-        <label for="select-siswa" style="display:block; margin-top:10px; font-size:12px; font-weight:bold;">Pilih Siswa:</label>
-        <select id="select-siswa" style="width:100%; padding:8px; margin-top:4px;"><option value="">-- Pilih Siswa --</option></select>
+        <label for="select-siswa">Pilih Siswa:</label>
+        <select id="select-siswa" style="width:100%; padding:8px; margin-top:4px;">
+          <option value="">-- Pilih Siswa --</option>
+        </select>
 
-        <label for="select-mapel" style="display:block; margin-top:10px; font-size:12px; font-weight:bold;">Mata Pelajaran:</label>
-        <select id="select-mapel" style="width:100%; padding:8px; margin-top:4px;"><option value="">-- Pilih Mapel --</option></select>
+        <label for="select-mapel" style="margin-top: 10px; display: block;">Mata Pelajaran:</label>
+        <select id="select-mapel" style="width:100%; padding:8px; margin-top:4px;">
+          <option value="">-- Pilih Mapel --</option>
+        </select>
 
-        <label for="select-jenis" style="display:block; margin-top:10px; font-size:12px; font-weight:bold;">Jenis Penilaian:</label>
+        <label for="select-jenis" style="margin-top: 10px; display: block;">Jenis Penilaian:</label>
         <select id="select-jenis" style="width:100%; padding:8px; margin-top:4px;">
           <option value="Tugas 1">Tugas 1</option>
           <option value="Tugas 2">Tugas 2</option>
+          <option value="Tugas 3">Tugas 3</option>
+          <option value="Tugas 4">Tugas 4</option>
+          <option value="Tugas 5">Tugas 5</option>
+          <option value="Tugas 6">Tugas 6</option>
+          <option value="Tugas 7">Tugas 7</option>
+          <option value="Tugas 8">Tugas 8</option>
+          <option value="Tugas 9">Tugas 9</option>
+          <option value="Tugas 10">Tugas 10</option>
           <option value="UH 1">UH 1</option>
+          <option value="UH 2">UH 2</option>
+          <option value="UH 3">UH 3</option>
+          <option value="UH 4">UH 4</option>
+          <option value="UH 5">UH 5</option>
           <option value="PTS">PTS</option>
           <option value="PAS">PAS</option>
         </select>
 
-        <label for="input-nilai" style="display:block; margin-top:10px; font-size:12px; font-weight:bold;">Nilai (0-100):</label>
+        <label for="input-nilai" style="margin-top: 10px; display: block;">Nilai (0-100):</label>
         <input type="number" id="input-nilai" placeholder="85" min="0" max="100" style="width:100%; padding:8px; margin-top:4px;">
 
-        <button onclick="simpanNilai()" style="width:100%; padding:10px; background:#2563eb; color:white; border:none; border-radius:6px; margin-top:15px; cursor:pointer;">Simpan Nilai</button>
-        <button id="btn-sync" onclick="syncData()" style="width:100%; padding:10px; background:#f59e0b; color:black; border:none; border-radius:6px; margin-top:8px; cursor:pointer;">
+        <button onclick="simpanNilai()" style="margin-top: 15px; width:100%; padding:10px; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;">Simpan Nilai</button>
+        <button id="btn-sync" onclick="syncData()" style="background-color: #ffc107; color: #000; margin-top: 5px; width:100%; padding:10px; border:none; border-radius:6px; cursor:pointer;">
           Sync Data Offline (<span id="sync-count">0</span>)
         </button>
       </div>
@@ -347,8 +417,13 @@
       </div>
     </div>
 
-    <!-- TAB 2: DATA BUKU KASUS -->
+    <!-- ========================================== -->
+    <!-- C. TAMPILAN TAB 2: DATA BUKU KASUS         -->
+    <!-- ========================================== -->
     <div id="view-tab-kasus" class="hidden">
+      <!-- Tombol kembali khusus untuk siswa jika membuka buku kasus -->
+      <button id="btn-back-siswa-kasus" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #334155;">← Kembali ke Dashboard</button>
+      
       <h4 style="color: #ef4444; margin-top: 0;">Catatan Kedisiplinan / Buku Kasus</h4>
       <div id="loading-kasus" style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: none;">Memuat data catatan...</div>
       <div style="overflow-x: auto;">
@@ -367,6 +442,7 @@
         </table>
       </div>
     </div>
+
   </div>
 
   <script src="app.js"></script>
