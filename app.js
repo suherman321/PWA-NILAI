@@ -551,10 +551,14 @@ async function syncData(isAuto = false) {
 // 9. LOGIKA NAVIGASI SISWA & FETCH BUKU KASUS
 // ==========================================
 function switchSiswaTab(tabName) {
+  const menuKartuSiswa = document.getElementById("siswa-dashboard");
   const viewNilai = document.getElementById("view-tab-nilai");
   const viewKasus = document.getElementById("view-tab-kasus");
   const btnBackNilai = document.getElementById("btn-back-siswa-nilai");
   const btnBackKasus = document.getElementById("btn-back-siswa-kasus");
+
+  // Sembunyikan kartu menu utama siswa
+  if (menuKartuSiswa) menuKartuSiswa.classList.add("hidden");
 
   if (tabName === 'nilai') {
     if (viewNilai) viewNilai.classList.remove("hidden");
@@ -570,8 +574,14 @@ function switchSiswaTab(tabName) {
 }
 
 function tutupMenuSiswa() {
+  const menuKartuSiswa = document.getElementById("siswa-dashboard");
   const viewNilai = document.getElementById("view-tab-nilai");
   const viewKasus = document.getElementById("view-tab-kasus");
+
+  // Tampilkan kembali kartu dashboard utama (Gambar 2)
+  if (menuKartuSiswa) menuKartuSiswa.classList.remove("hidden");
+
+  // Sembunyikan halaman detail
   if (viewNilai) viewNilai.classList.add("hidden");
   if (viewKasus) viewKasus.classList.add("hidden");
 }
