@@ -1,4 +1,37 @@
 // ==========================================
+// 0. HELPER UI (BARU)
+// ==========================================
+// Mengubah teks Peran saat dropdown berubah
+function updateRoleText() {
+  const roleSelect = document.getElementById("login-role");
+  if (!roleSelect) return;
+  const selectedRole = roleSelect.value;
+  
+  const lblRole = document.getElementById("lbl-role-dipilih");
+  const btnLoginText = document.getElementById("btn-login-text");
+  
+  if (lblRole) lblRole.innerText = selectedRole;
+  if (btnLoginText) btnLoginText.innerText = `Masuk sebagai ${selectedRole}`;
+}
+
+// Toggle mata intip Password
+function togglePasswordVisibility() {
+  const passInput = document.getElementById("login-password");
+  const icon = document.getElementById("toggle-password");
+  if (!passInput || !icon) return;
+  
+  if (passInput.type === "password") {
+    passInput.type = "text";
+    icon.classList.remove("fa-eye-slash");
+    icon.classList.add("fa-eye");
+  } else {
+    passInput.type = "password";
+    icon.classList.remove("fa-eye");
+    icon.classList.add("fa-eye-slash");
+  }
+}
+
+// ==========================================
 // 1. CONFIGURATION & GLOBAL VARIABLES
 // ==========================================
 // GANTI DENGAN URL APPS SCRIPT ANDA DI SINI

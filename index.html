@@ -4,165 +4,370 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIDIG SMP NEGERI 2 PURIALA</title>
-<link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-    .hidden { display: none; }
-    input, select, button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
-    button { background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:disabled { background-color: #ccc; }
-    .badge { display: inline-block; padding: 5px 10px; font-size: 12px; border-radius: 4px; color: white; }
-    .online { background-color: #28a745; }
-    .offline { background-color: #dc3545; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #020b24 0%, #0a2569 50%, #020b24 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #ffffff;
+    }
+
+    /* GLASSMORPHISM CARD */
+    .login-card {
+      background: rgba(13, 30, 77, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    /* BADGE ONLINE */
+    .status-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    .badge-online {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #10b981;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      background-color: #10b981;
+      border-radius: 50%;
+    }
+
+    /* HEADER / LOGO */
+    .header-section {
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 25px;
+    }
+    .logo-img {
+      width: 90px;
+      height: auto;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+    .title-main {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #ffffff;
+    }
+    .title-sub {
+      font-size: 16px;
+      font-weight: 700;
+      color: #3b82f6;
+      margin-top: 2px;
+    }
+    .divider-text {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .divider-text::before, .divider-text::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .divider-text span {
+      padding: 0 10px;
+    }
+
+    /* FORM INPUTS */
+    .form-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .form-label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .form-label span { color: #ef4444; }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon-left {
+      position: absolute;
+      left: 14px;
+      color: #64748b;
+      font-size: 15px;
+    }
+    .input-icon-right {
+      position: absolute;
+      right: 14px;
+      color: #64748b;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    select.custom-input, input.custom-input {
+      width: 100%;
+      padding: 12px 40px 12px 40px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #ffffff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    select.custom-input {
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+    select.custom-input option {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+
+    select.custom-input:focus, input.custom-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    .selected-role-text {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .selected-role-text strong { color: #3b82f6; }
+
+    /* BUTTON LOGIN */
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+      border: none;
+      border-radius: 10px;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      transition: all 0.3s ease;
+      margin-top: 22px;
+    }
+    .btn-login:hover {
+      background: linear-gradient(90deg, #1d4ed8 0%, #1e40af 100%);
+      transform: translateY(-1px);
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 15px;
+    }
+
+    /* DASHBOARD CONTAINERS (TETAP SAMA) */
+    .app-card {
+      background: #ffffff;
+      color: #333333;
+      padding: 20px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+    }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <!-- Status Koneksi -->
-    <div style="text-align: right;">
-      <span id="status-koneksi" class="badge online">Online</span>
-    </div>
-
-<!-- 1. FORM LOGIN -->
-    <div id="section-login" style="text-align: center;">
-      
-      <!-- Logo Sekolah -->
-      <div style="margin-bottom: 10px;">
-        <img src="logo.png" alt="Logo Sekolah" style="width: 80px; height: auto;">
-      </div>
-
-      <!-- Nama Sekolah -->
-      <h2 style="font-size: 18px; font-weight: bold; margin: 0 0 5px 0;">
-        SIDIG SMP NEGERI 2 PURIALA
-      </h2>
-
-      <!-- Subtitle -->
-      <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
-        Login Pengguna
-      </p>
-
-      <!-- Input Forms (ID tetap disesuaikan dengan app.js) -->
-      <input type="text" id="login-username" placeholder="Username / NIP / NISN" style="width: 100%; box-sizing: border-box; margin-bottom: 8px;">
-      <input type="password" id="login-password" placeholder="Password" style="width: 100%; box-sizing: border-box; margin-bottom: 12px;">
-      
-      <button onclick="prosesLogin()" style="width: 100%; padding: 10px;">Login</button>
-    </div>
-
-<!-- DASHBOARD GURU & SISWA -->
-<div id="section-app" class="hidden">
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <h3 id="user-info" style="margin: 0;">Dashboard</h3>
-    <button onclick="logout()" style="width: auto; background-color: #6c757d; margin: 0; padding: 5px 10px;">Logout</button>
-  </div>
-  <hr style="margin: 15px 0;">
-
-  <!-- [TAMBAHAN BARU] TAB NAVIGATION KHUSUS SISWA -->
-  <div id="siswa-tab-nav" class="hidden" style="display: flex; gap: 10px; margin-bottom: 15px;">
-    <button id="btn-tab-nilai" onclick="switchSiswaTab('nilai')" style="flex: 1; background-color: #007bff; color: white;">📊 Nilai Rapor</button>
-    <button id="btn-tab-kasus" onclick="switchSiswaTab('kasus')" style="flex: 1; background-color: #6c757d; color: white;">📋 Buku Kasus</button>
-  </div>
-
-  <!-- CONTAINER TAB 1: DATA NILAI (Menutup Riwayat Nilai & Form) -->
-  <div id="view-tab-nilai">
-    <!-- TAMPILAN 1: MENU DAFTAR KELAS (GURU) -->
-    <div id="view-daftar-kelas">
-      <h4 style="margin-bottom: 10px;">Pilih Kelas Binaan:</h4>
-      <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-        <!-- Kartu Kelas akan dipasang di sini via JavaScript -->
+  <!-- 1. FORM LOGIN MODERN -->
+  <div id="section-login" class="login-card">
+    <div class="status-container">
+      <div id="status-koneksi" class="badge-online">
+        <span class="dot"></span> Online
       </div>
     </div>
 
-    <!-- TAMPILAN 2: FORM INPUT NILAI -->
-    <div id="view-form-nilai" class="hidden">
-      <button onclick="kembaliKeDaftarKelas()" style="background-color: #6c757d; margin-bottom: 15px;">← Kembali ke Pilih Kelas</button>
-      <h4 id="judul-kelas-aktif" style="color: #007bff; margin-top: 0;"></h4>
-
-      <label for="select-siswa">Pilih Siswa:</label>
-      <select id="select-siswa">
-        <option value="">-- Pilih Siswa --</option>
-      </select>
-
-      <label for="select-mapel" style="margin-top: 10px; display: block;">Mata Pelajaran:</label>
-      <select id="select-mapel">
-        <option value="">-- Pilih Mapel --</option>
-      </select>
-
-      <label for="select-jenis" style="margin-top: 10px; display: block;">Jenis Penilaian:</label>
-      <select id="select-jenis">
-        <option value="Tugas 1">Tugas 1</option>
-        <option value="Tugas 2">Tugas 2</option>
-        <option value="Tugas 3">Tugas 3</option>
-        <option value="Tugas 4">Tugas 4</option>
-        <option value="Tugas 5">Tugas 5</option>
-        <option value="Tugas 6">Tugas 6</option>
-        <option value="Tugas 7">Tugas 7</option>
-        <option value="Tugas 8">Tugas 8</option>
-        <option value="Tugas 9">Tugas 9</option>
-        <option value="Tugas 10">Tugas 10</option>
-        <option value="UH 1">UH 1</option>
-        <option value="UH 2">UH 2</option>
-        <option value="UH 3">UH 3</option>
-        <option value="UH 4">UH 4</option>
-        <option value="UH 5">UH 5</option>
-        <option value="PTS">PTS</option>
-        <option value="PAS">PAS</option>
-      </select>
-
-      <label for="input-nilai" style="margin-top: 10px; display: block;">Nilai (0-100):</label>
-      <input type="number" id="input-nilai" placeholder="85" min="0" max="100">
-
-      <button onclick="simpanNilai()" style="margin-top: 15px;">Simpan Nilai</button>
-      <button id="btn-sync" onclick="syncData()" style="background-color: #ffc107; color: #000; margin-top: 5px;">
-        Sync Data Offline (<span id="sync-count">0</span>)
-      </button>
+    <div class="header-section">
+      <img src="logo.png" alt="Logo Sekolah" class="logo-img">
+      <h1 class="title-main">SIDIG</h1>
+      <h2 class="title-sub">SMP NEGERI 2 PURIALA</h2>
+      <div class="divider-text">
+        <span>Sistem Informasi Digital</span>
+      </div>
     </div>
 
-    <hr style="margin: 20px 0;">
+    <!-- Pilihan Peran / Role -->
+    <div class="form-group">
+      <label class="form-label">Login sebagai <span>* (Wajib dipilih)</span></label>
+      <div class="input-wrapper">
+        <i class="fa-solid fa-graduation-cap input-icon-left"></i>
+        <select id="login-role" class="custom-input" onchange="updateRoleText()">
+          <option value="Guru">Guru</option>
+          <option value="Siswa">Siswa</option>
+          <option value="Admin">Admin</option>
+        </select>
+        <i class="fa-solid fa-chevron-down input-icon-right"></i>
+      </div>
+      <div class="selected-role-text">Peran dipilih: <strong id="lbl-role-dipilih">Guru</strong></div>
+    </div>
 
-    <!-- RIWAYAT NILAI -->
-    <h4 id="judul-riwayat">Riwayat Nilai</h4>
-    <div style="overflow-x: auto;">
-      <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-        <thead>
-          <tr style="background-color: #e9ecef;">
-            <th>Siswa</th>
-            <th>Mapel</th>
-            <th>Jenis</th>
-            <th>Nilai</th>
-            <th>Status</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tabel-riwayat-body">
-          <tr><td colspan="6" style="text-align:center;">Belum ada data</td></tr>
-        </tbody>
-      </table>
+    <!-- Username / NIP / NISN -->
+    <div class="form-group">
+      <div class="input-wrapper">
+        <i class="fa-solid fa-user input-icon-left"></i>
+        <input type="text" id="login-username" class="custom-input" placeholder="NIP / NUPTK / Username / NISN">
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <div class="input-wrapper">
+        <i class="fa-solid fa-lock input-icon-left"></i>
+        <input type="password" id="login-password" class="custom-input" placeholder="Password">
+        <i class="fa-solid fa-eye-slash input-icon-right" id="toggle-password" onclick="togglePasswordVisibility()"></i>
+      </div>
+    </div>
+
+    <!-- Tombol Masuk -->
+    <button class="btn-login" onclick="prosesLogin()">
+      <span id="btn-login-text">Masuk sebagai Guru</span>
+      <i class="fa-solid fa-circle-arrow-right"></i>
+    </button>
+
+    <div class="footer-note">
+      Tekan <strong>Enter</strong> untuk masuk. Pastikan memilih peran yang tepat.
     </div>
   </div>
 
-  <!-- [TAMBAHAN BARU] CONTAINER TAB 2: DATA BUKU KASUS -->
-  <div id="view-tab-kasus" class="hidden">
-    <h4 style="color: #dc3545; margin-top: 0;">Catatan Kedisiplinan / Buku Kasus</h4>
-    <div id="loading-kasus" style="font-size: 13px; color: #666; margin-bottom: 10px; display: none;">Memuat data catatan...</div>
-    <div style="overflow-x: auto;">
-      <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-        <thead>
-          <tr style="background-color: #f8d7da; color: #721c24;">
-            <th>Waktu</th>
-            <th>Pelanggaran / Kasus</th>
-            <th>Tindak Lanjut</th>
-            <th>Guru Piket</th>
-          </tr>
-        </thead>
-        <tbody id="tabel-kasus-body">
-          <tr><td colspan="4" style="text-align:center;">Belum ada catatan kasus</td></tr>
-        </tbody>
-      </table>
+
+  <!-- 2. SECTION DASHBOARD (DITAMPILKAN SETELAH LOGIN) -->
+  <div id="section-app" class="app-card hidden">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 id="user-info" style="margin: 0; color: #1e293b;">Dashboard</h3>
+      <button onclick="logout()" style="width: auto; background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Logout</button>
+    </div>
+    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+    <!-- TAB NAVIGASI SISWA -->
+    <div id="siswa-tab-nav" class="hidden" style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <button id="btn-tab-nilai" onclick="switchSiswaTab('nilai')" style="flex: 1; padding: 10px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">📊 Nilai Rapor</button>
+      <button id="btn-tab-kasus" onclick="switchSiswaTab('kasus')" style="flex: 1; padding: 10px; background-color: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer;">📋 Buku Kasus</button>
+    </div>
+
+    <!-- TAB 1: DATA NILAI -->
+    <div id="view-tab-nilai">
+      <div id="view-daftar-kelas">
+        <h4 style="margin-bottom: 10px; color: #1e293b;">Pilih Kelas Binaan:</h4>
+        <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;"></div>
+      </div>
+
+      <div id="view-form-nilai" class="hidden">
+        <button onclick="kembaliKeDaftarKelas()" style="background-color: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; margin-bottom: 15px; cursor: pointer;">← Kembali ke Pilih Kelas</button>
+        <h4 id="judul-kelas-aktif" style="color: #2563eb; margin-top: 0;"></h4>
+
+        <label for="select-siswa" style="display:block; margin-top:10px; font-size:12px; font-weight:bold;">Pilih Siswa:</label>
+        <select id="select-siswa" style="width:100%; padding:8px; margin-top:4px;"><option value="">-- Pilih Siswa --</option></select>
+
+        <label for="select-mapel" style="display:block; margin-top:10px; font-size:12px; font-weight:bold;">Mata Pelajaran:</label>
+        <select id="select-mapel" style="width:100%; padding:8px; margin-top:4px;"><option value="">-- Pilih Mapel --</option></select>
+
+        <label for="select-jenis" style="display:block; margin-top:10px; font-size:12px; font-weight:bold;">Jenis Penilaian:</label>
+        <select id="select-jenis" style="width:100%; padding:8px; margin-top:4px;">
+          <option value="Tugas 1">Tugas 1</option>
+          <option value="Tugas 2">Tugas 2</option>
+          <option value="UH 1">UH 1</option>
+          <option value="PTS">PTS</option>
+          <option value="PAS">PAS</option>
+        </select>
+
+        <label for="input-nilai" style="display:block; margin-top:10px; font-size:12px; font-weight:bold;">Nilai (0-100):</label>
+        <input type="number" id="input-nilai" placeholder="85" min="0" max="100" style="width:100%; padding:8px; margin-top:4px;">
+
+        <button onclick="simpanNilai()" style="width:100%; padding:10px; background:#2563eb; color:white; border:none; border-radius:6px; margin-top:15px; cursor:pointer;">Simpan Nilai</button>
+        <button id="btn-sync" onclick="syncData()" style="width:100%; padding:10px; background:#f59e0b; color:black; border:none; border-radius:6px; margin-top:8px; cursor:pointer;">
+          Sync Data Offline (<span id="sync-count">0</span>)
+        </button>
+      </div>
+
+      <hr style="margin: 20px 0; border:0; border-top: 1px solid #e2e8f0;">
+
+      <h4 id="judul-riwayat" style="color: #1e293b; margin-bottom: 10px;">Riwayat Nilai</h4>
+      <div style="overflow-x: auto;">
+        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; border-color: #e2e8f0;">
+          <thead>
+            <tr style="background-color: #f1f5f9; color: #334155;">
+              <th>Siswa</th>
+              <th>Mapel</th>
+              <th>Jenis</th>
+              <th>Nilai</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabel-riwayat-body">
+            <tr><td colspan="6" style="text-align:center;">Belum ada data</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: DATA BUKU KASUS -->
+    <div id="view-tab-kasus" class="hidden">
+      <h4 style="color: #ef4444; margin-top: 0;">Catatan Kedisiplinan / Buku Kasus</h4>
+      <div id="loading-kasus" style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: none;">Memuat data catatan...</div>
+      <div style="overflow-x: auto;">
+        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #fee2e2;">
+          <thead>
+            <tr style="background-color: #fef2f2; color: #991b1b;">
+              <th>Waktu</th>
+              <th>Pelanggaran / Kasus</th>
+              <th>Tindak Lanjut</th>
+              <th>Guru Piket</th>
+            </tr>
+          </thead>
+          <tbody id="tabel-kasus-body">
+            <tr><td colspan="4" style="text-align:center;">Belum ada catatan kasus</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-</div>
 
   <script src="app.js"></script>
 </body>
