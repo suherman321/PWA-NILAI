@@ -194,7 +194,7 @@ function logout() {
 }
 
 // ==========================================
-// 5. MASTER DATA & TAMPILAN KELAS
+// MASTER DATA & TAMPILAN KELAS GURU
 // ==========================================
 function renderMasterData(listSiswa, listMapel, listKelas) {
   masterSiswaGlobal = listSiswa || [];
@@ -203,6 +203,7 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
   const role = String(userSession.role || "").toUpperCase();
 
+  // 1. Render Kartu Pilih Kelas
   const container = document.getElementById("container-kelas");
   if (container && role !== "SISWA") {
     container.innerHTML = "";
@@ -219,29 +220,42 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
     }
   }
 
+  // 2. Render Dropdown Mapel khusus Guru
   const selectMapel = document.getElementById("select-mapel");
   if (selectMapel && role !== "SISWA") {
     selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
-    masterMapelGlobal.forEach(mapel => {
-      const opt = document.createElement("option");
-      opt.value = mapel;
-      opt.textContent = mapel;
-      selectMapel.appendChild(opt);
+    
+    // Filter jika data mapel guru ada di user session, jika tidak tampilkan dari master mapel
+    let mapelGuru = userSession.mapel ? (Array.isArray(userSession.mapel) ? userSession.mapel : userSession.mapel.split(",")) : masterMapelGlobal;
+
+    mapelGuru.forEach(mapel => {
+      const namaMapel = mapel.trim();
+      if (namaMapel) {
+        const opt = document.createElement("option");
+        opt.value = namaMapel;
+        opt.textContent = namaMapel;
+        selectMapel.appendChild(opt);
+      }
     });
   }
 
+  // Render Riwayat Nilai Awal (Semua Kelas)
   tampilkanRiwayatNilai();
 }
 
 function bukaFormInputNilai(kelas) {
   kelasAktif = kelas;
+  
+  // Sembunyikan daftar kelas, tampilkan form
   document.getElementById("view-daftar-kelas").classList.add("hidden");
   document.getElementById("view-form-nilai").classList.remove("hidden");
-  document.getElementById("judul-kelas-aktif").textContent = `Input Nilai - Kelas ${kelas}`;
   
+  // Ubah judul
+  document.getElementById("judul-kelas-aktif").textContent = `Input Nilai - Kelas ${kelas}`;
   const elJudulRiwayat = document.getElementById("judul-riwayat");
   if (elJudulRiwayat) elJudulRiwayat.textContent = `Riwayat Nilai - Kelas ${kelas}`;
 
+  // Filter daftar siswa hanya untuk kelas ini
   const siswaKelasIni = masterSiswaGlobal.filter(s => String(s.kelas).trim().toUpperCase() === String(kelas).trim().toUpperCase());
 
   const selectSiswa = document.getElementById("select-siswa");
@@ -255,17 +269,19 @@ function bukaFormInputNilai(kelas) {
     selectSiswa.appendChild(opt);
   });
 
+  // Tampilkan riwayat nilai yang terfilter khusus kelas ini
   tampilkanRiwayatNilai();
 }
 
 function kembaliKeDaftarKelas() {
-  kelasAktif = "";
+  kelasAktif = ""; // Reset filter kelas
   document.getElementById("view-form-nilai").classList.add("hidden");
   document.getElementById("view-daftar-kelas").classList.remove("hidden");
 
   const elJudulRiwayat = document.getElementById("judul-riwayat");
   if (elJudulRiwayat) elJudulRiwayat.textContent = "Riwayat Nilai Terinput (Semua Kelas)";
   
+  // Tampilkan kembali semua riwayat nilai
   tampilkanRiwayatNilai();
 }
 

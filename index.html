@@ -350,72 +350,100 @@
         <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;"></div>
       </div>
 
-      <!-- FORM INPUT NILAI GURU (PERSIS 100% SEPERTI KODE ASLI ANDA) -->
-      <div id="view-form-nilai" class="hidden">
-        <button onclick="kembaliKeDaftarKelas()" style="background-color: #6c757d; margin-bottom: 15px; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">← Kembali ke Pilih Kelas</button>
-        <h4 id="judul-kelas-aktif" style="color: #007bff; margin-top: 0;"></h4>
+      <!-- DASHBOARD KHUSUS GURU -->
+<div id="guru-dashboard" class="hidden">
 
-        <label for="select-siswa">Pilih Siswa:</label>
-        <select id="select-siswa" style="width:100%; padding:8px; margin-top:4px;">
-          <option value="">-- Pilih Siswa --</option>
-        </select>
-
-        <label for="select-mapel" style="margin-top: 10px; display: block;">Mata Pelajaran:</label>
-        <select id="select-mapel" style="width:100%; padding:8px; margin-top:4px;">
-          <option value="">-- Pilih Mapel --</option>
-        </select>
-
-        <label for="select-jenis" style="margin-top: 10px; display: block;">Jenis Penilaian:</label>
-        <select id="select-jenis" style="width:100%; padding:8px; margin-top:4px;">
-          <option value="Tugas 1">Tugas 1</option>
-          <option value="Tugas 2">Tugas 2</option>
-          <option value="Tugas 3">Tugas 3</option>
-          <option value="Tugas 4">Tugas 4</option>
-          <option value="Tugas 5">Tugas 5</option>
-          <option value="Tugas 6">Tugas 6</option>
-          <option value="Tugas 7">Tugas 7</option>
-          <option value="Tugas 8">Tugas 8</option>
-          <option value="Tugas 9">Tugas 9</option>
-          <option value="Tugas 10">Tugas 10</option>
-          <option value="UH 1">UH 1</option>
-          <option value="UH 2">UH 2</option>
-          <option value="UH 3">UH 3</option>
-          <option value="UH 4">UH 4</option>
-          <option value="UH 5">UH 5</option>
-          <option value="PTS">PTS</option>
-          <option value="PAS">PAS</option>
-        </select>
-
-        <label for="input-nilai" style="margin-top: 10px; display: block;">Nilai (0-100):</label>
-        <input type="number" id="input-nilai" placeholder="85" min="0" max="100" style="width:100%; padding:8px; margin-top:4px;">
-
-        <button onclick="simpanNilai()" style="margin-top: 15px; width:100%; padding:10px; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;">Simpan Nilai</button>
-        <button id="btn-sync" onclick="syncData()" style="background-color: #ffc107; color: #000; margin-top: 5px; width:100%; padding:10px; border:none; border-radius:6px; cursor:pointer;">
-          Sync Data Offline (<span id="sync-count">0</span>)
-        </button>
-      </div>
-
-      <hr style="margin: 20px 0; border:0; border-top: 1px solid #e2e8f0;">
-
-      <h4 id="judul-riwayat" style="color: #1e293b; margin-bottom: 10px;">Riwayat Nilai</h4>
-      <div style="overflow-x: auto;">
-        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; border-color: #e2e8f0;">
-          <thead>
-            <tr style="background-color: #f1f5f9; color: #334155;">
-              <th>Siswa</th>
-              <th>Mapel</th>
-              <th>Jenis</th>
-              <th>Nilai</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="tabel-riwayat-body">
-            <tr><td colspan="6" style="text-align:center;">Belum ada data</td></tr>
-          </tbody>
-        </table>
-      </div>
+  <!-- TAMPILAN 1: PILIH KELAS BINAAN -->
+  <div id="view-daftar-kelas">
+    <h3 style="margin-bottom: 15px; color: #333;">Pilih Kelas Binaan:</h3>
+    <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+      <!-- Kartu-kartu Kelas dipasang via JS -->
     </div>
+  </div>
+
+  <!-- TAMPILAN 2: FORM INPUT NILAI (TAMPIL SAAT KELAS DIKLIK) -->
+  <div id="view-form-nilai" class="hidden">
+    <button onclick="kembaliKeDaftarKelas()" style="background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">
+      ← Kembali ke Pilih Kelas
+    </button>
+    <h3 id="judul-kelas-aktif" style="color: #007bff; margin-top: 0;">Input Nilai</h3>
+
+    <!-- 1. Pilih Siswa -->
+    <label for="select-siswa" style="font-weight: bold; display: block; margin-top: 10px;">Pilih Siswa:</label>
+    <select id="select-siswa" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc;">
+      <option value="">-- Pilih Siswa --</option>
+    </select>
+
+    <!-- 2. Mata Pelajaran (Filter Sesuai Guru) -->
+    <label for="select-mapel" style="font-weight: bold; display: block; margin-top: 12px;">Mata Pelajaran Guru:</label>
+    <select id="select-mapel" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc;">
+      <option value="">-- Pilih Mapel --</option>
+    </select>
+
+    <!-- 3. Jenis Penilaian / Tugas -->
+    <label for="select-jenis" style="font-weight: bold; display: block; margin-top: 12px;">Jenis Penilaian / Tugas:</label>
+    <select id="select-jenis" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc;">
+      <optgroup label="Tugas Harian">
+        <option value="Tugas 1">Tugas 1</option>
+        <option value="Tugas 2">Tugas 2</option>
+        <option value="Tugas 3">Tugas 3</option>
+        <option value="Tugas 4">Tugas 4</option>
+        <option value="Tugas 5">Tugas 5</option>
+        <option value="Tugas 6">Tugas 6</option>
+        <option value="Tugas 7">Tugas 7</option>
+        <option value="Tugas 8">Tugas 8</option>
+        <option value="Tugas 9">Tugas 9</option>
+        <option value="Tugas 10">Tugas 10</option>
+      </optgroup>
+      <optgroup label="Ulangan Harian">
+        <option value="UH 1">UH 1</option>
+        <option value="UH 2">UH 2</option>
+        <option value="UH 3">UH 3</option>
+        <option value="UH 4">UH 4</option>
+        <option value="UH 5">UH 5</option>
+      </optgroup>
+      <optgroup label="Ujian Semester">
+        <option value="PTS">PTS (Penilaian Tengah Semester)</option>
+        <option value="PAS">PAS (Penilaian Akhir Semester)</option>
+      </optgroup>
+    </select>
+
+    <!-- 4. Input Nilai -->
+    <label for="input-nilai" style="font-weight: bold; display: block; margin-top: 12px;">Nilai (0 - 100):</label>
+    <input type="number" id="input-nilai" placeholder="Contoh: 85" min="0" max="100" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc;">
+
+    <!-- Tombol Action -->
+    <button onclick="simpanNilai()" style="width: 100%; background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px;">
+      Simpan Nilai
+    </button>
+    <button id="btn-sync" onclick="syncData()" style="width: 100%; background-color: #ffc107; color: #000; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 8px;">
+      Sync Data Offline (<span id="sync-count">0</span>)
+    </button>
+  </div>
+
+  <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ddd;">
+
+  <!-- RIWAYAT NILAI (TERFILTER SESUAI KELAS AKTIF) -->
+  <h4 id="judul-riwayat" style="margin-bottom: 10px;">Riwayat Nilai Terinput (Semua Kelas)</h4>
+  <div style="overflow-x: auto;">
+    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background-color: #fff;">
+      <thead>
+        <tr style="background-color: #f1f3f5;">
+          <th>Siswa</th>
+          <th>Mapel</th>
+          <th>Jenis</th>
+          <th>Nilai</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tabel-riwayat-body">
+        <tr><td colspan="6" style="text-align:center;">Belum ada data</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
 
     <!-- ========================================== -->
     <!-- C. TAMPILAN TAB 2: DATA BUKU KASUS         -->
