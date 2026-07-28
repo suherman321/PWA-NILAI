@@ -25,12 +25,29 @@
       <span id="status-koneksi" class="badge online">Online</span>
     </div>
 
-    <!-- 1. FORM LOGIN -->
-    <div id="section-login">
-      <h2>Login PWA Nilai</h2>
-      <input type="text" id="login-username" placeholder="Username / NIP / NISN">
-      <input type="password" id="login-password" placeholder="Password">
-      <button onclick="prosesLogin()">Login</button>
+<!-- 1. FORM LOGIN -->
+    <div id="section-login" style="text-align: center;">
+      
+      <!-- Logo Sekolah -->
+      <div style="margin-bottom: 10px;">
+        <img src="logo.png" alt="Logo Sekolah" style="width: 80px; height: auto;">
+      </div>
+
+      <!-- Nama Sekolah -->
+      <h2 style="font-size: 18px; font-weight: bold; margin: 0 0 5px 0;">
+        SIDIG SMP NEGERI 2 PURIALA
+      </h2>
+
+      <!-- Subtitle -->
+      <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+        Login Pengguna
+      </p>
+
+      <!-- Input Forms (ID tetap disesuaikan dengan app.js) -->
+      <input type="text" id="login-username" placeholder="Username / NIP / NISN" style="width: 100%; box-sizing: border-box; margin-bottom: 8px;">
+      <input type="password" id="login-password" placeholder="Password" style="width: 100%; box-sizing: border-box; margin-bottom: 12px;">
+      
+      <button onclick="prosesLogin()" style="width: 100%; padding: 10px;">Login</button>
     </div>
 
 <!-- DASHBOARD GURU -->
