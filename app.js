@@ -387,14 +387,31 @@ async function simpanNilai() {
 // ==========================================
 async function tampilkanRiwayatNilai() {
   const tbody = document.getElementById("tabel-riwayat-body");
-  const statTotalNilai = document.getElementById("stat-total-nilai");
   if (!tbody) return;
 
-  let listNilai = [];
-  const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
-  const role = String(userSession.role || "").toUpperCase();
-  const userRefId = String(userSession.ref_id || "").trim();
+  // Set indikator memuat data
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #64748b;">Memuat data nilai...</td></tr>';
 
+  // Ambil session user (mendukung variasi penyimpanan localStorage)
+  let rawSession = localStorage.getItem("user_session") || localStorage.getItem("user") || "{}";
+  let userSession = {};
+  try {
+    userSession = JSON.parse(rawSession);
+  } catch (e) {
+    userSession = {};
+  }
+
+  // Jika data user terbungkus dalam properti .user
+  if (userSession.user) {
+    userSession = userSession.user;
+  }
+
+  const role = String(userSession.role || "").toUpperCase();
+  const userRefId = String(userSession.ref_id || userSession.username || "").trim();
+
+  let listNilai = [];
+
+  // Fetch ke Server Google Apps Script
   if (navigator.onLine) {
     try {
       const response = await fetch(API_URL, {
@@ -411,69 +428,42 @@ async function tampilkanRiwayatNilai() {
         listNilai = result.data.map(item => ({ ...item, synced: true }));
       }
     } catch (err) {
-      console.error("Gagal ambil dari server:", err);
+      console.error("Gagal mengambil data nilai dari server:", err);
     }
-  } 
+  }
 
-  // Jika online gagal atau tidak ada data server, coba dari IndexedDB lokal
+  // Jika data kosong atau offline, ambil dari IndexedDB lokal
   if (listNilai.length === 0) {
     try {
-      const db = await openDB();
-      const localData = await new Promise((resolve, reject) => {
-        const tx = db.transaction("nilai_offline", "readonly");
-        const store = tx.objectStore("nilai_offline");
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
+      if (typeof openDB === "function") {
+        const db = await openDB();
+        const localData = await new Promise((resolve, reject) => {
+          const tx = db.transaction("nilai_offline", "readonly");
+          const store = tx.objectStore("nilai_offline");
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
 
-      if (role === "SISWA") {
-        listNilai = localData.filter(item => String(item.ref_id_siswa).trim() === userRefId);
-      } else {
-        listNilai = localData.filter(item => String(item.ref_id_guru).trim() === userRefId);
+        if (role === "SISWA") {
+          listNilai = localData.filter(item => String(item.ref_id_siswa).trim().toLowerCase() === userRefId.toLowerCase());
+        }
       }
     } catch (err) {
-      console.error("Gagal membaca lokal:", err);
+      console.error("Gagal membaca dari IndexedDB:", err);
     }
   }
 
-  // Filter ekstra di sisi Client khusus untuk Siswa
-  if (role === "SISWA") {
-    listNilai = listNilai.filter(item => String(item.ref_id_siswa).trim() === userRefId);
-  }
-
-  // Filter khusus Guru berdasarkan Kelas Aktif
-  if (role !== "SISWA" && kelasAktif !== "") {
-    listNilai = listNilai.filter(item => {
-      if (item.kelas) {
-        return String(item.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
-      }
-      const siswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(item.ref_id_siswa));
-      return siswa && String(siswa.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
-    });
-  }
-
-  if (statTotalNilai && role !== "SISWA") {
-    statTotalNilai.innerText = listNilai.length;
-  }
-
+  // Render Data ke Tabel
   if (!listNilai || listNilai.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #94a3b8;">Belum ada data nilai terinput</td></tr>';
     return;
   }
 
   tbody.innerHTML = "";
-  listNilai.reverse().forEach(item => {
+  listNilai.slice().reverse().forEach(item => {
     const tr = document.createElement("tr");
     tr.style.borderBottom = "1px solid #f1f5f9";
-    
-    let btnAksi = "-";
-    if (role !== "SISWA" && navigator.onLine && item.row_index) {
-      btnAksi = `
-        <button onclick="editNilai(${item.row_index}, '${item.nama_siswa}', ${item.nilai})" style="padding: 3px 6px; font-size: 10px; background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
-        <button onclick="hapusNilai(${item.row_index}, '${item.nama_siswa}')" style="padding: 3px 6px; font-size: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; cursor: pointer; margin-left: 2px;"><i class="fa-solid fa-trash"></i></button>
-      `;
-    }
 
     const badgeStatus = item.synced 
       ? `<span style="background: #dcfce7; color: #166534; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px;">Tersinkron</span>`
@@ -485,7 +475,7 @@ async function tampilkanRiwayatNilai() {
       <td style="padding: 8px 4px;">${item.jenis_penilaian}</td>
       <td style="padding: 8px 4px;"><strong>${item.nilai}</strong></td>
       <td style="padding: 8px 4px;">${badgeStatus}</td>
-      <td style="padding: 8px 4px; text-align: center;">${btnAksi}</td>
+      <td style="padding: 8px 4px; text-align: center;">-</td>
     `;
     tbody.appendChild(tr);
   });
@@ -623,39 +613,42 @@ async function syncData(isAuto = false) {
 // 9. LOGIKA NAVIGASI SISWA & FETCH BUKU KASUS
 // ==========================================
 function switchSiswaTab(tabName) {
-  const menuKartuSiswa = document.getElementById("siswa-dashboard");
+  // Sembunyikan Dashboard Siswa
+  const dashboard = document.getElementById("siswa-dashboard");
+  if (dashboard) dashboard.classList.add("hidden");
+
+  // Sembunyikan semua tab detail
   const viewNilai = document.getElementById("view-tab-nilai");
   const viewKasus = document.getElementById("view-tab-kasus");
-  const btnBackNilai = document.getElementById("btn-back-siswa-nilai");
-  const btnBackKasus = document.getElementById("btn-back-siswa-kasus");
+  if (viewNilai) viewNilai.classList.add("hidden");
+  if (viewKasus) viewKasus.classList.add("hidden");
 
-  // Sembunyikan kartu menu utama siswa
-  if (menuKartuSiswa) menuKartuSiswa.classList.add("hidden");
-
+  // Tampilkan tab yang dipilih & panggil datanya
   if (tabName === 'nilai') {
     if (viewNilai) viewNilai.classList.remove("hidden");
-    if (viewKasus) viewKasus.classList.add("hidden");
-    if (btnBackNilai) btnBackNilai.classList.remove("hidden");
+    const btnBack = document.getElementById("btn-back-siswa-nilai");
+    if (btnBack) btnBack.classList.remove("hidden");
+    
+    // PANGGIL FUNGSI AMBIL DATA NILAI
     tampilkanRiwayatNilai();
   } else if (tabName === 'kasus') {
-    if (viewNilai) viewNilai.classList.add("hidden");
     if (viewKasus) viewKasus.classList.remove("hidden");
-    if (btnBackKasus) btnBackKasus.classList.remove("hidden");
-    loadBukuKasusSiswa();
+    const btnBack = document.getElementById("btn-back-siswa-kasus");
+    if (btnBack) btnBack.classList.remove("hidden");
+    
+    // PANGGIL FUNGSI BUKU KASUS (jika ada)
+    if (typeof tampilkanBukuKasus === "function") tampilkanBukuKasus();
   }
 }
 
 function tutupMenuSiswa() {
-  const menuKartuSiswa = document.getElementById("siswa-dashboard");
   const viewNilai = document.getElementById("view-tab-nilai");
   const viewKasus = document.getElementById("view-tab-kasus");
-
-  // Tampilkan kembali kartu dashboard utama
-  if (menuKartuSiswa) menuKartuSiswa.classList.remove("hidden");
-
-  // Sembunyikan halaman detail
   if (viewNilai) viewNilai.classList.add("hidden");
   if (viewKasus) viewKasus.classList.add("hidden");
+
+  const dashboard = document.getElementById("siswa-dashboard");
+  if (dashboard) dashboard.classList.remove("hidden");
 }
 
 async function loadBukuKasusSiswa() {
