@@ -305,17 +305,16 @@ async function tampilkanRiwayatNilai() {
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
   const role = String(userSession.role || "").toUpperCase();
 
-  // 1. Ambil Data dari Google Sheets saat Online
+  // 1. Ambil Data dari Google Sheets saat Online dengan filter kualifikasi pengguna
   if (navigator.onLine) {
     try {
-      // Jika siswa, minta semua data (lalu difilter di bawah), jika guru minta data miliknya saja
-      const payloadRefId = role === "SISWA" ? "" : (userSession.ref_id || "");
-      
       const response = await fetch(API_URL, {
         method: "POST",
         body: JSON.stringify({
           action: "getNilai",
-          ref_id_guru: payloadRefId 
+          role: role,
+          ref_id_guru: userSession.ref_id || "",
+          ref_id_siswa: userSession.ref_id || ""
         })
       });
       const result = await response.json();
@@ -331,37 +330,38 @@ async function tampilkanRiwayatNilai() {
   if (listNilai.length === 0) {
     try {
       const db = await openDB();
-      listNilai = await new Promise((resolve, reject) => {
+      const localData = await new Promise((resolve, reject) => {
         const tx = db.transaction("nilai_offline", "readonly");
         const store = tx.objectStore("nilai_offline");
         const req = store.getAll();
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
+
+      // Filter lokal berdasarkan Role
+      if (role === "SISWA") {
+        listNilai = localData.filter(item => String(item.ref_id_siswa) === String(userSession.ref_id));
+      } else {
+        listNilai = localData.filter(item => String(item.ref_id_guru) === String(userSession.ref_id));
+      }
     } catch (err) {
       console.error("Gagal membaca lokal:", err);
     }
   }
 
-  // 3. FILTER NILAI BERDASARKAN ROLE (GURU / SISWA)
-  if (role === "SISWA") {
-    // Siswa HANYA boleh melihat riwayat nilainya sendiri
-    listNilai = listNilai.filter(item => String(item.ref_id_siswa) === String(userSession.ref_id));
-  } else {
-    // Guru melihat berdasarkan Filter Kelas Aktif
-    if (kelasAktif !== "") {
-      listNilai = listNilai.filter(item => {
-        if (item.kelas) {
-          return String(item.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
-        }
-        const siswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(item.ref_id_siswa));
-        return siswa && String(siswa.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
-      });
-    }
+  // 3. Filter Tambahan Kelas Aktif khusus Guru (jika sedang memilih kelas tertentu)
+  if (role !== "SISWA" && kelasAktif !== "") {
+    listNilai = listNilai.filter(item => {
+      if (item.kelas) {
+        return String(item.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
+      }
+      const siswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(item.ref_id_siswa));
+      return siswa && String(siswa.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
+    });
   }
 
   if (!listNilai || listNilai.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Belum ada data nilai</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Belum ada data nilai terinput</td></tr>';
     return;
   }
 
@@ -371,7 +371,6 @@ async function tampilkanRiwayatNilai() {
     const tr = document.createElement("tr");
     
     let btnAksi = "-";
-    // SISWA TIDAK PUNYA TOMBOL EDIT & HAPUS
     if (role !== "SISWA" && navigator.onLine && item.row_index) {
       btnAksi = `
         <button onclick="editNilai(${item.row_index}, '${item.nama_siswa}', ${item.nilai})" style="padding: 2px 6px; font-size: 11px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
