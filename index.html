@@ -502,33 +502,60 @@
     <!-- ========================================== -->
     <!-- C. TAMPILAN DETAIL KHUSUS SISWA            -->
     <!-- ========================================== -->
-    <div id="view-tab-nilai" class="hidden">
-      <button id="btn-back-siswa-nilai" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #334155;">← Kembali ke Dashboard</button>
-    </div>
+    <!-- TAB 1: DETAIL NILAI RAPOR SISWA -->
+<div id="view-tab-nilai" class="hidden">
+  <button id="btn-back-siswa-nilai" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+    &larr; Kembali ke Dashboard
+  </button>
 
-    <div id="view-tab-kasus" class="hidden">
-      <button id="btn-back-siswa-kasus" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #334155;">← Kembali ke Dashboard</button>
-      
-      <h4 style="color: #ef4444; margin-top: 0;">Catatan Kedisiplinan / Buku Kasus</h4>
-      <div id="loading-kasus" style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: none;">Memuat data catatan...</div>
-      <div style="overflow-x: auto;">
-        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #fee2e2; color: #333;">
-          <thead>
-            <tr style="background-color: #fef2f2; color: #991b1b;">
-              <th>Waktu</th>
-              <th>Pelanggaran / Kasus</th>
-              <th>Tindak Lanjut</th>
-              <th>Guru Piket</th>
-            </tr>
-          </thead>
-          <tbody id="tabel-kasus-body">
-            <tr><td colspan="4" style="text-align:center;">Belum ada catatan kasus</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
+  <h4 style="color: #2563eb; margin-top: 0;">Nilai Rapor Siswa</h4>
+  <div style="overflow-x: auto;">
+    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #e2e8f0; color: #333;">
+      <thead>
+        <tr style="background-color: #eff6ff; color: #1e40af;">
+          <th>Siswa</th>
+          <th>Mata Pelajaran</th>
+          <th>Jenis Penilaian</th>
+          <th>Nilai</th>
+          <th>Status</th>
+          <th style="text-align: center;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tabel-riwayat-body">
+        <tr>
+          <td colspan="6" style="text-align:center;">Memuat data nilai...</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
+</div>
+
+<!-- TAB 2: DETAIL BUKU KASUS SISWA -->
+<div id="view-tab-kasus" class="hidden">
+  <button id="btn-back-siswa-kasus" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+    &larr; Kembali ke Dashboard
+  </button>
+
+  <h4 style="color: #ef4444; margin-top: 0;">Catatan Kedisiplinan / Buku Kasus</h4>
+  <div id="loading-kasus" style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: none;">Memuat data catatan...</div>
+  <div style="overflow-x: auto;">
+    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #fee2e2; color: #333;">
+      <thead>
+        <tr style="background-color: #fef2f2; color: #991b1b;">
+          <th>Waktu</th>
+          <th>Pelanggaran / Kasus</th>
+          <th>Tindak Lanjut</th>
+          <th>Guru Piket</th>
+        </tr>
+      </thead>
+      <tbody id="tabel-kasus-body">
+        <tr>
+          <td colspan="4" style="text-align:center;">Belum ada catatan kasus</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
   <script src="app.js"></script>
 </body>
