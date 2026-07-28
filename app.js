@@ -168,7 +168,12 @@ function showAppScreen(user) {
     if (dashboardGuru) dashboardGuru.classList.remove("hidden");
     
     namaTampil = user.nama || user.username || 'Guru';
-    document.getElementById("user-info").innerText = namaTampil;
+    
+    // Set Nama Guru di Topbar & Welcome Banner
+    const elemUserInfo = document.getElementById("user-info");
+    const elemWelcomeGuru = document.getElementById("guru-nama-welcome");
+    if (elemUserInfo) elemUserInfo.innerText = namaTampil;
+    if (elemWelcomeGuru) elemWelcomeGuru.innerText = namaTampil;
   }
 
   updateSyncCount();
@@ -194,7 +199,7 @@ function logout() {
 }
 
 // ==========================================
-// MASTER DATA & TAMPILAN KELAS GURU
+// 5. MASTER DATA & TAMPILAN KELAS GURU
 // ==========================================
 function renderMasterData(listSiswa, listMapel, listKelas) {
   masterSiswaGlobal = listSiswa || [];
@@ -205,18 +210,54 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
 
   // 1. Render Kartu Pilih Kelas
   const container = document.getElementById("container-kelas");
+  const statTotalKelas = document.getElementById("stat-total-kelas");
+  const badgeTotalKelas = document.getElementById("badge-total-kelas");
+
   if (container && role !== "SISWA") {
+    const total = listKelas ? listKelas.length : 0;
+    if (statTotalKelas) statTotalKelas.innerText = total;
+    if (badgeTotalKelas) badgeTotalKelas.innerText = `${total} kelas`;
+
     container.innerHTML = "";
     if (listKelas && listKelas.length > 0) {
       listKelas.forEach(kelas => {
         const card = document.createElement("div");
-        card.style = "background: #007bff; color: white; padding: 15px 10px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
-        card.innerHTML = `<div style="font-size: 16px;">Kelas ${kelas}</div><div style="font-size: 11px; opacity: 0.8; font-weight: normal; margin-top: 4px;">Klik untuk input</div>`;
+        card.style.cssText = `
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          padding: 12px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          transition: all 0.2s ease;
+        `;
+
+        card.innerHTML = `
+          <div style="margin-bottom: 10px;">
+            <div style="font-weight: 800; font-size: 14px; color: #0f172a;">Kelas ${kelas}</div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Kelas Binaan</div>
+          </div>
+          <button style="width: 100%; background: #2563eb; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer;">
+            Input Nilai
+          </button>
+        `;
+
+        card.onmouseover = () => {
+          card.style.borderColor = '#2563eb';
+          card.style.transform = 'translateY(-2px)';
+        };
+        card.onmouseout = () => {
+          card.style.borderColor = '#e2e8f0';
+          card.style.transform = 'translateY(0)';
+        };
+
         card.onclick = () => bukaFormInputNilai(kelas);
         container.appendChild(card);
       });
     } else {
-      container.innerHTML = "<p style='grid-column: span 2;'>Tidak ada kelas binaan.</p>";
+      container.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 15px;'>Tidak ada kelas binaan.</p>";
     }
   }
 
@@ -224,8 +265,6 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
   const selectMapel = document.getElementById("select-mapel");
   if (selectMapel && role !== "SISWA") {
     selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
-    
-    // Filter jika data mapel guru ada di user session, jika tidak tampilkan dari master mapel
     let mapelGuru = userSession.mapel ? (Array.isArray(userSession.mapel) ? userSession.mapel : userSession.mapel.split(",")) : masterMapelGlobal;
 
     mapelGuru.forEach(mapel => {
@@ -239,7 +278,6 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
     });
   }
 
-  // Render Riwayat Nilai Awal (Semua Kelas)
   tampilkanRiwayatNilai();
 }
 
@@ -251,7 +289,7 @@ function bukaFormInputNilai(kelas) {
   document.getElementById("view-form-nilai").classList.remove("hidden");
   
   // Ubah judul
-  document.getElementById("judul-kelas-aktif").textContent = `Input Nilai - Kelas ${kelas}`;
+  document.getElementById("judul-kelas-aktif").innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Input Nilai - Kelas ${kelas}`;
   const elJudulRiwayat = document.getElementById("judul-riwayat");
   if (elJudulRiwayat) elJudulRiwayat.textContent = `Riwayat Nilai - Kelas ${kelas}`;
 
@@ -349,6 +387,7 @@ async function simpanNilai() {
 // ==========================================
 async function tampilkanRiwayatNilai() {
   const tbody = document.getElementById("tabel-riwayat-body");
+  const statTotalNilai = document.getElementById("stat-total-nilai");
   if (!tbody) return;
 
   let listNilai = [];
@@ -396,6 +435,10 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
+  if (statTotalNilai && role !== "SISWA") {
+    statTotalNilai.innerText = listNilai.length;
+  }
+
   if (role !== "SISWA" && kelasAktif !== "") {
     listNilai = listNilai.filter(item => {
       if (item.kelas) {
@@ -407,29 +450,34 @@ async function tampilkanRiwayatNilai() {
   }
 
   if (!listNilai || listNilai.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Belum ada data nilai terinput</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #94a3b8;">Belum ada data nilai terinput</td></tr>';
     return;
   }
 
   tbody.innerHTML = "";
   listNilai.reverse().forEach(item => {
     const tr = document.createElement("tr");
+    tr.style.borderBottom = "1px solid #f1f5f9";
     
     let btnAksi = "-";
     if (role !== "SISWA" && navigator.onLine && item.row_index) {
       btnAksi = `
-        <button onclick="editNilai(${item.row_index}, '${item.nama_siswa}', ${item.nilai})" style="padding: 2px 6px; font-size: 11px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
-        <button onclick="hapusNilai(${item.row_index}, '${item.nama_siswa}')" style="padding: 2px 6px; font-size: 11px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Hapus</button>
+        <button onclick="editNilai(${item.row_index}, '${item.nama_siswa}', ${item.nilai})" style="padding: 3px 6px; font-size: 10px; background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
+        <button onclick="hapusNilai(${item.row_index}, '${item.nama_siswa}')" style="padding: 3px 6px; font-size: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; cursor: pointer; margin-left: 2px;"><i class="fa-solid fa-trash"></i></button>
       `;
     }
 
+    const badgeStatus = item.synced 
+      ? `<span style="background: #dcfce7; color: #166534; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px;">Tersinkron</span>`
+      : `<span style="background: #fef3c7; color: #92400e; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px;">Lokal</span>`;
+
     tr.innerHTML = `
-      <td>${item.nama_siswa || item.ref_id_siswa}</td>
-      <td>${item.mapel}</td>
-      <td>${item.jenis_penilaian}</td>
-      <td><strong>${item.nilai}</strong></td>
-      <td><span style="color: ${item.synced ? "green" : "orange"}; font-weight: bold;">${item.synced ? "Tersinkron" : "Lokal"}</span></td>
-      <td>${btnAksi}</td>
+      <td style="padding: 8px 4px; font-weight: 600;">${item.nama_siswa || item.ref_id_siswa}</td>
+      <td style="padding: 8px 4px;">${item.mapel}</td>
+      <td style="padding: 8px 4px;">${item.jenis_penilaian}</td>
+      <td style="padding: 8px 4px;"><strong>${item.nilai}</strong></td>
+      <td style="padding: 8px 4px;">${badgeStatus}</td>
+      <td style="padding: 8px 4px; text-align: center;">${btnAksi}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -594,7 +642,7 @@ function tutupMenuSiswa() {
   const viewNilai = document.getElementById("view-tab-nilai");
   const viewKasus = document.getElementById("view-tab-kasus");
 
-  // Tampilkan kembali kartu dashboard utama (Gambar 2)
+  // Tampilkan kembali kartu dashboard utama
   if (menuKartuSiswa) menuKartuSiswa.classList.remove("hidden");
 
   // Sembunyikan halaman detail

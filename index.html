@@ -335,96 +335,165 @@
     <!-- ========================================== -->
     <!-- B. DASHBOARD KHUSUS GURU                   -->
     <!-- ========================================== -->
-    <div id="guru-dashboard" class="hidden" style="color: #333333;">
+    <div id="guru-dashboard" class="hidden" style="color: #1e293b; background-color: #f8fafc; padding: 15px; border-radius: 16px;">
 
-      <!-- TAMPILAN 1: PILIH KELAS BINAAN -->
-      <div id="view-daftar-kelas">
-        <h3 style="margin-bottom: 15px; color: #1e293b;">Pilih Kelas Binaan:</h3>
-        <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-          <!-- Kartu-kartu Kelas dipasang via JS -->
+      <!-- 1. BANNER WELCOME GURU -->
+      <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 20px; padding: 20px; position: relative; overflow: hidden; margin-bottom: 20px; border: 1px solid #bfdbfe;">
+        <div style="max-width: 65%;">
+          <span style="font-size: 11px; font-weight: 800; color: #1d4ed8; letter-spacing: 1.5px; text-transform: uppercase;">SELAMAT DATANG</span>
+          <h1 id="guru-nama-welcome" style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 4px 0;">-</h1>
+          <p id="guru-role-sub" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 12px;">Guru Mapel • SMP Negeri 2 Puriala</p>
+          <div style="font-size: 11px; font-style: italic; color: #3b82f6; display: flex; align-items: flex-start; gap: 4px;">
+            <i class="fa-solid fa-quote-left" style="font-size: 10px;"></i>
+            <span>Teruslah menjadi inspirasi dan pembimbing terbaik bagi peserta didik.</span>
+          </div>
+        </div>
+        <div style="position: absolute; right: 10px; bottom: 0; top: 0; display: flex; align-items: flex-end;">
+          <img src="https://cdn-icons-png.flaticon.com/512/3429/3429402.png" alt="Avatar Guru" style="height: 110px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
         </div>
       </div>
 
-      <!-- TAMPILAN 2: FORM INPUT NILAI (TAMPIL SAAT KELAS DIKLIK) -->
-      <div id="view-form-nilai" class="hidden">
-        <button onclick="kembaliKeDaftarKelas()" style="background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">
-          ← Kembali ke Pilih Kelas
-        </button>
-        <h3 id="judul-kelas-aktif" style="color: #007bff; margin-top: 0;">Input Nilai</h3>
+      <!-- 2. KARTU STATISTIK RINGKASAN (4 GRID) -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+        <div style="background: #ffffff; padding: 12px 8px; border-radius: 14px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+          <div style="color: #2563eb; font-size: 16px; margin-bottom: 4px;"><i class="fa-solid fa-users"></i></div>
+          <div style="font-size: 10px; font-weight: 700; color: #64748b;">Kelas</div>
+          <div id="stat-total-kelas" style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 2px 0;">0</div>
+          <div style="font-size: 8px; color: #94a3b8;">Kelas binaan</div>
+        </div>
 
-        <!-- 1. Pilih Siswa -->
-        <label for="select-siswa" style="font-weight: bold; display: block; margin-top: 10px;">Pilih Siswa:</label>
-        <select id="select-siswa" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc; color: #333;">
-          <option value="">-- Pilih Siswa --</option>
-        </select>
+        <div style="background: #ffffff; padding: 12px 8px; border-radius: 14px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+          <div style="color: #16a34a; font-size: 16px; margin-bottom: 4px;"><i class="fa-solid fa-clipboard-check"></i></div>
+          <div style="font-size: 10px; font-weight: 700; color: #64748b;">Nilai</div>
+          <div id="stat-total-nilai" style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 2px 0;">0</div>
+          <div style="font-size: 8px; color: #94a3b8;">Total terinput</div>
+        </div>
 
-        <!-- 2. Mata Pelajaran (Filter Sesuai Guru) -->
-        <label for="select-mapel" style="font-weight: bold; display: block; margin-top: 12px;">Mata Pelajaran Guru:</label>
-        <select id="select-mapel" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc; color: #333;">
-          <option value="">-- Pilih Mapel --</option>
-        </select>
+        <div style="background: #ffffff; padding: 12px 8px; border-radius: 14px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+          <div style="color: #ea580c; font-size: 16px; margin-bottom: 4px;"><i class="fa-solid fa-circle-check"></i></div>
+          <div style="font-size: 10px; font-weight: 700; color: #64748b;">Sinkron</div>
+          <div style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 2px 0;">100%</div>
+          <div style="font-size: 8px; color: #94a3b8;">Data tersimpan</div>
+        </div>
 
-        <!-- 3. Jenis Penilaian / Tugas -->
-        <label for="select-jenis" style="font-weight: bold; display: block; margin-top: 12px;">Jenis Penilaian / Tugas:</label>
-        <select id="select-jenis" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc; color: #333;">
-          <optgroup label="Tugas Harian">
-            <option value="Tugas 1">Tugas 1</option>
-            <option value="Tugas 2">Tugas 2</option>
-            <option value="Tugas 3">Tugas 3</option>
-            <option value="Tugas 4">Tugas 4</option>
-            <option value="Tugas 5">Tugas 5</option>
-            <option value="Tugas 6">Tugas 6</option>
-            <option value="Tugas 7">Tugas 7</option>
-            <option value="Tugas 8">Tugas 8</option>
-            <option value="Tugas 9">Tugas 9</option>
-            <option value="Tugas 10">Tugas 10</option>
-          </optgroup>
-          <optgroup label="Ulangan Harian">
-            <option value="UH 1">UH 1</option>
-            <option value="UH 2">UH 2</option>
-            <option value="UH 3">UH 3</option>
-            <option value="UH 4">UH 4</option>
-            <option value="UH 5">UH 5</option>
-          </optgroup>
-          <optgroup label="Ujian Semester">
-            <option value="PTS">PTS (Penilaian Tengah Semester)</option>
-            <option value="PAS">PAS (Penilaian Akhir Semester)</option>
-          </optgroup>
-        </select>
-
-        <!-- 4. Input Nilai -->
-        <label for="input-nilai" style="font-weight: bold; display: block; margin-top: 12px;">Nilai (0 - 100):</label>
-        <input type="number" id="input-nilai" placeholder="Contoh: 85" min="0" max="100" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc; color: #333;">
-
-        <!-- Tombol Action -->
-        <button onclick="simpanNilai()" style="width: 100%; background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px;">
-          Simpan Nilai
-        </button>
-        <button id="btn-sync" onclick="syncData()" style="width: 100%; background-color: #ffc107; color: #000; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 8px;">
-          Sync Data Offline (<span id="sync-count">0</span>)
-        </button>
+        <div style="background: #ffffff; padding: 12px 8px; border-radius: 14px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+          <div style="color: #9333ea; font-size: 16px; margin-bottom: 4px;"><i class="fa-regular fa-clock"></i></div>
+          <div style="font-size: 10px; font-weight: 700; color: #64748b;">Status</div>
+          <div style="font-size: 13px; font-weight: 800; color: #16a34a; margin: 4px 0;">Aktif</div>
+          <div style="font-size: 8px; color: #94a3b8;">Sistem SIDIG</div>
+        </div>
       </div>
 
-      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ddd;">
+      <!-- 3. PILIH KELAS BINAAN -->
+      <div id="view-daftar-kelas">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0;">Pilih Kelas Binaan</h3>
+          <span id="badge-total-kelas" style="background: #dbeafe; color: #1e40af; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 12px;">0 kelas</span>
+        </div>
+        <div id="container-kelas" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
+          <!-- Kartu Kelas di-render via JS -->
+        </div>
+      </div>
 
-      <!-- RIWAYAT NILAI (TERFILTER SESUAI KELAS AKTIF) -->
-      <h4 id="judul-riwayat" style="margin-bottom: 10px; color: #1e293b;">Riwayat Nilai Terinput (Semua Kelas)</h4>
-      <div style="overflow-x: auto;">
-        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background-color: #fff; color: #333;">
-          <thead>
-            <tr style="background-color: #f1f3f5;">
-              <th>Siswa</th>
-              <th>Mapel</th>
-              <th>Jenis</th>
-              <th>Nilai</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="tabel-riwayat-body">
-            <tr><td colspan="6" style="text-align:center;">Belum ada data</td></tr>
-          </tbody>
-        </table>
+      <!-- 4. FORM INPUT NILAI (TAMPIL SAAT KELAS DIKLIK) -->
+      <div id="view-form-nilai" class="hidden">
+        <button onclick="kembaliKeDaftarKelas()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-arrow-left"></i> Kembali ke Pilih Kelas
+        </button>
+
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);">
+          <h3 id="judul-kelas-aktif" style="color: #2563eb; margin: 0 0 15px; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-pen-to-square"></i> Input Nilai
+          </h3>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label for="select-siswa" style="font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 4px;">Pilih Siswa</label>
+              <select id="select-siswa" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; color: #0f172a; outline: none;">
+                <option value="">-- Pilih Siswa --</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="select-mapel" style="font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 4px;">Mata Pelajaran Guru</label>
+              <select id="select-mapel" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; color: #0f172a; outline: none;">
+                <option value="">-- Pilih Mapel --</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="select-jenis" style="font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 4px;">Jenis Penilaian / Tugas</label>
+              <select id="select-jenis" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; color: #0f172a; outline: none;">
+                <optgroup label="Tugas Harian">
+                  <option value="Tugas 1">Tugas 1</option>
+                  <option value="Tugas 2">Tugas 2</option>
+                  <option value="Tugas 3">Tugas 3</option>
+                  <option value="Tugas 4">Tugas 4</option>
+                  <option value="Tugas 5">Tugas 5</option>
+                  <option value="Tugas 6">Tugas 6</option>
+                  <option value="Tugas 7">Tugas 7</option>
+                  <option value="Tugas 8">Tugas 8</option>
+                  <option value="Tugas 9">Tugas 9</option>
+                  <option value="Tugas 10">Tugas 10</option>
+                </optgroup>
+                <optgroup label="Ulangan Harian">
+                  <option value="UH 1">UH 1</option>
+                  <option value="UH 2">UH 2</option>
+                  <option value="UH 3">UH 3</option>
+                  <option value="UH 4">UH 4</option>
+                  <option value="UH 5">UH 5</option>
+                </optgroup>
+                <optgroup label="Ujian Semester">
+                  <option value="PTS">PTS (Penilaian Tengah Semester)</option>
+                  <option value="PAS">PAS (Penilaian Akhir Semester)</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div>
+              <label for="input-nilai" style="font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 4px;">Nilai (0 - 100)</label>
+              <input type="number" id="input-nilai" placeholder="Contoh: 85" min="0" max="100" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; color: #0f172a; outline: none;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px;">
+            <button onclick="simpanNilai()" style="background: #2563eb; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan
+            </button>
+            <button id="btn-sync" onclick="syncData()" style="background: #16a34a; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i class="fa-solid fa-rotate"></i> Sync (<span id="sync-count">0</span>)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. RIWAYAT NILAI TERINPUT -->
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <h4 id="judul-riwayat" style="color: #0f172a; font-size: 14px; font-weight: 800; margin: 0;">Riwayat Nilai Terinput (Semua Kelas)</h4>
+            <span style="font-size: 10px; color: #64748b;">Data terbaru dari semua kelas</span>
+          </div>
+          <span style="background: #f1f5f9; color: #475569; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px;">Terbaru</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; color: #334155;">
+            <thead>
+              <tr style="border-bottom: 1px solid #f1f5f9; color: #94a3b8; font-weight: 700;">
+                <th style="padding: 8px 4px;">Siswa</th>
+                <th style="padding: 8px 4px;">Mapel</th>
+                <th style="padding: 8px 4px;">Jenis</th>
+                <th style="padding: 8px 4px;">Nilai</th>
+                <th style="padding: 8px 4px;">Status</th>
+                <th style="padding: 8px 4px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tabel-riwayat-body">
+              <tr><td colspan="6" style="text-align:center; padding: 15px; color: #94a3b8;">Belum ada data nilai</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>
