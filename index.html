@@ -204,7 +204,7 @@
     /* DASHBOARD CONTAINERS */
     .app-card {
       background: #ffffff;
-      color: #333333;
+      color: #333333; /* Warna Teks Utama Gelap agar Terbaca */
       padding: 20px;
       border-radius: 12px;
       width: 100%;
@@ -232,7 +232,6 @@
       </div>
     </div>
 
-    <!-- BANNER PESAN LOGOUT (KEREN & RAMAH) -->
     <div id="pesan-logout" class="hidden" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-size: 12px; line-height: 1.5;">
       Anda telah keluar dari aplikasi.<br>
       <strong style="color: #ffffff;">Sampai jumpa kembali di SIDIG – SMP Negeri 2 Puriala 👋</strong>
@@ -270,7 +269,6 @@
       </div>
     </div>
 
-    <!-- Tombol Masuk -->
     <button class="btn-login" onclick="prosesLogin()">
       <span id="btn-login-text">Masuk sebagai Guru</span>
       <i class="fa-solid fa-circle-arrow-right"></i>
@@ -292,17 +290,15 @@
         <div id="status-koneksi" class="badge-online" style="background: #ecfdf5; border-color: #a7f3d0; color: #059669;">
           <span class="dot"></span> Online
         </div>
-        <button onclick="logout()" style="width: auto; background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Logout</button>
+        <button onclick="logout()" style="background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Logout</button>
       </div>
     </div>
     <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
 
     <!-- ========================================== -->
-    <!-- A. DASHBOARD KHUSUS SISWA (DESIGN KARTU)   -->
+    <!-- A. DASHBOARD KHUSUS SISWA                  -->
     <!-- ========================================== -->
     <div id="siswa-dashboard" class="hidden" style="text-align: center; padding: 10px 0;">
-      
-      <!-- Ucapan Selamat Datang -->
       <div style="margin: 10px 0 25px;">
         <div style="font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #000; text-transform: uppercase;">SELAMAT DATANG</div>
         <h1 id="siswa-nama-welcome" style="font-size: 32px; font-weight: 800; color: #3b82f6; margin: 4px 0; text-transform: uppercase;">-</h1>
@@ -312,9 +308,7 @@
 
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
 
-      <!-- Menu Grid Kartu Siswa -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px;">
-        
         <!-- Kartu Nilai Rapor -->
         <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
           <div style="width: 48px; height: 48px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #2563eb; font-size: 18px;">
@@ -334,128 +328,122 @@
           <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Lihat catatan pembinaan dan kedisiplinan</p>
           <button onclick="switchSiswaTab('kasus')" style="width: 100%; background: #ea580c; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;">Buka Menu</button>
         </div>
-
       </div>
     </div>
 
+
     <!-- ========================================== -->
-    <!-- B. TAMPILAN TAB 1: DATA NILAI              -->
+    <!-- B. DASHBOARD KHUSUS GURU                   -->
+    <!-- ========================================== -->
+    <div id="guru-dashboard" class="hidden" style="color: #333333;">
+
+      <!-- TAMPILAN 1: PILIH KELAS BINAAN -->
+      <div id="view-daftar-kelas">
+        <h3 style="margin-bottom: 15px; color: #1e293b;">Pilih Kelas Binaan:</h3>
+        <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <!-- Kartu-kartu Kelas dipasang via JS -->
+        </div>
+      </div>
+
+      <!-- TAMPILAN 2: FORM INPUT NILAI (TAMPIL SAAT KELAS DIKLIK) -->
+      <div id="view-form-nilai" class="hidden">
+        <button onclick="kembaliKeDaftarKelas()" style="background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">
+          ← Kembali ke Pilih Kelas
+        </button>
+        <h3 id="judul-kelas-aktif" style="color: #007bff; margin-top: 0;">Input Nilai</h3>
+
+        <!-- 1. Pilih Siswa -->
+        <label for="select-siswa" style="font-weight: bold; display: block; margin-top: 10px;">Pilih Siswa:</label>
+        <select id="select-siswa" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc; color: #333;">
+          <option value="">-- Pilih Siswa --</option>
+        </select>
+
+        <!-- 2. Mata Pelajaran (Filter Sesuai Guru) -->
+        <label for="select-mapel" style="font-weight: bold; display: block; margin-top: 12px;">Mata Pelajaran Guru:</label>
+        <select id="select-mapel" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc; color: #333;">
+          <option value="">-- Pilih Mapel --</option>
+        </select>
+
+        <!-- 3. Jenis Penilaian / Tugas -->
+        <label for="select-jenis" style="font-weight: bold; display: block; margin-top: 12px;">Jenis Penilaian / Tugas:</label>
+        <select id="select-jenis" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc; color: #333;">
+          <optgroup label="Tugas Harian">
+            <option value="Tugas 1">Tugas 1</option>
+            <option value="Tugas 2">Tugas 2</option>
+            <option value="Tugas 3">Tugas 3</option>
+            <option value="Tugas 4">Tugas 4</option>
+            <option value="Tugas 5">Tugas 5</option>
+            <option value="Tugas 6">Tugas 6</option>
+            <option value="Tugas 7">Tugas 7</option>
+            <option value="Tugas 8">Tugas 8</option>
+            <option value="Tugas 9">Tugas 9</option>
+            <option value="Tugas 10">Tugas 10</option>
+          </optgroup>
+          <optgroup label="Ulangan Harian">
+            <option value="UH 1">UH 1</option>
+            <option value="UH 2">UH 2</option>
+            <option value="UH 3">UH 3</option>
+            <option value="UH 4">UH 4</option>
+            <option value="UH 5">UH 5</option>
+          </optgroup>
+          <optgroup label="Ujian Semester">
+            <option value="PTS">PTS (Penilaian Tengah Semester)</option>
+            <option value="PAS">PAS (Penilaian Akhir Semester)</option>
+          </optgroup>
+        </select>
+
+        <!-- 4. Input Nilai -->
+        <label for="input-nilai" style="font-weight: bold; display: block; margin-top: 12px;">Nilai (0 - 100):</label>
+        <input type="number" id="input-nilai" placeholder="Contoh: 85" min="0" max="100" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc; color: #333;">
+
+        <!-- Tombol Action -->
+        <button onclick="simpanNilai()" style="width: 100%; background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px;">
+          Simpan Nilai
+        </button>
+        <button id="btn-sync" onclick="syncData()" style="width: 100%; background-color: #ffc107; color: #000; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 8px;">
+          Sync Data Offline (<span id="sync-count">0</span>)
+        </button>
+      </div>
+
+      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ddd;">
+
+      <!-- RIWAYAT NILAI (TERFILTER SESUAI KELAS AKTIF) -->
+      <h4 id="judul-riwayat" style="margin-bottom: 10px; color: #1e293b;">Riwayat Nilai Terinput (Semua Kelas)</h4>
+      <div style="overflow-x: auto;">
+        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background-color: #fff; color: #333;">
+          <thead>
+            <tr style="background-color: #f1f3f5;">
+              <th>Siswa</th>
+              <th>Mapel</th>
+              <th>Jenis</th>
+              <th>Nilai</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabel-riwayat-body">
+            <tr><td colspan="6" style="text-align:center;">Belum ada data</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- C. TAMPILAN DETAIL KHUSUS SISWA            -->
     <!-- ========================================== -->
     <div id="view-tab-nilai" class="hidden">
-      <!-- Tombol kembali khusus untuk siswa jika membuka tabel nilai -->
       <button id="btn-back-siswa-nilai" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #334155;">← Kembali ke Dashboard</button>
-
-      <div id="view-daftar-kelas">
-        <h4 style="margin-bottom: 10px; color: #1e293b;">Pilih Kelas Binaan:</h4>
-        <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;"></div>
-      </div>
-
-      <!-- DASHBOARD KHUSUS GURU -->
-<div id="guru-dashboard" class="hidden">
-
-  <!-- TAMPILAN 1: PILIH KELAS BINAAN -->
-  <div id="view-daftar-kelas">
-    <h3 style="margin-bottom: 15px; color: #333;">Pilih Kelas Binaan:</h3>
-    <div id="container-kelas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-      <!-- Kartu-kartu Kelas dipasang via JS -->
     </div>
-  </div>
 
-  <!-- TAMPILAN 2: FORM INPUT NILAI (TAMPIL SAAT KELAS DIKLIK) -->
-  <div id="view-form-nilai" class="hidden">
-    <button onclick="kembaliKeDaftarKelas()" style="background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">
-      ← Kembali ke Pilih Kelas
-    </button>
-    <h3 id="judul-kelas-aktif" style="color: #007bff; margin-top: 0;">Input Nilai</h3>
-
-    <!-- 1. Pilih Siswa -->
-    <label for="select-siswa" style="font-weight: bold; display: block; margin-top: 10px;">Pilih Siswa:</label>
-    <select id="select-siswa" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc;">
-      <option value="">-- Pilih Siswa --</option>
-    </select>
-
-    <!-- 2. Mata Pelajaran (Filter Sesuai Guru) -->
-    <label for="select-mapel" style="font-weight: bold; display: block; margin-top: 12px;">Mata Pelajaran Guru:</label>
-    <select id="select-mapel" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc;">
-      <option value="">-- Pilih Mapel --</option>
-    </select>
-
-    <!-- 3. Jenis Penilaian / Tugas -->
-    <label for="select-jenis" style="font-weight: bold; display: block; margin-top: 12px;">Jenis Penilaian / Tugas:</label>
-    <select id="select-jenis" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc;">
-      <optgroup label="Tugas Harian">
-        <option value="Tugas 1">Tugas 1</option>
-        <option value="Tugas 2">Tugas 2</option>
-        <option value="Tugas 3">Tugas 3</option>
-        <option value="Tugas 4">Tugas 4</option>
-        <option value="Tugas 5">Tugas 5</option>
-        <option value="Tugas 6">Tugas 6</option>
-        <option value="Tugas 7">Tugas 7</option>
-        <option value="Tugas 8">Tugas 8</option>
-        <option value="Tugas 9">Tugas 9</option>
-        <option value="Tugas 10">Tugas 10</option>
-      </optgroup>
-      <optgroup label="Ulangan Harian">
-        <option value="UH 1">UH 1</option>
-        <option value="UH 2">UH 2</option>
-        <option value="UH 3">UH 3</option>
-        <option value="UH 4">UH 4</option>
-        <option value="UH 5">UH 5</option>
-      </optgroup>
-      <optgroup label="Ujian Semester">
-        <option value="PTS">PTS (Penilaian Tengah Semester)</option>
-        <option value="PAS">PAS (Penilaian Akhir Semester)</option>
-      </optgroup>
-    </select>
-
-    <!-- 4. Input Nilai -->
-    <label for="input-nilai" style="font-weight: bold; display: block; margin-top: 12px;">Nilai (0 - 100):</label>
-    <input type="number" id="input-nilai" placeholder="Contoh: 85" min="0" max="100" style="width: 100%; padding: 8px; margin-top: 4px; border-radius: 5px; border: 1px solid #ccc;">
-
-    <!-- Tombol Action -->
-    <button onclick="simpanNilai()" style="width: 100%; background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px;">
-      Simpan Nilai
-    </button>
-    <button id="btn-sync" onclick="syncData()" style="width: 100%; background-color: #ffc107; color: #000; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 8px;">
-      Sync Data Offline (<span id="sync-count">0</span>)
-    </button>
-  </div>
-
-  <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ddd;">
-
-  <!-- RIWAYAT NILAI (TERFILTER SESUAI KELAS AKTIF) -->
-  <h4 id="judul-riwayat" style="margin-bottom: 10px;">Riwayat Nilai Terinput (Semua Kelas)</h4>
-  <div style="overflow-x: auto;">
-    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background-color: #fff;">
-      <thead>
-        <tr style="background-color: #f1f3f5;">
-          <th>Siswa</th>
-          <th>Mapel</th>
-          <th>Jenis</th>
-          <th>Nilai</th>
-          <th>Status</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="tabel-riwayat-body">
-        <tr><td colspan="6" style="text-align:center;">Belum ada data</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-</div>
-
-    <!-- ========================================== -->
-    <!-- C. TAMPILAN TAB 2: DATA BUKU KASUS         -->
-    <!-- ========================================== -->
     <div id="view-tab-kasus" class="hidden">
-      <!-- Tombol kembali khusus untuk siswa jika membuka buku kasus -->
       <button id="btn-back-siswa-kasus" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #334155;">← Kembali ke Dashboard</button>
       
       <h4 style="color: #ef4444; margin-top: 0;">Catatan Kedisiplinan / Buku Kasus</h4>
       <div id="loading-kasus" style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: none;">Memuat data catatan...</div>
       <div style="overflow-x: auto;">
-        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #fee2e2;">
+        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #fee2e2; color: #333;">
           <thead>
             <tr style="background-color: #fef2f2; color: #991b1b;">
               <th>Waktu</th>
