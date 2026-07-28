@@ -393,6 +393,7 @@ async function tampilkanRiwayatNilai() {
   let listNilai = [];
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
   const role = String(userSession.role || "").toUpperCase();
+  const userRefId = String(userSession.ref_id || "").trim();
 
   if (navigator.onLine) {
     try {
@@ -401,19 +402,20 @@ async function tampilkanRiwayatNilai() {
         body: JSON.stringify({
           action: "getNilai",
           role: role,
-          ref_id_guru: userSession.ref_id || "",
-          ref_id_siswa: userSession.ref_id || ""
+          ref_id_guru: userRefId,
+          ref_id_siswa: userRefId
         })
       });
       const result = await response.json();
-      if (result.success) {
+      if (result.success && Array.isArray(result.data)) {
         listNilai = result.data.map(item => ({ ...item, synced: true }));
       }
     } catch (err) {
       console.error("Gagal ambil dari server:", err);
     }
   } 
-  
+
+  // Jika online gagal atau tidak ada data server, coba dari IndexedDB lokal
   if (listNilai.length === 0) {
     try {
       const db = await openDB();
@@ -426,19 +428,21 @@ async function tampilkanRiwayatNilai() {
       });
 
       if (role === "SISWA") {
-        listNilai = localData.filter(item => String(item.ref_id_siswa) === String(userSession.ref_id));
+        listNilai = localData.filter(item => String(item.ref_id_siswa).trim() === userRefId);
       } else {
-        listNilai = localData.filter(item => String(item.ref_id_guru) === String(userSession.ref_id));
+        listNilai = localData.filter(item => String(item.ref_id_guru).trim() === userRefId);
       }
     } catch (err) {
       console.error("Gagal membaca lokal:", err);
     }
   }
 
-  if (statTotalNilai && role !== "SISWA") {
-    statTotalNilai.innerText = listNilai.length;
+  // Filter ekstra di sisi Client khusus untuk Siswa
+  if (role === "SISWA") {
+    listNilai = listNilai.filter(item => String(item.ref_id_siswa).trim() === userRefId);
   }
 
+  // Filter khusus Guru berdasarkan Kelas Aktif
   if (role !== "SISWA" && kelasAktif !== "") {
     listNilai = listNilai.filter(item => {
       if (item.kelas) {
@@ -447,6 +451,10 @@ async function tampilkanRiwayatNilai() {
       const siswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(item.ref_id_siswa));
       return siswa && String(siswa.kelas).trim().toUpperCase() === kelasAktif.trim().toUpperCase();
     });
+  }
+
+  if (statTotalNilai && role !== "SISWA") {
+    statTotalNilai.innerText = listNilai.length;
   }
 
   if (!listNilai || listNilai.length === 0) {
