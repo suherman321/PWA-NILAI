@@ -116,16 +116,26 @@ function showAppScreen(user) {
   document.getElementById("section-app").classList.remove("hidden");
   
   const role = String(user.role || "").toUpperCase();
-  let namaTampil = user.username; // Default Tampilan
+  let namaTampil = user.username;
 
-  // Jika yang login Siswa, cari nama aslinya di daftar masterSiswa
+  const tabSiswaNav = document.getElementById("siswa-tab-nav");
+
   if (role === "SISWA") {
+    // Tampilkan tombol navigasi tab jika login sebagai Siswa
+    if (tabSiswaNav) tabSiswaNav.classList.remove("hidden");
+    
     const dataSiswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(user.ref_id));
     if (dataSiswa && dataSiswa.nama_siswa) {
       namaTampil = dataSiswa.nama_siswa;
     }
+    // Default buka Tab Nilai
+    switchSiswaTab('nilai');
   } else {
-    // Jika Guru
+    // Sembunyikan navigasi tab jika login sebagai Guru
+    if (tabSiswaNav) tabSiswaNav.classList.add("hidden");
+    document.getElementById("view-tab-nilai").classList.remove("hidden");
+    document.getElementById("view-tab-kasus").classList.add("hidden");
+    
     namaTampil = user.nama || user.username || 'Guru';
   }
 
@@ -515,5 +525,83 @@ async function syncData(isAuto = false) {
   } catch (err) {
     console.error("Sync error:", err);
     if (!isAuto) alert("Gagal melakukan sinkronisasi ke server.");
+  }
+}
+// ==========================================
+// 9. LOGIKA NAVIGASI TAB SISWA & FETCH BUKU KASUS
+// ==========================================
+function switchSiswaTab(tabName) {
+  const btnNilai = document.getElementById("btn-tab-nilai");
+  const btnKasus = document.getElementById("btn-tab-kasus");
+  const viewNilai = document.getElementById("view-tab-nilai");
+  const viewKasus = document.getElementById("view-tab-kasus");
+
+  if (tabName === 'nilai') {
+    viewNilai.classList.remove("hidden");
+    viewKasus.classList.add("hidden");
+    btnNilai.style.backgroundColor = "#007bff";
+    btnKasus.style.backgroundColor = "#6c757d";
+  } else if (tabName === 'kasus') {
+    viewNilai.classList.add("hidden");
+    viewKasus.classList.remove("hidden");
+    btnNilai.style.backgroundColor = "#6c757d";
+    btnKasus.style.backgroundColor = "#007bff";
+    
+    // Muat data buku kasus dari server Apps Script
+    loadBukuKasusSiswa();
+  }
+}
+
+async function loadBukuKasusSiswa() {
+  const tbody = document.getElementById("tabel-kasus-body");
+  const loading = document.getElementById("loading-kasus");
+  if (!tbody) return;
+
+  const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
+  const masterData = JSON.parse(localStorage.getItem("master_data") || "{}");
+  
+  // Cari NISN siswa berdasarkan ref_id login
+  const listSiswa = masterData.list_siswa || [];
+  const currentSiswa = listSiswa.find(s => String(s.ref_id) === String(userSession.ref_id));
+  
+  if (!currentSiswa || !currentSiswa.nisn) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">NISN tidak ditemukan.</td></tr>';
+    return;
+  }
+
+  if (loading) loading.style.display = "block";
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr>';
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "getBukuKasus",
+        nisn: currentSiswa.nisn
+      })
+    });
+
+    const result = await response.json();
+    if (loading) loading.style.display = "none";
+
+    if (result.success && result.data && result.data.length > 0) {
+      tbody.innerHTML = "";
+      result.data.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${item.hari}</strong>, ${item.tanggal}<br><small color="#666">${item.waktu}</small></td>
+          <td style="color: #dc3545; font-weight: bold;">${item.kasus}</td>
+          <td>${item.tindak_lanjut}</td>
+          <td>${item.guru_piket}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: green; font-weight: bold;">Tidak ada catatan pelanggaran/kasus. 🎉</td></tr>';
+    }
+  } catch (err) {
+    console.error("Gagal memuat buku kasus:", err);
+    if (loading) loading.style.display = "none";
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: red;">Gagal terhubung ke server.</td></tr>';
   }
 }
