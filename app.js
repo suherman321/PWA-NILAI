@@ -932,26 +932,31 @@ function kembaliKeDaftarMapel() {
   if (containerMapel) containerMapel.classList.remove("hidden");
 }
 // ==========================================
-// FUNGSI MEMUAT DATA KEHADIRAN SISWA
+// LOGIKA INTERAKTIF KARTU KEHADIRAN SISWA
 // ==========================================
+let rawDataKehadiranSiswa = [];
+
 async function loadKehadiranSiswa() {
-  const tbody = document.getElementById("tabel-kehadiran-body");
-  const loading = document.getElementById("loading-kehadiran");
-  if (!tbody) return;
+  const containerMapel = document.getElementById("container-kehadiran-level-mapel");
+  const containerRincian = document.getElementById("container-kehadiran-level-rincian");
+  
+  if (containerMapel) containerMapel.classList.remove("hidden");
+  if (containerRincian) containerRincian.classList.add("hidden");
+
+  const gridContainer = document.getElementById("grid-kartu-kehadiran-mapel");
+  if (!gridContainer) return;
 
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
   const nisnSiswa = userSession.username || userSession.nisn || userSession.ref_id_siswa;
 
   if (!nisnSiswa) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Gagal mengidentifikasi data siswa. Silakan login ulang.</td></tr>';
+    gridContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:red;">Gagal mengidentifikasi data siswa. Silakan login ulang.</div>';
     return;
   }
 
-  if (loading) loading.style.display = "block";
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Memuat data kehadiran...</td></tr>';
+  gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat daftar presensi mapel...</div>`;
 
   try {
-    // DIBETULKAN: Menggunakan API_URL
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -962,46 +967,163 @@ async function loadKehadiranSiswa() {
     });
 
     const result = await response.json();
-    if (loading) loading.style.display = "none";
 
     if (result.success) {
-      // Update Statistik Ringkasan
-      if (result.stat) {
-        if (document.getElementById("stat-hadir")) document.getElementById("stat-hadir").textContent = result.stat.hadir || 0;
-        if (document.getElementById("stat-izin")) document.getElementById("stat-izin").textContent = result.stat.izin || 0;
-        if (document.getElementById("stat-sakit")) document.getElementById("stat-sakit").textContent = result.stat.sakit || 0;
-        if (document.getElementById("stat-alpa")) document.getElementById("stat-alpa").textContent = result.stat.alpa || 0;
-      }
-
-      // Render Tabel Riwayat
-      const dataList = result.data || [];
-      if (dataList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada catatan presensi.</td></tr>';
-      } else {
-        let htmlRows = "";
-        dataList.forEach(item => {
-          let color = "#64748b";
-          const ket = (item.keterangan || "").toLowerCase();
-          if (ket === "hadir") color = "#16a34a";
-          else if (ket === "izin") color = "#2563eb";
-          else if (ket === "sakit") color = "#ca8a04";
-          else if (ket === "alpa" || ket === "alpha") color = "#dc2626";
-
-          htmlRows += `<tr>
-            <td><strong>${item.mapel}</strong></td>
-            <td>${item.tanggal}</td>
-            <td>${item.waktu}</td>
-            <td><span style="color: ${color}; font-weight: bold;">${item.keterangan}</span></td>
-          </tr>`;
-        });
-        tbody.innerHTML = htmlRows;
-      }
+      rawDataKehadiranSiswa = result.data || [];
+      renderKartuMapelKehadiran(rawDataKehadiranSiswa);
     } else {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal: ${result.message}</td></tr>`;
+      gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Gagal: ${result.message}</div>`;
     }
   } catch (err) {
-    if (loading) loading.style.display = "none";
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Terjadi kesalahan koneksi.</td></tr>';
+    gridContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Terjadi kesalahan koneksi.</div>';
     console.error("Error loadKehadiranSiswa:", err);
   }
+}
+
+// 1. Render Kartu Mapel Presensi (Hanya mapel yang ada datanya)
+function renderKartuMapelKehadiran(dataKehadiran) {
+  const gridContainer = document.getElementById("grid-kartu-kehadiran-mapel");
+  if (!gridContainer) return;
+  gridContainer.innerHTML = "";
+
+  const mapelAdaPresensi = new Set();
+  dataKehadiran.forEach(item => {
+    if (item.mapel) {
+      mapelAdaPresensi.add(item.mapel.trim());
+    }
+  });
+
+  if (mapelAdaPresensi.size === 0) {
+    gridContainer.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; color: #64748b;">
+        <i class="fa-solid fa-clipboard-user" style="font-size: 24px; margin-bottom: 8px; color: #94a3b8;"></i><br>
+        Belum ada catatan presensi pada mata pelajaran manapun.
+      </div>`;
+    return;
+  }
+
+  mapelAdaPresensi.forEach(namaMapel => {
+    const totalAbsenMapel = dataKehadiran.filter(d => d.mapel && d.mapel.trim() === namaMapel).length;
+
+    const card = document.createElement("div");
+    card.style.cssText = `
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    `;
+
+    card.onmouseover = () => {
+      card.style.borderColor = "#16a34a";
+      card.style.transform = "translateY(-2px)";
+      card.style.boxShadow = "0 4px 12px rgba(22, 163, 74, 0.15)";
+    };
+    card.onmouseout = () => {
+      card.style.borderColor = "#e2e8f0";
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+    };
+
+    card.onclick = () => bukaRincianKehadiranMapel(namaMapel);
+
+    card.innerHTML = `
+      <div>
+        <div style="width: 32px; height: 32px; border-radius: 6px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 14px;">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <h5 style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: #1e293b;">${namaMapel}</h5>
+      </div>
+      <div style="font-size: 11px; color: #64748b; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <span>${totalAbsenMapel} Catatan</span>
+        <i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #94a3b8;"></i>
+      </div>
+    `;
+
+    gridContainer.appendChild(card);
+  });
+}
+
+// 2. Buka Rincian Statistik + Tabel Khusus Mapel Terpilih
+function bukaRincianKehadiranMapel(namaMapel) {
+  const containerMapel = document.getElementById("container-kehadiran-level-mapel");
+  const containerRincian = document.getElementById("container-kehadiran-level-rincian");
+  
+  if (containerMapel) containerMapel.classList.add("hidden");
+  if (containerRincian) containerRincian.classList.remove("hidden");
+
+  document.getElementById("judul-mapel-kehadiran-terpilih").innerText = namaMapel;
+  document.getElementById("badge-mapel-kehadiran-terpilih").innerText = namaMapel;
+
+  const tbody = document.getElementById("tabel-kehadiran-body");
+  if (!tbody) return;
+
+  const listFiltered = rawDataKehadiranSiswa.filter(item => item.mapel && item.mapel.trim() === namaMapel);
+
+  // Hitung Stat Khusus Mapel Ini
+  let stat = { hadir: 0, izin: 0, sakit: 0, alpa: 0 };
+  listFiltered.forEach(item => {
+    const ket = (item.keterangan || "").toLowerCase();
+    if (ket === "hadir") stat.hadir++;
+    else if (ket === "izin") stat.izin++;
+    else if (ket === "sakit") stat.sakit++;
+    else if (ket === "alpa" || ket === "alpha") stat.alpa++;
+  });
+
+  document.getElementById("stat-hadir").textContent = stat.hadir;
+  document.getElementById("stat-izin").textContent = stat.izin;
+  document.getElementById("stat-sakit").textContent = stat.sakit;
+  document.getElementById("stat-alpa").textContent = stat.alpa;
+
+  // Render Tabel
+  if (listFiltered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Belum ada catatan presensi.</td></tr>';
+  } else {
+    let htmlRows = "";
+    listFiltered.forEach(item => {
+      let color = "#64748b";
+      const ket = (item.keterangan || "").toLowerCase();
+      if (ket === "hadir") color = "#16a34a";
+      else if (ket === "izin") color = "#2563eb";
+      else if (ket === "sakit") color = "#ca8a04";
+      else if (ket === "alpa" || ket === "alpha") color = "#dc2626";
+
+      // Helper rapihkan string tanggal Date JS
+      let tglFormatted = item.tanggal;
+      if (item.tanggal && item.tanggal.includes("GMT")) {
+        try {
+          tglFormatted = new Date(item.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch(e){}
+      }
+
+      // Helper rapihkan string jam Date JS
+      let waktuFormatted = item.waktu;
+      if (item.waktu && item.waktu.includes("GMT")) {
+        try {
+          waktuFormatted = new Date(item.waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        } catch(e){}
+      }
+
+      htmlRows += `<tr>
+        <td>${tglFormatted}</td>
+        <td>${waktuFormatted}</td>
+        <td><span style="color: ${color}; font-weight: bold;">${item.keterangan}</span></td>
+      </tr>`;
+    });
+    tbody.innerHTML = htmlRows;
+  }
+}
+
+// 3. Tombol Navigasi Kembali Ke Daftar Mapel Presensi
+function kembaliKeDaftarMapelKehadiran() {
+  const containerMapel = document.getElementById("container-kehadiran-level-mapel");
+  const containerRincian = document.getElementById("container-kehadiran-level-rincian");
+  
+  if (containerRincian) containerRincian.classList.add("hidden");
+  if (containerMapel) containerMapel.classList.remove("hidden");
 }
