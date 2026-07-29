@@ -665,13 +665,17 @@ function switchSiswaTab(tabName) {
 
   const tabNilai = document.getElementById("view-tab-nilai");
   const tabKasus = document.getElementById("view-tab-kasus");
+  const tabKehadiran = document.getElementById("view-tab-kehadiran");
   if (tabNilai) tabNilai.classList.add("hidden");
   if (tabKasus) tabKasus.classList.add("hidden");
+  if (tabKehadiran) tabKehadiran.classList.add("hidden");
 
   const btnBackNilai = document.getElementById("btn-back-siswa-nilai");
   const btnBackKasus = document.getElementById("btn-back-siswa-kasus");
+  const btnBackKehadiran = document.getElementById("btn-back-siswa-kehadiran");
   if (btnBackNilai) btnBackNilai.classList.remove("hidden");
   if (btnBackKasus) btnBackKasus.classList.remove("hidden");
+  if (btnBackKehadiran) btnBackKehadiran.classList.remove("hidden");
 
   if (tabName === 'nilai') {
     if (tabNilai) tabNilai.classList.remove("hidden");
@@ -681,14 +685,21 @@ function switchSiswaTab(tabName) {
     if (typeof loadBukuKasusSiswa === "function") {
       loadBukuKasusSiswa();
     }
+  } else if (tabName === 'kehadiran') {
+    if (tabKehadiran) tabKehadiran.classList.remove("hidden");
+    if (typeof loadKehadiranSiswa === "function") {
+      loadKehadiranSiswa();
+    }
   }
 }
 
 function tutupMenuSiswa() {
   const tabNilai = document.getElementById("view-tab-nilai");
   const tabKasus = document.getElementById("view-tab-kasus");
+  const tabKehadiran = document.getElementById("view-tab-kehadiran");
   if (tabNilai) tabNilai.classList.add("hidden");
   if (tabKasus) tabKasus.classList.add("hidden");
+  if (tabKehadiran) tabKehadiran.classList.add("hidden");
 
   const dashboard = document.getElementById("siswa-dashboard");
   if (dashboard) dashboard.classList.remove("hidden");
@@ -919,4 +930,78 @@ function kembaliKeDaftarMapel() {
   
   if (containerRincian) containerRincian.classList.add("hidden");
   if (containerMapel) containerMapel.classList.remove("hidden");
+}
+// ==========================================
+// FUNGSI MEMUAT DATA KEHADIRAN SISWA
+// ==========================================
+async function loadKehadiranSiswa() {
+  const tbody = document.getElementById("tabel-kehadiran-body");
+  const loading = document.getElementById("loading-kehadiran");
+  if (!tbody) return;
+
+  const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
+  const nisnSiswa = userSession.username || userSession.nisn || userSession.ref_id_siswa;
+
+  if (!nisnSiswa) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Gagal mengidentifikasi data siswa. Silakan login ulang.</td></tr>';
+    return;
+  }
+
+  if (loading) loading.style.display = "block";
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Memuat data kehadiran...</td></tr>';
+
+  try {
+    // DIBETULKAN: Menggunakan API_URL
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "getKehadiran",
+        ref_id_siswa: nisnSiswa
+      })
+    });
+
+    const result = await response.json();
+    if (loading) loading.style.display = "none";
+
+    if (result.success) {
+      // Update Statistik Ringkasan
+      if (result.stat) {
+        if (document.getElementById("stat-hadir")) document.getElementById("stat-hadir").textContent = result.stat.hadir || 0;
+        if (document.getElementById("stat-izin")) document.getElementById("stat-izin").textContent = result.stat.izin || 0;
+        if (document.getElementById("stat-sakit")) document.getElementById("stat-sakit").textContent = result.stat.sakit || 0;
+        if (document.getElementById("stat-alpa")) document.getElementById("stat-alpa").textContent = result.stat.alpa || 0;
+      }
+
+      // Render Tabel Riwayat
+      const dataList = result.data || [];
+      if (dataList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada catatan presensi.</td></tr>';
+      } else {
+        let htmlRows = "";
+        dataList.forEach(item => {
+          let color = "#64748b";
+          const ket = (item.keterangan || "").toLowerCase();
+          if (ket === "hadir") color = "#16a34a";
+          else if (ket === "izin") color = "#2563eb";
+          else if (ket === "sakit") color = "#ca8a04";
+          else if (ket === "alpa" || ket === "alpha") color = "#dc2626";
+
+          htmlRows += `<tr>
+            <td><strong>${item.mapel}</strong></td>
+            <td>${item.tanggal}</td>
+            <td>${item.waktu}</td>
+            <td><span style="color: ${color}; font-weight: bold;">${item.keterangan}</span></td>
+          </tr>`;
+        });
+        tbody.innerHTML = htmlRows;
+      }
+    } else {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal: ${result.message}</td></tr>`;
+    }
+  } catch (err) {
+    if (loading) loading.style.display = "none";
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Terjadi kesalahan koneksi.</td></tr>';
+    console.error("Error loadKehadiranSiswa:", err);
+  }
 }

@@ -315,6 +315,17 @@
           <button onclick="switchSiswaTab('kasus')" style="width: 100%; background: #ea580c; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;">Buka Menu</button>
         </div>
       </div>
+	  <!-- CARD KEHADIRAN -->
+<div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+  <div style="width: 48px; height: 48px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+    <i class="fa-solid fa-calendar-check" style="color: #16a34a; font-size: 20px;"></i>
+  </div>
+  <h3 style="margin: 0 0 4px; font-size: 16px; color: #0f172a;">Kehadiran</h3>
+  <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Lihat rekapitulasi presensi mata pelajaran</p>
+  <button onclick="switchSiswaTab('kehadiran')" style="width: 100%; background: #16a34a; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+    Lihat Kehadiran
+  </button>
+</div>
     </div>
 
 
@@ -556,6 +567,54 @@
         </table>
       </div>
     </div>
+<!-- TAB 3: DETAIL KEHADIRAN SISWA -->
+<div id="view-tab-kehadiran" class="hidden">
+  <button id="btn-back-siswa-kehadiran" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+    &larr; Kembali ke Dashboard
+  </button>
+
+  <h4 style="color: #16a34a; margin-top: 0;">Rekapitulasi Kehadiran Siswa</h4>
+  <div id="loading-kehadiran" style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: none;">Memuat data kehadiran...</div>
+
+  <!-- Stat Ringkasan -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; margin-bottom: 15px;">
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px; text-align: center;">
+      <span style="font-size: 10px; color: #166534; font-weight: bold;">Hadir</span>
+      <h3 id="stat-hadir" style="margin: 2px 0 0; font-size: 16px; color: #15803d;">0</h3>
+    </div>
+    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px; text-align: center;">
+      <span style="font-size: 10px; color: #1e40af; font-weight: bold;">Izin</span>
+      <h3 id="stat-izin" style="margin: 2px 0 0; font-size: 16px; color: #1d4ed8;">0</h3>
+    </div>
+    <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 8px; text-align: center;">
+      <span style="font-size: 10px; color: #854d0e; font-weight: bold;">Sakit</span>
+      <h3 id="stat-sakit" style="margin: 2px 0 0; font-size: 16px; color: #a16207;">0</h3>
+    </div>
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px; text-align: center;">
+      <span style="font-size: 10px; color: #991b1b; font-weight: bold;">Alpa</span>
+      <h3 id="stat-alpa" style="margin: 2px 0 0; font-size: 16px; color: #b91c1c;">0</h3>
+    </div>
+  </div>
+
+  <!-- Tabel Riwayat -->
+  <div style="overflow-x: auto;">
+    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #e2e8f0; color: #333;">
+      <thead>
+        <tr style="background-color: #f8fafc; color: #334155;">
+          <th>Mata Pelajaran</th>
+          <th>Tanggal</th>
+          <th>Waktu</th>
+          <th>Keterangan</th>
+        </tr>
+      </thead>
+      <tbody id="tabel-kehadiran-body">
+        <tr>
+          <td colspan="4" style="text-align:center;">Belum ada catatan kehadiran</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
   </div>
 
