@@ -641,40 +641,44 @@ async function syncData(isAuto = false) {
 // 9. LOGIKA NAVIGASI SISWA & FETCH BUKU KASUS
 // ==========================================
 function switchSiswaTab(tabName) {
-  // Sembunyikan Dashboard Siswa
+  // 1. Sembunyikan Dashboard Siswa
   const dashboard = document.getElementById("siswa-dashboard");
   if (dashboard) dashboard.classList.add("hidden");
 
-  // Sembunyikan semua tab detail
-  const viewNilai = document.getElementById("view-tab-nilai");
-  const viewKasus = document.getElementById("view-tab-kasus");
-  if (viewNilai) viewNilai.classList.add("hidden");
-  if (viewKasus) viewKasus.classList.add("hidden");
+  // 2. Sembunyikan semua tab detail
+  const tabNilai = document.getElementById("view-tab-nilai");
+  const tabKasus = document.getElementById("view-tab-kasus");
+  if (tabNilai) tabNilai.classList.add("hidden");
+  if (tabKasus) tabKasus.classList.add("hidden");
 
-  // Tampilkan tab yang dipilih & panggil datanya
+  // 3. Tampilkan tombol back
+  const btnBackNilai = document.getElementById("btn-back-siswa-nilai");
+  const btnBackKasus = document.getElementById("btn-back-siswa-kasus");
+  if (btnBackNilai) btnBackNilai.classList.remove("hidden");
+  if (btnBackKasus) btnBackKasus.classList.remove("hidden");
+
+  // 4. Buka Tab yang dipilih dan PANGGIL FUNGSI AMBIL DATA
   if (tabName === 'nilai') {
-    if (viewNilai) viewNilai.classList.remove("hidden");
-    const btnBack = document.getElementById("btn-back-siswa-nilai");
-    if (btnBack) btnBack.classList.remove("hidden");
-    
-    // PANGGIL FUNGSI AMBIL DATA NILAI
-    tampilkanRiwayatNilai();
+    if (tabNilai) tabNilai.classList.remove("hidden");
+    // === POIN PENTING: Panggil fungsi fetch data nilai ===
+    tampilkanRiwayatNilai(); 
   } else if (tabName === 'kasus') {
-    if (viewKasus) viewKasus.classList.remove("hidden");
-    const btnBack = document.getElementById("btn-back-siswa-kasus");
-    if (btnBack) btnBack.classList.remove("hidden");
-    
-    // PANGGIL FUNGSI BUKU KASUS (jika ada)
-    if (typeof tampilkanBukuKasus === "function") tampilkanBukuKasus();
+    if (tabKasus) tabKasus.classList.remove("hidden");
+    // === Panggil fungsi fetch data buku kasus ===
+    if (typeof muatBukuKasusSiswa === "function") {
+      muatBukuKasusSiswa();
+    }
   }
 }
 
 function tutupMenuSiswa() {
-  const viewNilai = document.getElementById("view-tab-nilai");
-  const viewKasus = document.getElementById("view-tab-kasus");
-  if (viewNilai) viewNilai.classList.add("hidden");
-  if (viewKasus) viewKasus.classList.add("hidden");
+  // Sembunyikan tab detail
+  const tabNilai = document.getElementById("view-tab-nilai");
+  const tabKasus = document.getElementById("view-tab-kasus");
+  if (tabNilai) tabNilai.classList.add("hidden");
+  if (tabKasus) tabKasus.classList.add("hidden");
 
+  // Tampilkan kembali Dashboard Utama Siswa
   const dashboard = document.getElementById("siswa-dashboard");
   if (dashboard) dashboard.classList.remove("hidden");
 }
