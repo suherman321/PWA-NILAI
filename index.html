@@ -24,7 +24,6 @@
       color: #ffffff;
     }
 
-    /* GLASSMORPHISM CARD */
     .login-card {
       background: rgba(13, 30, 77, 0.65);
       backdrop-filter: blur(16px);
@@ -38,7 +37,6 @@
       position: relative;
     }
 
-    /* BADGE ONLINE */
     .status-container {
       position: absolute;
       top: 20px;
@@ -63,7 +61,6 @@
       border-radius: 50%;
     }
 
-    /* HEADER / LOGO */
     .header-section {
       text-align: center;
       margin-top: 10px;
@@ -104,7 +101,6 @@
       padding: 0 10px;
     }
 
-    /* FORM INPUTS */
     .form-group {
       margin-bottom: 18px;
       position: relative;
@@ -170,7 +166,6 @@
     }
     .selected-role-text strong { color: #3b82f6; }
 
-    /* BUTTON LOGIN */
     .btn-login {
       width: 100%;
       padding: 13px;
@@ -201,10 +196,9 @@
       margin-top: 15px;
     }
 
-    /* DASHBOARD CONTAINERS */
     .app-card {
       background: #ffffff;
-      color: #333333; /* Warna Teks Utama Gelap agar Terbaca */
+      color: #333333;
       padding: 20px;
       border-radius: 12px;
       width: 100%;
@@ -237,7 +231,6 @@
       <strong style="color: #ffffff;">Sampai jumpa kembali di SIDIG – SMP Negeri 2 Puriala 👋</strong>
     </div>
 
-    <!-- Pilihan Peran / Role -->
     <div class="form-group">
       <label class="form-label">Login sebagai <span>* (Wajib dipilih)</span></label>
       <div class="input-wrapper">
@@ -252,7 +245,6 @@
       <div class="selected-role-text">Peran dipilih: <strong id="lbl-role-dipilih">Guru</strong></div>
     </div>
 
-    <!-- Username / NIP / NISN -->
     <div class="form-group">
       <div class="input-wrapper">
         <i class="fa-solid fa-user input-icon-left"></i>
@@ -260,7 +252,6 @@
       </div>
     </div>
 
-    <!-- Password -->
     <div class="form-group">
       <div class="input-wrapper">
         <i class="fa-solid fa-lock input-icon-left"></i>
@@ -280,10 +271,9 @@
   </div>
 
 
-  <!-- 2. SECTION DASHBOARD (DITAMPILKAN SETELAH LOGIN) -->
+  <!-- 2. SECTION DASHBOARD -->
   <div id="section-app" class="app-card hidden">
     
-    <!-- HEADER BAR ATAS -->
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <h3 id="user-info" style="margin: 0; color: #1e293b;">Dashboard</h3>
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -295,9 +285,7 @@
     </div>
     <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
 
-    <!-- ========================================== -->
-    <!-- A. DASHBOARD KHUSUS SISWA                  -->
-    <!-- ========================================== -->
+    <!-- A. DASHBOARD SISWA -->
     <div id="siswa-dashboard" class="hidden" style="text-align: center; padding: 10px 0;">
       <div style="margin: 10px 0 25px;">
         <div style="font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #000; text-transform: uppercase;">SELAMAT DATANG SIDIG SISWA</div>
@@ -309,7 +297,6 @@
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px;">
-        <!-- Kartu Nilai Rapor -->
         <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
           <div style="width: 48px; height: 48px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #2563eb; font-size: 18px;">
             <i class="fa-solid fa-book-open"></i>
@@ -319,7 +306,6 @@
           <button onclick="switchSiswaTab('nilai')" style="width: 100%; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;">Buka Menu</button>
         </div>
 
-        <!-- Kartu Buku Kasus -->
         <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
           <div style="width: 48px; height: 48px; background: #fff7ed; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #ea580c; font-size: 18px;">
             <i class="fa-solid fa-clipboard-list"></i>
@@ -332,12 +318,9 @@
     </div>
 
 
-    <!-- ========================================== -->
-    <!-- B. DASHBOARD KHUSUS GURU                   -->
-    <!-- ========================================== -->
+    <!-- B. DASHBOARD GURU -->
     <div id="guru-dashboard" class="hidden" style="color: #1e293b; background-color: #f8fafc; padding: 15px; border-radius: 16px;">
 
-      <!-- 1. BANNER WELCOME GURU -->
       <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 20px; padding: 20px; position: relative; overflow: hidden; margin-bottom: 20px; border: 1px solid #bfdbfe;">
         <div style="max-width: 65%;">
           <span style="font-size: 11px; font-weight: 800; color: #1d4ed8; letter-spacing: 1.5px; text-transform: uppercase;">SELAMAT DATANG SIDIG GURU</span>
@@ -353,7 +336,6 @@
         </div>
       </div>
 
-      <!-- 2. KARTU STATISTIK RINGKASAN (4 GRID) -->
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
         <div style="background: #ffffff; padding: 12px 8px; border-radius: 14px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
           <div style="color: #2563eb; font-size: 16px; margin-bottom: 4px;"><i class="fa-solid fa-users"></i></div>
@@ -384,18 +366,15 @@
         </div>
       </div>
 
-      <!-- 3. PILIH KELAS BINAAN -->
       <div id="view-daftar-kelas">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0;">Pilih Kelas Binaan</h3>
           <span id="badge-total-kelas" style="background: #dbeafe; color: #1e40af; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 12px;">0 kelas</span>
         </div>
         <div id="container-kelas" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
-          <!-- Kartu Kelas di-render via JS -->
         </div>
       </div>
 
-      <!-- 4. FORM INPUT NILAI (TAMPIL SAAT KELAS DIKLIK) -->
       <div id="view-form-nilai" class="hidden">
         <button onclick="kembaliKeDaftarKelas()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-arrow-left"></i> Kembali ke Pilih Kelas
@@ -467,7 +446,6 @@
         </div>
       </div>
 
-      <!-- 5. RIWAYAT NILAI TERINPUT -->
       <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <div>
@@ -499,63 +477,64 @@
     </div>
 
 
-    <!-- ========================================== -->
-    <!-- C. TAMPILAN DETAIL KHUSUS SISWA            -->
-    <!-- ========================================== -->
+    <!-- C. TAMPILAN DETAIL SISWA -->
     <!-- TAB 1: DETAIL NILAI RAPOR SISWA -->
-<div id="view-tab-nilai" class="hidden">
-  <button id="btn-back-siswa-nilai" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-    &larr; Kembali ke Dashboard
-  </button>
+    <div id="view-tab-nilai" class="hidden">
+      <button id="btn-back-siswa-nilai" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+        &larr; Kembali ke Dashboard
+      </button>
 
-  <h4 style="color: #2563eb; margin-top: 0;">Nilai Rapor Siswa</h4>
-  <div style="overflow-x: auto;">
-    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #e2e8f0; color: #333;">
-      <thead>
-        <tr style="background-color: #eff6ff; color: #1e40af;">
-          <th>Siswa</th>
-          <th>Mata Pelajaran</th>
-          <th>Jenis Penilaian</th>
-          <th>Nilai</th>
-          <th>Status</th>
-          <th style="text-align: center;">Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="tabel-riwayat-body">
-        <tr>
-          <td colspan="6" style="text-align:center;">Memuat data nilai...</td>
-        </tr>
-      </tbody>
-    </table>
+      <h4 style="color: #2563eb; margin-top: 0;">Nilai Rapor Siswa</h4>
+      <div style="overflow-x: auto;">
+        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #e2e8f0; color: #333;">
+          <thead>
+            <tr style="background-color: #eff6ff; color: #1e40af;">
+              <th>Siswa</th>
+              <th>Mata Pelajaran</th>
+              <th>Jenis Penilaian</th>
+              <th>Nilai</th>
+              <th>Status</th>
+              <th style="text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <!-- ID DIUBAH AGAR TIDAK BENTROK DENGAN TABEL GURU -->
+          <tbody id="tabel-riwayat-siswa-body">
+            <tr>
+              <td colspan="6" style="text-align:center;">Memuat data nilai...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: DETAIL BUKU KASUS SISWA -->
+    <div id="view-tab-kasus" class="hidden">
+      <button id="btn-back-siswa-kasus" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+        &larr; Kembali ke Dashboard
+      </button>
+
+      <h4 style="color: #ef4444; margin-top: 0;">Catatan Kedisiplinan / Buku Kasus</h4>
+      <div id="loading-kasus" style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: none;">Memuat data catatan...</div>
+      <div style="overflow-x: auto;">
+        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #fee2e2; color: #333;">
+          <thead>
+            <tr style="background-color: #fef2f2; color: #991b1b;">
+              <th>Waktu</th>
+              <th>Pelanggaran / Kasus</th>
+              <th>Tindak Lanjut</th>
+              <th>Guru Piket</th>
+            </tr>
+          </thead>
+          <tbody id="tabel-kasus-body">
+            <tr>
+              <td colspan="4" style="text-align:center;">Belum ada catatan kasus</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
-</div>
-
-<!-- TAB 2: DETAIL BUKU KASUS SISWA -->
-<div id="view-tab-kasus" class="hidden">
-  <button id="btn-back-siswa-kasus" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-    &larr; Kembali ke Dashboard
-  </button>
-
-  <h4 style="color: #ef4444; margin-top: 0;">Catatan Kedisiplinan / Buku Kasus</h4>
-  <div id="loading-kasus" style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: none;">Memuat data catatan...</div>
-  <div style="overflow-x: auto;">
-    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #fee2e2; color: #333;">
-      <thead>
-        <tr style="background-color: #fef2f2; color: #991b1b;">
-          <th>Waktu</th>
-          <th>Pelanggaran / Kasus</th>
-          <th>Tindak Lanjut</th>
-          <th>Guru Piket</th>
-        </tr>
-      </thead>
-      <tbody id="tabel-kasus-body">
-        <tr>
-          <td colspan="4" style="text-align:center;">Belum ada catatan kasus</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
 
   <script src="app.js"></script>
 </body>

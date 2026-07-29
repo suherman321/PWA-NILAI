@@ -154,7 +154,11 @@ function showAppScreen(user) {
     if (dashboardSiswa) dashboardSiswa.classList.remove("hidden");
     if (dashboardGuru) dashboardGuru.classList.add("hidden");
 
-    const dataSiswa = masterSiswaGlobal.find(s => String(s.ref_id) === String(user.ref_id));
+    const dataSiswa = masterSiswaGlobal.find(s => 
+      String(s.ref_id) === String(user.ref_id) || 
+      String(s.nisn) === String(user.username) || 
+      String(s.ref_id) === String(user.username)
+    );
     if (dataSiswa && dataSiswa.nama_siswa) {
       namaTampil = dataSiswa.nama_siswa;
     }
@@ -175,6 +179,9 @@ function showAppScreen(user) {
     const elemWelcomeGuru = document.getElementById("guru-nama-welcome");
     if (elemUserInfo) elemUserInfo.innerText = namaTampil;
     if (elemWelcomeGuru) elemWelcomeGuru.innerText = namaTampil;
+
+    // OTOMATIS AMBIL DAN HITUNG NILAI TERINPUT UNTUK GURU
+    tampilkanRiwayatNilai();
   }
 
   updateSyncCount();
@@ -285,16 +292,13 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
 function bukaFormInputNilai(kelas) {
   kelasAktif = kelas;
   
-  // Sembunyikan daftar kelas, tampilkan form
   document.getElementById("view-daftar-kelas").classList.add("hidden");
   document.getElementById("view-form-nilai").classList.remove("hidden");
   
-  // Ubah judul
   document.getElementById("judul-kelas-aktif").innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Input Nilai - Kelas ${kelas}`;
   const elJudulRiwayat = document.getElementById("judul-riwayat");
   if (elJudulRiwayat) elJudulRiwayat.textContent = `Riwayat Nilai - Kelas ${kelas}`;
 
-  // Filter daftar siswa hanya untuk kelas ini
   const siswaKelasIni = masterSiswaGlobal.filter(s => String(s.kelas).trim().toUpperCase() === String(kelas).trim().toUpperCase());
 
   const selectSiswa = document.getElementById("select-siswa");
@@ -308,19 +312,17 @@ function bukaFormInputNilai(kelas) {
     selectSiswa.appendChild(opt);
   });
 
-  // Tampilkan riwayat nilai yang terfilter khusus kelas ini
   tampilkanRiwayatNilai();
 }
 
 function kembaliKeDaftarKelas() {
-  kelasAktif = ""; // Reset filter kelas
+  kelasAktif = ""; 
   document.getElementById("view-form-nilai").classList.add("hidden");
   document.getElementById("view-daftar-kelas").classList.remove("hidden");
 
   const elJudulRiwayat = document.getElementById("judul-riwayat");
   if (elJudulRiwayat) elJudulRiwayat.textContent = "Riwayat Nilai Terinput (Semua Kelas)";
   
-  // Tampilkan kembali semua riwayat nilai
   tampilkanRiwayatNilai();
 }
 
@@ -387,12 +389,6 @@ async function simpanNilai() {
 // 7. RIWAYAT NILAI, EDIT & HAPUS
 // ==========================================
 async function tampilkanRiwayatNilai() {
-  const tbody = document.getElementById("tabel-riwayat-body");
-  if (!tbody) return;
-
-  // Set indikator memuat data
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data nilai...</td></tr>';
-
   // 1. Ambil session user & master data
   let rawSession = localStorage.getItem("user_session") || localStorage.getItem("user") || "{}";
   let userSession = {};
@@ -407,10 +403,24 @@ async function tampilkanRiwayatNilai() {
   const role = String(userSession.role || "").toUpperCase();
   const userRefId = String(userSession.ref_id || userSession.username || userSession.nis || "").trim();
 
-  // Cari data siswa di master_data untuk fallback nama & pencarian
+  // Pilih target tbody yang tepat
+  let tbody = document.getElementById("tabel-riwayat-body");
+  if (role === "SISWA") {
+    const tbodySiswa = document.getElementById("tabel-riwayat-siswa-body");
+    if (tbodySiswa) tbody = tbodySiswa;
+  }
+
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data nilai...</td></tr>';
+
   const masterData = JSON.parse(localStorage.getItem("master_data") || "{}");
   const listSiswaMaster = masterData.list_siswa || masterSiswaGlobal || [];
-  const currentSiswa = listSiswaMaster.find(s => String(s.ref_id) === String(userRefId) || String(s.username) === String(userRefId));
+  const currentSiswa = listSiswaMaster.find(s => 
+    String(s.ref_id) === String(userRefId) || 
+    String(s.username) === String(userRefId) ||
+    String(s.nisn) === String(userRefId)
+  );
 
   let listNilai = [];
 
@@ -423,7 +433,7 @@ async function tampilkanRiwayatNilai() {
           action: "getNilai",
           role: role,
           ref_id_guru: userRefId,
-          ref_id_siswa: userRefId
+          ref_id_siswa: currentSiswa ? currentSiswa.ref_id : userRefId
         })
       });
       const result = await response.json();
@@ -450,13 +460,22 @@ async function tampilkanRiwayatNilai() {
       if (role === "SISWA") {
         listNilai = localData.filter(item => {
           const itemRef = String(item.ref_id_siswa || item.nis || "").trim().toLowerCase();
-          return itemRef === userRefId.toLowerCase();
+          const targetRef = currentSiswa ? String(currentSiswa.ref_id).toLowerCase() : userRefId.toLowerCase();
+          return itemRef === targetRef;
         });
       } else {
         listNilai = localData;
       }
     } catch (err) {
       console.error("Gagal membaca dari IndexedDB:", err);
+    }
+  }
+
+  // Update Statistik Total Nilai Terinput khusus Guru
+  if (role !== "SISWA") {
+    const statTotalNilai = document.getElementById("stat-total-nilai");
+    if (statTotalNilai) {
+      statTotalNilai.innerText = listNilai.length;
     }
   }
 
@@ -472,7 +491,7 @@ async function tampilkanRiwayatNilai() {
   }
 
   tbody.innerHTML = "";
-  listNilai.slice().reverse().forEach((item, index) => {
+  listNilai.slice().reverse().forEach((item) => {
     const tr = document.createElement("tr");
     tr.style.borderBottom = "1px solid #f1f5f9";
 
@@ -485,7 +504,6 @@ async function tampilkanRiwayatNilai() {
     const jenisTampil = item.jenis_penilaian || item.jenis || "-";
     const nilaiTampil = item.nilai !== undefined ? item.nilai : "-";
 
-    // Tombol Aksi (Edit/Hapus) khusus Guru
     let kolomAksi = "-";
     if (role !== "SISWA" && item.row_index) {
       kolomAksi = `
@@ -657,24 +675,21 @@ function switchSiswaTab(tabName) {
 
   if (tabName === 'nilai') {
     if (tabNilai) tabNilai.classList.remove("hidden");
-    // Panggil ulang ambil data nilai
     tampilkanRiwayatNilai();
   } else if (tabName === 'kasus') {
     if (tabKasus) tabKasus.classList.remove("hidden");
-    if (typeof muatBukuKasusSiswa === "function") {
-      muatBukuKasusSiswa();
+    if (typeof loadBukuKasusSiswa === "function") {
+      loadBukuKasusSiswa();
     }
   }
 }
 
 function tutupMenuSiswa() {
-  // Sembunyikan tab detail
   const tabNilai = document.getElementById("view-tab-nilai");
   const tabKasus = document.getElementById("view-tab-kasus");
   if (tabNilai) tabNilai.classList.add("hidden");
   if (tabKasus) tabKasus.classList.add("hidden");
 
-  // Tampilkan kembali Dashboard Utama Siswa
   const dashboard = document.getElementById("siswa-dashboard");
   if (dashboard) dashboard.classList.remove("hidden");
 }
@@ -688,7 +703,10 @@ async function loadBukuKasusSiswa() {
   const masterData = JSON.parse(localStorage.getItem("master_data") || "{}");
   
   const listSiswa = masterData.list_siswa || [];
-  const currentSiswa = listSiswa.find(s => String(s.ref_id) === String(userSession.ref_id));
+  const currentSiswa = listSiswa.find(s => 
+    String(s.ref_id) === String(userSession.ref_id) || 
+    String(s.nisn) === String(userSession.username)
+  );
   
   if (!currentSiswa || !currentSiswa.nisn) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">NISN tidak ditemukan.</td></tr>';
