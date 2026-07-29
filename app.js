@@ -163,6 +163,7 @@ function showAppScreen(user) {
     if (elemWelcome) elemWelcome.innerText = namaTampil;
 
     tutupMenuSiswa();
+    tampilkanRiwayatNilai();
   } else {
     if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
     if (dashboardGuru) dashboardGuru.classList.remove("hidden");
@@ -641,30 +642,25 @@ async function syncData(isAuto = false) {
 // 9. LOGIKA NAVIGASI SISWA & FETCH BUKU KASUS
 // ==========================================
 function switchSiswaTab(tabName) {
-  // 1. Sembunyikan Dashboard Siswa
   const dashboard = document.getElementById("siswa-dashboard");
   if (dashboard) dashboard.classList.add("hidden");
 
-  // 2. Sembunyikan semua tab detail
   const tabNilai = document.getElementById("view-tab-nilai");
   const tabKasus = document.getElementById("view-tab-kasus");
   if (tabNilai) tabNilai.classList.add("hidden");
   if (tabKasus) tabKasus.classList.add("hidden");
 
-  // 3. Tampilkan tombol back
   const btnBackNilai = document.getElementById("btn-back-siswa-nilai");
   const btnBackKasus = document.getElementById("btn-back-siswa-kasus");
   if (btnBackNilai) btnBackNilai.classList.remove("hidden");
   if (btnBackKasus) btnBackKasus.classList.remove("hidden");
 
-  // 4. Buka Tab yang dipilih dan PANGGIL FUNGSI AMBIL DATA
   if (tabName === 'nilai') {
     if (tabNilai) tabNilai.classList.remove("hidden");
-    // === POIN PENTING: Panggil fungsi fetch data nilai ===
-    tampilkanRiwayatNilai(); 
+    // Panggil ulang ambil data nilai
+    tampilkanRiwayatNilai();
   } else if (tabName === 'kasus') {
     if (tabKasus) tabKasus.classList.remove("hidden");
-    // === Panggil fungsi fetch data buku kasus ===
     if (typeof muatBukuKasusSiswa === "function") {
       muatBukuKasusSiswa();
     }
