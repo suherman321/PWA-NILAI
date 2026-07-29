@@ -675,7 +675,7 @@ function switchSiswaTab(tabName) {
 
   if (tabName === 'nilai') {
     if (tabNilai) tabNilai.classList.remove("hidden");
-    tampilkanRiwayatNilai();
+    muatHalamanNilaiSiswa();
   } else if (tabName === 'kasus') {
     if (tabKasus) tabKasus.classList.remove("hidden");
     if (typeof loadBukuKasusSiswa === "function") {
@@ -748,4 +748,175 @@ async function loadBukuKasusSiswa() {
     if (loading) loading.style.display = "none";
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: red;">Gagal terhubung ke server.</td></tr>';
   }
+}
+// ==========================================
+// 10. LOGIKA INTERAKTIF KARTU MAPEL SISWA
+// ==========================================
+
+let rawDataNilaiSiswa = [];
+
+/**
+ * 1. Dipanggil saat siswa menekan menu "Nilai Rapor" di Dashboard
+ */
+function muatHalamanNilaiSiswa() {
+  const containerMapel = document.getElementById("container-level-mapel");
+  const containerRincian = document.getElementById("container-level-rincian");
+  
+  if (containerMapel) containerMapel.classList.remove("hidden");
+  if (containerRincian) containerRincian.classList.add("hidden");
+
+  const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
+  const userRefId = String(userSession.ref_id || userSession.username || "").trim();
+
+  const gridContainer = document.getElementById("grid-kartu-mapel");
+  if (!gridContainer) return;
+  
+  gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat daftar mata pelajaran...</div>`;
+
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "getNilai",
+      role: "SISWA",
+      ref_id_siswa: userRefId
+    })
+  })
+  .then(res => res.json())
+  .then(res => {
+    if (res.success && Array.isArray(res.data)) {
+      rawDataNilaiSiswa = res.data;
+      renderKartuMapel(res.data);
+    } else {
+      gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Gagal memuat data nilai.</div>`;
+    }
+  })
+  .catch(err => {
+    console.error("Error getNilai siswa:", err);
+    gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Terjadi kesalahan koneksi.</div>`;
+  });
+}
+
+/**
+ * 2. Render Kartu Mapel (Hanya Menampilkan Mapel yang Ada Nilainya)
+ */
+function renderKartuMapel(dataNilai) {
+  const gridContainer = document.getElementById("grid-kartu-mapel");
+  if (!gridContainer) return;
+  gridContainer.innerHTML = "";
+
+  const mapelAdaNilai = new Set();
+  dataNilai.forEach(item => {
+    if (item.mapel && item.nilai !== null && item.nilai !== undefined && item.nilai !== "") {
+      mapelAdaNilai.add(item.mapel.trim());
+    }
+  });
+
+  if (mapelAdaNilai.size === 0) {
+    gridContainer.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; color: #64748b;">
+        <i class="fa-solid fa-folder-open" style="font-size: 24px; margin-bottom: 8px; color: #94a3b8;"></i><br>
+        Belum ada nilai mata pelajaran yang diinput oleh guru.
+      </div>`;
+    return;
+  }
+
+  mapelAdaNilai.forEach(namaMapel => {
+    const jumlahNilai = dataNilai.filter(d => d.mapel && d.mapel.trim() === namaMapel).length;
+
+    const card = document.createElement("div");
+    card.style.cssText = `
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    `;
+
+    card.onmouseover = () => {
+      card.style.borderColor = "#2563eb";
+      card.style.transform = "translateY(-2px)";
+      card.style.boxShadow = "0 4px 12px rgba(37, 99, 235, 0.15)";
+    };
+    card.onmouseout = () => {
+      card.style.borderColor = "#e2e8f0";
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+    };
+
+    card.onclick = () => bukaRincianNilaiMapel(namaMapel);
+
+    card.innerHTML = `
+      <div>
+        <div style="width: 32px; height: 32px; border-radius: 6px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 14px;">
+          <i class="fa-solid fa-book-bookmark"></i>
+        </div>
+        <h5 style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: #1e293b;">${namaMapel}</h5>
+      </div>
+      <div style="font-size: 11px; color: #64748b; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <span>${jumlahNilai} Nilai</span>
+        <i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #94a3b8;"></i>
+      </div>
+    `;
+
+    gridContainer.appendChild(card);
+  });
+}
+
+/**
+ * 3. Buka Tabel Rincian Nilai untuk Mapel Tertentu
+ */
+function bukaRincianNilaiMapel(namaMapel) {
+  const containerMapel = document.getElementById("container-level-mapel");
+  const containerRincian = document.getElementById("container-level-rincian");
+  
+  if (containerMapel) containerMapel.classList.add("hidden");
+  if (containerRincian) containerRincian.classList.remove("hidden");
+
+  const elemJudul = document.getElementById("judul-mapel-terpilih");
+  const elemBadge = document.getElementById("badge-mapel-terpilih");
+  
+  if (elemJudul) elemJudul.innerText = namaMapel;
+  if (elemBadge) elemBadge.innerText = namaMapel;
+
+  const tbody = document.getElementById("tabel-riwayat-siswa-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const listDetail = rawDataNilaiSiswa.filter(item => item.mapel && item.mapel.trim() === namaMapel);
+
+  if (listDetail.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b;">Tidak ada rincian nilai untuk mata pelajaran ini.</td></tr>`;
+    return;
+  }
+
+  listDetail.forEach((row) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.nama_siswa || "-"}</td>
+      <td><strong>${row.mapel || "-"}</strong></td>
+      <td>${row.jenis_penilaian || "-"}</td>
+      <td><strong style="color: #2563eb;">${row.nilai !== undefined ? row.nilai : "-"}</strong></td>
+      <td><span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">Tersinkron</span></td>
+      <td style="text-align:center;">
+        <span style="color:#94a3b8; font-size:11px;">Hanya Lihat</span>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/**
+ * 4. Tombol Navigasi "Kembali ke Daftar Mapel"
+ */
+function kembaliKeDaftarMapel() {
+  const containerMapel = document.getElementById("container-level-mapel");
+  const containerRincian = document.getElementById("container-level-rincian");
+  
+  if (containerRincian) containerRincian.classList.add("hidden");
+  if (containerMapel) containerMapel.classList.remove("hidden");
 }

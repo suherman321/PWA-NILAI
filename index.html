@@ -479,32 +479,55 @@
 
     <!-- C. TAMPILAN DETAIL SISWA -->
     <!-- TAB 1: DETAIL NILAI RAPOR SISWA -->
-    <div id="view-tab-nilai" class="hidden">
-      <button id="btn-back-siswa-nilai" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-        &larr; Kembali ke Dashboard
-      </button>
+<div id="view-tab-nilai" class="hidden">
+      
+      <!-- LEVEL 1: DAFTAR KARTU MAPEL -->
+      <div id="container-level-mapel">
+        <button onclick="tutupMenuSiswa()" style="margin-bottom: 15px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #475569;">
+          <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
+        </button>
 
-      <h4 style="color: #2563eb; margin-top: 0;">Nilai Rapor Siswa</h4>
-      <div style="overflow-x: auto;">
-        <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #e2e8f0; color: #333;">
-          <thead>
-            <tr style="background-color: #eff6ff; color: #1e40af;">
-              <th>Siswa</th>
-              <th>Mata Pelajaran</th>
-              <th>Jenis Penilaian</th>
-              <th>Nilai</th>
-              <th>Status</th>
-              <th style="text-align: center;">Aksi</th>
-            </tr>
-          </thead>
-          <!-- ID DIUBAH AGAR TIDAK BENTROK DENGAN TABEL GURU -->
-          <tbody id="tabel-riwayat-siswa-body">
-            <tr>
-              <td colspan="6" style="text-align:center;">Memuat data nilai...</td>
-            </tr>
-          </tbody>
-        </table>
+        <h4 style="color: #2563eb; margin-top: 0; margin-bottom: 4px; font-weight: 800; font-size: 16px;">Mata Pelajaran</h4>
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">Pilih mata pelajaran untuk melihat rincian nilai</p>
+
+        <!-- Container Grid Tempat Kartu Mapel Ditinggali -->
+        <div id="grid-kartu-mapel" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+          <!-- Kartu Mapel di-generate otomatis oleh app.js -->
+        </div>
       </div>
+
+      <!-- LEVEL 2: TABEL RINCIAN NILAI PER MAPEL -->
+      <div id="container-level-rincian" class="hidden">
+        <button onclick="kembaliKeDaftarMapel()" style="margin-bottom: 15px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #475569;">
+          <i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Mapel
+        </button>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 id="judul-mapel-terpilih" style="color: #2563eb; margin: 0; font-weight: 800; font-size: 16px;">Nilai Rapor Siswa</h4>
+          <span id="badge-mapel-terpilih" style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px;">-</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #e2e8f0; color: #333;">
+            <thead>
+              <tr style="background-color: #eff6ff; color: #1e40af;">
+                <th>Siswa</th>
+                <th>Mata Pelajaran</th>
+                <th>Jenis Penilaian</th>
+                <th>Nilai</th>
+                <th>Status</th>
+                <th style="text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tabel-riwayat-siswa-body">
+              <tr>
+                <td colspan="6" style="text-align:center;">Memuat data nilai...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
     <!-- TAB 2: DETAIL BUKU KASUS SISWA -->
