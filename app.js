@@ -1192,39 +1192,95 @@ function initAdminTabListeners() {
     });
 }
 // 1. MONITORING NILAI
+// 1. MONITORING NILAI
+
+// Fungsi utama yang dipanggil saat Tab Nilai dibuka
 function tampilkanNilaiAdmin() {
-  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  loadMenuNilaiAdmin();
+}
+
+// Memuat daftar kartu mapel aktif
+function loadMenuNilaiAdmin() {
+  const container = document.getElementById("list-mapel-nilai-cards");
   if (!container) return;
 
-  container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data nilai...</td></tr>`;
+  container.innerHTML = `<p style="color: #64748b; grid-column: 1/-1;">Memuat daftar mata pelajaran...</p>`;
 
-  fetch(`${SCRIPT_URL}?action=getNilai`)
+  fetch(`${SCRIPT_URL}?action=getMapelNilaiAktif`)
     .then(res => res.json())
-    .then(dataNilai => {
-      if (!dataNilai || dataNilai.length === 0) {
-        container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada data nilai.</td></tr>`;
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        container.innerHTML = `<p style="color: #64748b; grid-column: 1/-1;">Belum ada data nilai pada mapel manapun.</p>`;
         return;
       }
+
       let html = "";
-      dataNilai.forEach((item) => {
+      data.forEach(m => {
         html += `
-          <tr>
-            <td>${item.kelas}</td>
-            <td>${item.namaSiswa}</td>
-            <td>${item.mapel}</td>
-            <td>${item.jenis}</td>
-            <td><b>${item.nilai}</b></td>
-            <td>
-              <button class="btn-edit" onclick="handleEditNilai(${item.id})">Edit</button>
-              <button class="btn-delete" onclick="handleHapusNilai(${item.id})">Hapus</button>
-            </td>
-          </tr>`;
+          <div class="mapel-card" onclick="bukaDetailNilai('${m.nama}')">
+            <div>
+              <div class="mapel-card-header">
+                <div class="mapel-card-icon"><i class="fa-solid fa-calendar-check"></i></div>
+              </div>
+              <div class="mapel-card-body">
+                <h4>${m.nama}</h4>
+              </div>
+            </div>
+            <div class="mapel-card-footer">
+              <span>${m.jumlahData} Catatan</span>
+              <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </div>
+        `;
       });
       container.innerHTML = html;
     })
     .catch(err => {
-      container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+      container.innerHTML = `<p style="color: red; grid-column: 1/-1;">Gagal memuat data: ${err.message}</p>`;
     });
+}
+
+// Menampilkan detail tabel nilai saat kartu mapel diklik
+function bukaDetailNilai(namaMapel) {
+  document.getElementById("wrapper-list-mapel-nilai").style.display = "none";
+  document.getElementById("wrapper-detail-nilai").style.display = "block";
+  document.getElementById("judul-detail-mapel-nilai").innerText = `Mata Pelajaran: ${namaMapel}`;
+
+  const tbody = document.getElementById("tbl-nilai-detail-body");
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #64748b;">Memuat data nilai...</td></tr>`;
+
+  fetch(`${SCRIPT_URL}?action=getNilaiByMapel&mapel=${encodeURIComponent(namaMapel)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #64748b;">Belum ada data nilai untuk mapel ini.</td></tr>`;
+        return;
+      }
+
+      let html = "";
+      data.forEach(item => {
+        html += `<tr>
+          <td><b>${item.nisn}</b><br><small style="color: #64748b;">${item.nama}</small></td>
+          <td>${item.nilai}</td>
+          <td>${item.keterangan}</td>
+          <td style="text-align: center;">
+            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditNilai('${namaMapel}', ${item.id})"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusNilai('${namaMapel}', ${item.id})"><i class="fa-solid fa-trash"></i> Hapus</button>
+          </td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    })
+    .catch(err => {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+    });
+}
+
+// Kembali ke daftar kartu mapel
+function kembaliKeDaftarMapelNilai() {
+  document.getElementById("wrapper-detail-nilai").style.display = "none";
+  document.getElementById("wrapper-list-mapel-nilai").style.display = "block";
+  loadMenuNilaiAdmin();
 }
 
 // 2. MONITORING ABSEN
