@@ -1302,7 +1302,8 @@ function kembaliKeDaftarMapelNilai() {
 
 // 2. MONITORING ABSEN
 function tampilkanAbsenAdmin() {
-  const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
+  // 1. Ambil elemen tbody dengan ID yang sesuai di HTML
+  const container = document.getElementById("tbl-admin-absen-body") || document.querySelector("#admin-view-absen tbody");
   if (!container) return;
 
   container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data absen...</td></tr>`;
@@ -1325,14 +1326,20 @@ function tampilkanAbsenAdmin() {
 
       let html = "";
       data.forEach(item => {
+        // Pengecekan fallback property agar nama siswa pasti muncul
+        const namaSiswa = item.namaSiswa || item.nisn || item.nama || '-';
+        const mapel = item.mapel || item.mataPelajaran || '-';
+        const tanggal = item.tanggal || item.waktu || '-';
+        const status = item.status || '-';
+
         html += `<tr>
-          <td>${item.mapel || '-'}</td>
-          <td>${item.namaSiswa || '-'}</td>
-          <td>${item.tanggal || '-'}</td>
-          <td><b>${item.status || '-'}</b></td>
-          <td>
-            <button class="btn-edit" onclick="handleEditAbsen('${item.id}')">Edit</button>
-            <button class="btn-delete" onclick="handleHapusAbsen('${item.id}')">Hapus</button>
+          <td>${mapel}</td>
+          <td><b>${namaSiswa}</b></td>
+          <td>${tanggal}</td>
+          <td><b>${status}</b></td>
+          <td style="text-align: center;">
+            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditAbsen('${item.id}')">Edit</button>
+            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusAbsen('${item.id}')">Hapus</button>
           </td>
         </tr>`;
       });
