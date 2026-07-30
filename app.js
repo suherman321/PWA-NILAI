@@ -1275,13 +1275,13 @@ function tampilkanKasusAdmin() {
   const container = document.getElementById("tbl-kasus-body") || document.querySelector("#admin-view-kasus tbody");
   if (!container) return;
 
-  container.innerHTML = `<tr><td colspan="7" style="text-align:center;">Memuat data kasus...</td></tr>`;
+  container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data kasus...</td></tr>`;
 
   fetch(`${SCRIPT_URL}?action=getKasus`)
     .then(res => res.json())
     .then(data => {
       if (!Array.isArray(data) || data.length === 0) {
-        container.innerHTML = `<tr><td colspan="7" style="text-align:center;">Belum ada catatan kasus.</td></tr>`;
+        container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada catatan kasus.</td></tr>`;
         return;
       }
       let html = "";
@@ -1289,7 +1289,6 @@ function tampilkanKasusAdmin() {
         html += `<tr>
           <td>${item.tanggal || '-'}</td>
           <td>${item.namaSiswa || '-'}</td>
-          <td>${item.nis || '-'}</td>
           <td>${item.kasus || '-'}</td>
           <td>${item.penanganan || '-'}</td>
           <td>${item.guruPiket || '-'}</td>
@@ -1302,7 +1301,7 @@ function tampilkanKasusAdmin() {
       container.innerHTML = html;
     })
     .catch(err => {
-      container.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+      container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
 }
 
