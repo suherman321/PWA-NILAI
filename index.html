@@ -277,13 +277,65 @@
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <h3 id="user-info" style="margin: 0; color: #1e293b;">Dashboard</h3>
       <div style="display: flex; align-items: center; gap: 10px;">
-        <div id="status-koneksi" class="badge-online" style="background: #ecfdf5; border-color: #a7f3d0; color: #059669;">
-          <span class="dot"></span> Online
-        </div>
-        <button onclick="logout()" style="background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Logout</button>
-      </div>
+  <div id="status-koneksi" class="badge-online" style="background: #ecfdf5; border-color: #a7f3d0; color: #059669;">
+    <span class="dot"></span> Online
+  </div>
+
+  <!-- TOMBOL TAB ADMIN (Awalnya disembunyikan) -->
+  <button id="tab-admin-user" class="hidden" onclick="switchTab('admin-user')" style="background-color: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">
+    <i class="fa-solid fa-users-gear"></i> Kelola Pengguna
+  </button>
+
+  <button id="tab-admin-monitoring" class="hidden" onclick="switchTab('admin-monitoring')" style="background-color: #0d9488; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">
+    <i class="fa-solid fa-chart-line"></i> Rekap Nilai
+  </button>
+
+  <button onclick="logout()" style="background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Logout</button>
+</div>
+
     </div>
     <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
+<!-- C. DASHBOARD ADMIN: MANAJEMEN USER -->
+<div id="admin-user-dashboard" class="hidden" style="margin-top: 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <div>
+      <h2 style="margin: 0; color: #1e293b;">Manajemen Pengguna</h2>
+      <p style="margin: 0; font-size: 13px; color: #64748b;">Kelola akun Guru, Siswa, dan Admin sekolah</p>
+    </div>
+    <button onclick="openModalAddUser()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+      <i class="fa-solid fa-user-plus"></i> Tambah User Baru
+    </button>
+  </div>
+
+  <!-- Tabel Pengguna -->
+  <div style="overflow-x: auto; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569;">
+          <th style="padding: 12px 15px;">Username</th>
+          <th style="padding: 12px 15px;">Role</th>
+          <th style="padding: 12px 15px;">Ref ID</th>
+          <th style="padding: 12px 15px; text-align: center;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="table-user-body">
+        <tr>
+          <td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">Memuat data pengguna...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- D. DASHBOARD ADMIN: REKAP MONITORING -->
+<div id="admin-monitoring-dashboard" class="hidden" style="margin-top: 20px;">
+  <h2 style="margin-bottom: 5px; color: #1e293b;">Rekap Nilai Sekolah</h2>
+  <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Pantau seluruh hasil input nilai dari guru mata pelajaran</p>
+
+  <div id="admin-monitoring-content">
+    <!-- Konten rekap nilai akan dimuat via JS -->
+  </div>
+</div>
 
     <!-- A. DASHBOARD SISWA -->
     <div id="siswa-dashboard" class="hidden" style="text-align: center; padding: 10px 0;">

@@ -150,37 +150,54 @@ function showAppScreen(user) {
   const dashboardSiswa = document.getElementById("siswa-dashboard");
   const dashboardGuru = document.getElementById("guru-dashboard");
 
-  if (role === "SISWA") {
+  // --- CEK NAVIGASI TAB ADMIN ---
+  const tabAdminUser = document.getElementById("tab-admin-user");
+  const tabAdminMon = document.getElementById("tab-admin-monitoring");
+  
+  // Sembunyikan tab admin secara default
+  if (tabAdminUser) tabAdminUser.classList.add("hidden");
+  if (tabAdminMon) tabAdminMon.classList.add("hidden");
+
+  if (role === "ADMIN") {
+    // TAMPILKAN KHUSUS ADMIN
+    if (tabAdminUser) tabAdminUser.classList.remove("hidden");
+    if (tabAdminMon) tabAdminMon.classList.remove("hidden");
+    if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
+    if (dashboardGuru) dashboardGuru.classList.add("hidden");
+
+    switchTab("admin-user");
+
+  } else if (role === "SISWA") {
     if (dashboardSiswa) dashboardSiswa.classList.remove("hidden");
     if (dashboardGuru) dashboardGuru.classList.add("hidden");
 
     const dataSiswa = masterSiswaGlobal.find(s => 
-      String(s.ref_id) === String(user.ref_id) || 
-      String(s.nisn) === String(user.username) || 
+      String(s.ref_id) === String(user.ref_id) ||
+      String(s.nisn) === String(user.username) ||
       String(s.ref_id) === String(user.username)
     );
     if (dataSiswa && dataSiswa.nama_siswa) {
       namaTampil = dataSiswa.nama_siswa;
     }
-    
+
     const elemWelcome = document.getElementById("siswa-nama-welcome");
     if (elemWelcome) elemWelcome.innerText = namaTampil;
 
     tutupMenuSiswa();
     tampilkanRiwayatNilai();
+
   } else {
+    // JIKA ROLE GURU
     if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
     if (dashboardGuru) dashboardGuru.classList.remove("hidden");
-    
+
     namaTampil = user.nama || user.username || 'Guru';
-    
-    // Set Nama Guru di Topbar & Welcome Banner
+
     const elemUserInfo = document.getElementById("user-info");
     const elemWelcomeGuru = document.getElementById("guru-nama-welcome");
     if (elemUserInfo) elemUserInfo.innerText = namaTampil;
     if (elemWelcomeGuru) elemWelcomeGuru.innerText = namaTampil;
 
-    // OTOMATIS AMBIL DAN HITUNG NILAI TERINPUT UNTUK GURU
     tampilkanRiwayatNilai();
   }
 
@@ -1126,4 +1143,91 @@ function kembaliKeDaftarMapelKehadiran() {
   
   if (containerRincian) containerRincian.classList.add("hidden");
   if (containerMapel) containerMapel.classList.remove("hidden");
+}
+// ==========================================
+// FUNGSI NAVIGASI & TAB ADMIN
+// ==========================================
+function switchTab(tabName) {
+  // Sembunyikan semua section dashboard
+  const siswaDash = document.getElementById('siswa-dashboard');
+  const guruDash = document.getElementById('guru-dashboard');
+  const adminUserDash = document.getElementById('admin-user-dashboard');
+  const adminMonDash = document.getElementById('admin-monitoring-dashboard');
+
+  if (siswaDash) siswaDash.classList.add('hidden');
+  if (guruDash) guruDash.classList.add('hidden');
+  if (adminUserDash) adminUserDash.classList.add('hidden');
+  if (adminMonDash) adminMonDash.classList.add('hidden');
+
+  // Tampilkan tab yang dipilih
+  if (tabName === 'admin-user' && adminUserDash) {
+    adminUserDash.classList.remove('hidden');
+    loadUsersData();
+  } else if (tabName === 'admin-monitoring' && adminMonDash) {
+    adminMonDash.classList.remove('hidden');
+    loadMonitoringData();
+  }
+}
+
+// --- FUNGSI LOAD DATA USER UNTUK ADMIN ---
+function loadUsersData() {
+  const tbody = document.getElementById('table-user-body');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Memuat data...</td></tr>';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success || !res.data) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Gagal atau tidak ada data pengguna.</td></tr>';
+        return;
+      }
+      let html = '';
+      res.data.forEach(function(u) {
+        html += `<tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 10px 15px;"><strong>${u.username}</strong></td>
+          <td style="padding: 10px 15px;"><span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${u.role}</span></td>
+          <td style="padding: 10px 15px;">${u.ref_id || '-'}</td>
+          <td style="padding: 10px 15px; text-align: center;">
+            <button onclick="resetUserPassword(${u.row_index}, '${u.username}')" style="background: #f59e0b; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset Pass</button>
+          </td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    })
+    .withFailureHandler(function(err) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: red; padding: 20px;">Gagal memuat data.</td></tr>';
+    })
+    .getUsers();
+}
+
+// --- FUNGSI LOAD REKAP NILAI UNTUK ADMIN ---
+function loadMonitoringData() {
+  const container = document.getElementById('admin-monitoring-content');
+  if (!container) return;
+  container.innerHTML = '<p style="text-align:center;">Memuat rekap nilai...</p>';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success) {
+        container.innerHTML = `<p style="color:red; text-align:center;">Gagal memuat rekap nilai.</p>`;
+        return;
+      }
+      container.innerHTML = `<div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <p style="margin: 0; color: #059669; font-weight: bold;">✅ Berhasil terhubung ke database nilai!</p>
+        <p style="margin: 5px 0 0 0; font-size: 13px; color: #475569;">Total data nilai tersimpan: <strong>${res.data.length}</strong> baris.</p>
+      </div>`;
+    })
+    .getNilai({ role: 'ADMIN' });
+}
+
+// --- FUNGSI RESET PASSWORD ---
+function resetUserPassword(rowIndex, username) {
+  const newPass = prompt(`Masukkan password baru untuk user "${username}":`);
+  if (!newPass) return;
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      alert(res.message || "Password berhasil direset!");
+    })
+    .resetPassword({ row_index: rowIndex, new_password: newPass });
 }
