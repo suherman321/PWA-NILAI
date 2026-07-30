@@ -1302,8 +1302,15 @@ function kembaliKeDaftarMapelNilai() {
 
 // 2. MONITORING ABSEN
 function tampilkanAbsenAdmin() {
-  // 1. Ambil elemen tbody dengan ID yang sesuai di HTML
-  const container = document.getElementById("tbl-admin-absen-body") || document.querySelector("#admin-view-absen tbody");
+  // 1. Tampilkan kontainer wrapper absen jika masih tersembunyi
+  const viewAbsen = document.getElementById("admin-view-absen");
+  if (viewAbsen) {
+    viewAbsen.style.display = "block";
+    viewAbsen.classList.remove("hidden");
+  }
+
+  // 2. Ambil elemen tbody dengan ID yang sesuai di HTML
+  const container = document.getElementById("tbl-admin-absen-body");
   if (!container) return;
 
   container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data absen...</td></tr>`;
@@ -1315,7 +1322,7 @@ function tampilkanAbsenAdmin() {
 
       // Proteksi: Pastikan data benar-benar Array
       if (!Array.isArray(data)) {
-        container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Format data server salah (Bukan Array).</td></tr>`;
+        container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Format data server tidak valid.</td></tr>`;
         return;
       }
 
@@ -1324,30 +1331,33 @@ function tampilkanAbsenAdmin() {
         return;
       }
 
+      // Render baris data ke tabel
       let html = "";
-      data.forEach(item => {
-        // Pengecekan fallback property agar nama siswa pasti muncul
-        const namaSiswa = item.namaSiswa || item.nisn || item.nama || '-';
-        const mapel = item.mapel || item.mataPelajaran || '-';
-        const tanggal = item.tanggal || item.waktu || '-';
-        const status = item.status || '-';
-
-        html += `<tr>
-          <td>${mapel}</td>
-          <td><b>${namaSiswa}</b></td>
-          <td>${tanggal}</td>
-          <td><b>${status}</b></td>
-          <td style="text-align: center;">
-            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditAbsen('${item.id}')">Edit</button>
-            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusAbsen('${item.id}')">Hapus</button>
-          </td>
-        </tr>`;
+      data.forEach((row, index) => {
+        html += `
+          <tr>
+            <td>${row.mapel || "-"}</td>
+            <td>${row.namaSiswa || row.nisn || "-"}</td>
+            <td>${row.tanggal || "-"}</td>
+            <td>
+              <span class="badge status-${String(row.status).toLowerCase()}">${row.status || "-"}</span>
+            </td>
+            <td style="text-align: center;">
+              <button class="btn-sm btn-danger" onclick="hapusAbsenAdmin('${row.mapel}', '${row.nisn}', '${row.tanggal}')">Hapus</button>
+            </td>
+          </tr>
+        `;
       });
       container.innerHTML = html;
     })
     .catch(err => {
       container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
+}
+
+// ALIAS: Menyamakan nama fungsi dengan panggilan di HTML (loadAdminAbsenData)
+function loadAdminAbsenData() {
+  tampilkanAbsenAdmin();
 }
 
 // 3. BUKU KASUS
