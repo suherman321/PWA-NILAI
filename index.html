@@ -448,26 +448,44 @@
 
   <!-- 2. TAMPILAN DETAIL TABEL NILAI PER MAPEL (AWALNYA HIDDEN) -->
   <div id="wrapper-detail-nilai" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <button class="admin-btn" onclick="kembaliKeDaftarMapelNilai()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Mapel</button>
-      <h4 id="judul-detail-mapel-nilai" style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0;"></h4>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <button class="admin-btn" onclick="kembaliKeDaftarMapelNilai()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Mapel</button>
+    <h4 id="judul-detail-mapel-nilai" style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0;"></h4>
+  </div>
+
+  <!-- TAMBAHAN: INPUT PENCARIAN & FILTER KELAS -->
+  <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+    <!-- Input Cari Nama / NISN -->
+    <div style="flex: 1; min-width: 200px; position: relative;">
+      <input type="text" id="cari-siswa-nilai" onkeyup="filterTabelNilai()" placeholder="🔍 Cari Nama / NISN Siswa..." 
+             style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;">
     </div>
-    
-    <div class="admin-table-container">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>NISN / Nama Siswa</th>
-            <th>Nilai</th>
-            <th>Keterangan</th>
-            <th style="text-align: center;">Aksi Admin</th>
-          </tr>
-        </thead>
-        <tbody id="tbl-nilai-detail-body">
-          <tr><td colspan="4" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
-        </tbody>
-      </table>
+    <!-- Dropdown Filter Kelas -->
+    <div style="width: 180px;">
+      <select id="filter-kelas-nilai" onchange="filterTabelNilai()" 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; background-color: white;">
+        <option value="">-- Semua Kelas --</option>
+        <option value="Kelas VII">Kelas VII</option>
+        <option value="Kelas VIII">Kelas VIII</option>
+        <option value="Kelas IX">Kelas IX</option>
+      </select>
     </div>
+  </div>
+
+  <div class="admin-table-container">
+    <table class="admin-table" id="tbl-nilai-admin">
+      <thead>
+        <tr>
+          <th>NISN / Nama Siswa</th>
+          <th>Nilai</th>
+          <th>Keterangan</th>
+          <th style="text-align: center;">Aksi Admin</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-nilai-detail-body">
+        <tr><td colspan="4" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 

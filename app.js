@@ -1393,3 +1393,125 @@ function tampilkanUserAdmin() {
       container.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
 }
+// ==========================================
+// MONITORING NILAI MODULAR (KARTU & FILTER)
+// ==========================================
+
+// 1. Memuat daftar kartu mapel aktif
+function loadMenuNilaiAdmin() {
+  const container = document.getElementById("list-mapel-nilai-cards");
+  if (!container) return;
+
+  container.innerHTML = `<p style="color: #64748b; grid-column: 1/-1;">Memuat daftar mata pelajaran...</p>`;
+
+  fetch(`${SCRIPT_URL}?action=getMapelNilaiAktif`)
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        container.innerHTML = `<p style="color: #64748b; grid-column: 1/-1;">Belum ada data nilai pada mapel manapun.</p>`;
+        return;
+      }
+
+      let html = "";
+      data.forEach(m => {
+        html += `
+          <div class="mapel-card" onclick="bukaDetailNilai('${m.nama}')">
+            <div>
+              <div class="mapel-card-header">
+                <div class="mapel-card-icon"><i class="fa-solid fa-calendar-check"></i></div>
+              </div>
+              <div class="mapel-card-body">
+                <h4>${m.nama}</h4>
+              </div>
+            </div>
+            <div class="mapel-card-footer">
+              <span>${m.jumlahData} Catatan</span>
+              <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    })
+    .catch(err => {
+      container.innerHTML = `<p style="color: red; grid-column: 1/-1;">Gagal memuat data: ${err.message}</p>`;
+    });
+}
+
+// 2. Menampilkan detail tabel nilai saat kartu diklik
+function bukaDetailNilai(namaMapel) {
+  resetFilterNilai();
+  document.getElementById("wrapper-list-mapel-nilai").style.display = "none";
+  document.getElementById("wrapper-detail-nilai").style.display = "block";
+  document.getElementById("judul-detail-mapel-nilai").innerText = `Mata Pelajaran: ${namaMapel}`;
+
+  const tbody = document.getElementById("tbl-nilai-detail-body");
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #64748b;">Memuat data nilai...</td></tr>`;
+
+  fetch(`${SCRIPT_URL}?action=getNilaiByMapel&mapel=${encodeURIComponent(namaMapel)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #64748b;">Belum ada data nilai untuk mapel ini.</td></tr>`;
+        return;
+      }
+
+      let html = "";
+      data.forEach(item => {
+        html += `<tr>
+          <td><b>${item.nama}</b><br><small style="color: #64748b;">${item.kelas}</small></td>
+          <td>${item.nilai}</td>
+          <td>${item.keterangan}</td>
+          <td style="text-align: center;">
+            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditNilai('${namaMapel}', ${item.id})"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusNilai('${namaMapel}', ${item.id})"><i class="fa-solid fa-trash"></i> Hapus</button>
+          </td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    })
+    .catch(err => {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+    });
+}
+
+// 3. Kembali ke daftar kartu mapel
+function kembaliKeDaftarMapelNilai() {
+  resetFilterNilai();
+  document.getElementById("wrapper-detail-nilai").style.display = "none";
+  document.getElementById("wrapper-list-mapel-nilai").style.display = "block";
+  loadMenuNilaiAdmin();
+}
+
+// 4. Pencarian dan Filter Kelas
+function filterTabelNilai() {
+  const inputCari = document.getElementById("cari-siswa-nilai").value.toLowerCase();
+  const selectKelas = document.getElementById("filter-kelas-nilai").value.toLowerCase();
+  const tbody = document.getElementById("tbl-nilai-detail-body");
+  const rows = tbody.getElementsByTagName("tr");
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const tdSiswa = row.getElementsByTagName("td")[0];
+
+    if (tdSiswa) {
+      const teksSiswa = (tdSiswa.textContent || tdSiswa.innerText).toLowerCase();
+      const cocokNama = teksSiswa.includes(inputCari);
+      const cocokKelas = selectKelas === "" || teksSiswa.includes(selectKelas);
+
+      if (cocokNama && cocokKelas) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    }
+  }
+}
+
+// 5. Reset input pencarian dan dropdown filter
+function resetFilterNilai() {
+  const inputCari = document.getElementById("cari-siswa-nilai");
+  const selectKelas = document.getElementById("filter-kelas-nilai");
+  if (inputCari) inputCari.value = "";
+  if (selectKelas) selectKelas.value = "";
+}
