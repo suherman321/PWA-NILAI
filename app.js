@@ -1302,16 +1302,19 @@ function kembaliKeDaftarMapelNilai() {
 
 // 2. MONITORING ABSEN
 function tampilkanAbsenAdmin() {
-  // 1. Tampilkan kontainer wrapper absen jika masih tersembunyi
+  // 1. Tampilkan container tab jika masih tersembunyi
   const viewAbsen = document.getElementById("admin-view-absen");
   if (viewAbsen) {
     viewAbsen.style.display = "block";
     viewAbsen.classList.remove("hidden");
   }
 
-  // 2. Ambil elemen tbody dengan ID yang sesuai di HTML
+  // 2. Cari elemen tbody tempat data dirender
   const container = document.getElementById("tbl-admin-absen-body");
-  if (!container) return;
+  if (!container) {
+    console.error("Elemen dengan ID 'tbl-admin-absen-body' tidak ditemukan di HTML!");
+    return;
+  }
 
   container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data absen...</td></tr>`;
 
@@ -1320,42 +1323,44 @@ function tampilkanAbsenAdmin() {
     .then(data => {
       console.log("Response Absen:", data);
 
-      // Proteksi: Pastikan data benar-benar Array
-      if (!Array.isArray(data)) {
-        container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Format data server tidak valid.</td></tr>`;
-        return;
-      }
-
-      if (data.length === 0) {
+      if (!Array.isArray(data) || data.length === 0) {
         container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data absen.</td></tr>`;
         return;
       }
 
-      // Render baris data ke tabel
+      // 3. Render 890 data ke dalam tabel
       let html = "";
       data.forEach((row, index) => {
+        // Ambil properti sesuai dari Kode.gs: mapel, namaSiswa/nisn, tanggal, status
+        const mapel = row.mapel || "-";
+        const nama = row.namaSiswa || row.nisn || "-";
+        const tanggal = row.tanggal || "-";
+        const status = row.status || "-";
+
         html += `
           <tr>
-            <td>${row.mapel || "-"}</td>
-            <td>${row.namaSiswa || row.nisn || "-"}</td>
-            <td>${row.tanggal || "-"}</td>
+            <td>${mapel}</td>
+            <td>${nama}</td>
+            <td>${tanggal}</td>
             <td>
-              <span class="badge status-${String(row.status).toLowerCase()}">${row.status || "-"}</span>
+              <span class="badge status-${String(status).toLowerCase()}">${status}</span>
             </td>
             <td style="text-align: center;">
-              <button class="btn-sm btn-danger" onclick="hapusAbsenAdmin('${row.mapel}', '${row.nisn}', '${row.tanggal}')">Hapus</button>
+              <button class="btn-sm btn-danger" onclick="hapusAbsenAdmin('${mapel}', '${row.nisn || ''}', '${tanggal}')">Hapus</button>
             </td>
           </tr>
         `;
       });
+
       container.innerHTML = html;
     })
     .catch(err => {
+      console.error("Error Absen:", err);
       container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
 }
 
-// ALIAS: Menyamakan nama fungsi dengan panggilan di HTML (loadAdminAbsenData)
+// Alias agar dipanggil lewat nama fungsi apa saja tetap jalan
 function loadAdminAbsenData() {
   tampilkanAbsenAdmin();
 }
