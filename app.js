@@ -1242,6 +1242,7 @@ function loadMenuNilaiAdmin() {
 
 // Menampilkan detail tabel nilai saat kartu mapel diklik
 function bukaDetailNilai(namaMapel) {
+  resetFilterNilai();
   document.getElementById("wrapper-list-mapel-nilai").style.display = "none";
   document.getElementById("wrapper-detail-nilai").style.display = "block";
   document.getElementById("judul-detail-mapel-nilai").innerText = `Mata Pelajaran: ${namaMapel}`;
@@ -1259,13 +1260,20 @@ function bukaDetailNilai(namaMapel) {
 
       let html = "";
       data.forEach(item => {
+        // PERBAIKAN DI SINI: Gunakan item.namaSiswa || item.nama || item.nisn untuk toleransi nama variabel
+        const namaSiswa = item.namaSiswa || item.nama_siswa || item.nama || item.nisn || "Siswa";
+        const kelasSiswa = item.kelas || item.kelasSiswa || "";
+
         html += `<tr>
-          <td><b>${item.nisn}</b><br><small style="color: #64748b;">${item.nama}</small></td>
+          <td>
+            <b>${namaSiswa}</b><br>
+            <small style="color: #64748b;">${kelasSiswa}</small>
+          </td>
           <td>${item.nilai}</td>
-          <td>${item.keterangan}</td>
+          <td>${item.keterangan || item.tugas || '-'}</td>
           <td style="text-align: center;">
-            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditNilai('${namaMapel}', ${item.id})"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusNilai('${namaMapel}', ${item.id})"><i class="fa-solid fa-trash"></i> Hapus</button>
+            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-trash"></i> Hapus</button>
           </td>
         </tr>`;
       });
