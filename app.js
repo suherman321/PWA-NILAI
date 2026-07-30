@@ -1445,7 +1445,7 @@ function loadMenuNilaiAdmin() {
     });
 }
 
-// 2. Menampilkan detail tabel nilai saat kartu diklik (Solusi 1: Dropdown Dinamis)
+// 1. FUNGSI BUKA DETAIL MAPEL & GENERATE DROPDOWN
 function bukaDetailNilai(namaMapel) {
   resetFilterNilai();
   document.getElementById("wrapper-list-mapel-nilai").style.display = "none";
@@ -1464,16 +1464,14 @@ function bukaDetailNilai(namaMapel) {
       }
 
       let html = "";
-      const daftarKelas = new Set(); // Menyimpan daftar kelas unik secara otomatis
+      const daftarKelas = new Set();
 
       data.forEach(item => {
-        // Ambil data nama & kelas dari properti yang dikirim server
         const namaSiswa = item.nisn || item.namaSiswa || "Siswa";
         const kelasSiswa = item.nama || item.kelas || "-";
 
-        // Tambahkan ke daftar kelas unik (jika ada nilainya)
         if (kelasSiswa && kelasSiswa !== "-") {
-          daftarKelas.add(kelasSiswa);
+          daftarKelas.add(kelasSiswa.trim());
         }
 
         html += `<tr>
@@ -1492,11 +1490,10 @@ function bukaDetailNilai(namaMapel) {
 
       tbody.innerHTML = html;
 
-      // REPOPULATE DROPDOWN KELAS SECARA DINAMIS
+      // ISI DROPDOWN SECARA OTOMATIS
       const selectKelas = document.getElementById("filter-kelas-nilai");
       if (selectKelas) {
         selectKelas.innerHTML = `<option value="">-- Semua Kelas --</option>`;
-        // Urutkan nama kelas (misal: Kelas VII.A, Kelas VII.B, dst.)
         Array.from(daftarKelas).sort().forEach(kelas => {
           selectKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
         });
@@ -1505,6 +1502,34 @@ function bukaDetailNilai(namaMapel) {
     .catch(err => {
       tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
+}
+
+// 2. FUNGSI FILTER TABEL (PERSISI SESUAI TEKS KELAS)
+function filterTabelNilai() {
+  const inputCari = document.getElementById("cari-siswa-nilai").value.toLowerCase();
+  const selectKelas = document.getElementById("filter-kelas-nilai").value.trim().toLowerCase();
+  const tbody = document.getElementById("tbl-nilai-detail-body");
+  const rows = tbody.getElementsByTagName("tr");
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const tdSiswa = row.getElementsByTagName("td")[0];
+
+    if (tdSiswa) {
+      const teksSiswa = (tdSiswa.textContent || tdSiswa.innerText).toLowerCase();
+      const smallTag = tdSiswa.querySelector("small");
+      const teksKelas = smallTag ? smallTag.textContent.trim().toLowerCase() : "";
+
+      const cocokNama = teksSiswa.includes(inputCari);
+      const cocokKelas = selectKelas === "" || teksKelas === selectKelas;
+
+      if (cocokNama && cocokKelas) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    }
+  }
 }
 
 // 3. Kembali ke daftar kartu mapel
