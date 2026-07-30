@@ -176,10 +176,10 @@ function showAppScreen(user) {
   } else if (role === "ADMIN") {
     // Tampilan Khusus Admin
     if (dashboardAdmin) {
-      dashboardAdmin.classList.remove("hidden");
+        dashboardAdmin.classList.remove("hidden");
     } else if (dashboardGuru) {
-      // Fallback jika container khusus admin tidak ada di HTML, gunakan dashboard guru
-      dashboardGuru.classList.remove("hidden");
+        // Fallback jika container khusus admin tidak ada di HTML, gunakan dashboard guru
+        dashboardGuru.classList.remove("hidden");
     }
 
     namaTampil = user.nama || user.username || 'Administrator';
@@ -189,8 +189,13 @@ function showAppScreen(user) {
     if (elemUserInfo) elemUserInfo.innerText = `${namaTampil} (Admin)`;
     if (elemWelcomeAdmin) elemWelcomeAdmin.innerText = namaTampil;
 
-    tampilkanRiwayatNilai();
-  } else {
+    // --- TAMBAHAN UNTUK TAB ADMIN ---
+    // 1. Set default tab yang aktif ke 'nilai' saat awal login
+    switchAdminTab('nilai'); 
+    
+    // 2. Inisialisasi event listener klik untuk semua tombol menu admin
+    initAdminTabListeners();
+} else {
     // Role GURU
     if (dashboardGuru) dashboardGuru.classList.remove("hidden");
     
@@ -1135,4 +1140,44 @@ function kembaliKeDaftarMapelKehadiran() {
   
   if (containerRincian) containerRincian.classList.add("hidden");
   if (containerMapel) containerMapel.classList.remove("hidden");
+}
+function switchAdminTab(tabName) {
+    const views = {
+        nilai: document.getElementById("admin-view-nilai"),
+        absen: document.getElementById("admin-view-absen"),
+        kasus: document.getElementById("admin-view-kasus"),
+        user:  document.getElementById("admin-view-user")
+    };
+
+    document.querySelectorAll("[data-admin-tab]").forEach(btn => {
+        btn.classList.remove("active");
+        btn.style.backgroundColor = "#ffffff";
+        btn.style.color = "#334155";
+    });
+
+    Object.values(views).forEach(view => {
+        if (view) view.classList.add("hidden");
+    });
+
+    if (views[tabName]) {
+        views[tabName].classList.remove("hidden");
+    }
+
+    const activeBtn = document.querySelector(`[data-admin-tab="${tabName}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add("active");
+        activeBtn.style.backgroundColor = "#2563eb";
+        activeBtn.style.color = "#ffffff";
+    }
+
+    if (tabName === 'nilai') tampilkanRiwayatNilai();
+}
+
+function initAdminTabListeners() {
+    document.querySelectorAll("[data-admin-tab]").forEach(button => {
+        button.addEventListener("click", () => {
+            const target = button.getAttribute("data-admin-tab");
+            switchAdminTab(target);
+        });
+    });
 }
