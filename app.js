@@ -732,13 +732,16 @@ async function loadBukuKasusSiswa() {
   const masterData = JSON.parse(localStorage.getItem("master_data") || "{}");
   
   const listSiswa = masterData.list_siswa || [];
-  const currentSiswa = listSiswa.find(s => 
+  let currentSiswa = listSiswa.find(s => 
     String(s.ref_id) === String(userSession.ref_id) || 
     String(s.nisn) === String(userSession.username)
   );
-  
-  if (!currentSiswa || !currentSiswa.nisn) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">NISN tidak ditemukan.</td></tr>';
+
+  // Fallback NISN langsung dari userSession jika tidak ketemu di listSiswa
+  const nisnTarget = (currentSiswa && currentSiswa.nisn) ? currentSiswa.nisn : (userSession.username || userSession.ref_id);
+
+  if (!nisnTarget) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">NISN tidak ditemukan. Silakan login ulang.</td></tr>';
     return;
   }
 
@@ -750,7 +753,7 @@ async function loadBukuKasusSiswa() {
       method: "POST",
       body: JSON.stringify({
         action: "getBukuKasus",
-        nisn: currentSiswa.nisn
+        nisn: nisnTarget
       })
     });
 
@@ -762,10 +765,10 @@ async function loadBukuKasusSiswa() {
       result.data.forEach(item => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><strong>${item.hari}</strong>, ${item.tanggal}<br><small style="color:#666">${item.waktu}</small></td>
-          <td style="color: #dc3545; font-weight: bold;">${item.kasus}</td>
-          <td>${item.tindak_lanjut}</td>
-          <td>${item.guru_piket}</td>
+          <td><strong>${item.hari || ''}</strong>, ${item.tanggal || ''}<br><small style="color:#666">${item.waktu || ''}</small></td>
+          <td style="color: #dc3545; font-weight: bold;">${item.kasus || item.pelanggaran || '-'}</td>
+          <td>${item.tindak_lanjut || item.tindakLanjut || '-'}</td>
+          <td>${item.guru_piket || item.guruPiket || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -957,7 +960,7 @@ let rawDataKehadiranSiswa = [];
 async function loadKehadiranSiswa() {
   const containerMapel = document.getElementById("container-kehadiran-level-mapel");
   const containerRincian = document.getElementById("container-kehadiran-level-rincian");
-  
+
   if (containerMapel) containerMapel.classList.remove("hidden");
   if (containerRincian) containerRincian.classList.add("hidden");
 
@@ -965,7 +968,8 @@ async function loadKehadiranSiswa() {
   if (!gridContainer) return;
 
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
-  const nisnSiswa = userSession.username || userSession.nisn || userSession.ref_id_siswa;
+  // Mengambil ref_id, username, atau nisn
+  const nisnSiswa = userSession.ref_id || userSession.username || userSession.nisn || userSession.ref_id_siswa;
 
   if (!nisnSiswa) {
     gridContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:red;">Gagal mengidentifikasi data siswa. Silakan login ulang.</div>';
@@ -977,7 +981,6 @@ async function loadKehadiranSiswa() {
   try {
     const response = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         action: "getKehadiran",
         ref_id_siswa: nisnSiswa
@@ -990,7 +993,7 @@ async function loadKehadiranSiswa() {
       rawDataKehadiranSiswa = result.data || [];
       renderKartuMapelKehadiran(rawDataKehadiranSiswa);
     } else {
-      gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Gagal: ${result.message}</div>`;
+      gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Gagal: ${result.message || 'Data tidak ditemukan.'}</div>`;
     }
   } catch (err) {
     gridContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Terjadi kesalahan koneksi.</div>';
