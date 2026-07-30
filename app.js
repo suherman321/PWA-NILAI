@@ -1464,10 +1464,16 @@ function bukaDetailNilai(namaMapel) {
       }
 
       let html = "";
+      const daftarKelas = new Set(); // Tempat menyimpan daftar kelas unik
+
       data.forEach(item => {
-        // PERBAIKAN DI SINI:
         const namaSiswa = item.nisn || item.namaSiswa || "Siswa";
         const kelasSiswa = item.nama || item.kelas || "-";
+
+        // Masukkan nama kelas ke daftar unik (jika ada)
+        if (kelasSiswa && kelasSiswa !== "-") {
+          daftarKelas.add(kelasSiswa);
+        }
 
         html += `<tr>
           <td>
@@ -1482,7 +1488,17 @@ function bukaDetailNilai(namaMapel) {
           </td>
         </tr>`;
       });
+
       tbody.innerHTML = html;
+
+      // UPDATE DROPDOWN KELAS SECARA DINAMIS
+      const selectKelas = document.getElementById("filter-kelas-nilai");
+      if (selectKelas) {
+        selectKelas.innerHTML = `<option value="">-- Semua Kelas --</option>`;
+        Array.from(daftarKelas).sort().forEach(kelas => {
+          selectKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
+        });
+      }
     })
     .catch(err => {
       tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
