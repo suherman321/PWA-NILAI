@@ -114,7 +114,8 @@ async function prosesLogin() {
       body: JSON.stringify({
         action: "login",
         username: usernameInput,
-        password: passwordInput
+        password: passwordInput,
+        role: document.getElementById("login-role") ? document.getElementById("login-role").value : "ADMIN"
       })
     });
 
