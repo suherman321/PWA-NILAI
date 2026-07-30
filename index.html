@@ -202,9 +202,76 @@
       padding: 20px;
       border-radius: 12px;
       width: 100%;
-      max-width: 600px;
+      max-width: 900px;
     }
     .hidden { display: none !important; }
+
+    /* CSS STYLE ADMIN NAV TABS */
+    .admin-tab-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .admin-tab-btn {
+      padding: 10px 16px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .admin-tab-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+    .admin-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .admin-btn-primary { background: #2563eb; color: white; }
+    .admin-btn-warning { background: #f59e0b; color: white; }
+    .admin-btn-danger { background: #ef4444; color: white; }
+    .admin-btn-secondary { background: #64748b; color: white; }
+
+    .admin-table-container {
+      overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    .admin-table th {
+      background: #f8fafc;
+      color: #475569;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .admin-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #1e293b;
+    }
   </style>
 </head>
 <body>
@@ -238,7 +305,7 @@
         <select id="login-role" class="custom-input" onchange="updateRoleText()">
           <option value="Guru">Guru</option>
           <option value="Siswa">Siswa</option>
-          <option value="Admin">Admin</option>
+          <option value="ADMIN">Admin</option>
         </select>
         <i class="fa-solid fa-chevron-down input-icon-right"></i>
       </div>
@@ -285,6 +352,130 @@
     </div>
     <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
 
+    <!-- ========================================== -->
+    <!-- D. DASHBOARD ADMIN MODULAR -->
+    <!-- ========================================== -->
+    <div id="admin-dashboard" class="hidden" style="color: #1e293b;">
+      <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 16px; border-radius: 12px; color: white; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 4px;"><i class="fa-solid fa-user-shield"></i> Panel Kontrol Administrator</h2>
+        <p style="font-size: 12px; opacity: 0.9;">Pusat pengelolaan nilai, presensi, buku kasus, dan akun pengguna sekolah.</p>
+      </div>
+
+      <!-- TAB NAVIGASI UTAMA ADMIN -->
+      <div class="admin-tab-nav">
+        <button class="admin-tab-btn active" id="btn-tab-admin-nilai" onclick="switchAdminTab('nilai')">
+          <i class="fa-solid fa-file-invoice"></i> 1. Monitoring Nilai
+        </button>
+        <button class="admin-tab-btn" id="btn-tab-admin-absen" onclick="switchAdminTab('absen')">
+          <i class="fa-solid fa-calendar-check"></i> 2. Monitoring Absen
+        </button>
+        <button class="admin-tab-btn" id="btn-tab-admin-kasus" onclick="switchAdminTab('kasus')">
+          <i class="fa-solid fa-book-bookmark"></i> 3. Buku Kasus
+        </button>
+        <button class="admin-tab-btn" id="btn-tab-admin-user" onclick="switchAdminTab('user')">
+          <i class="fa-solid fa-users-gear"></i> 4. Manajemen User
+        </button>
+      </div>
+
+      <!-- TAB 1: MONITORING NILAI KELAS -->
+      <div id="admin-view-nilai">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="font-size: 14px; font-weight: 700; color: #1e293b;">Data Nilai Terdaftar</h4>
+          <button class="admin-btn admin-btn-primary" onclick="loadAdminNilaiData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Kelas</th>
+                <th>Siswa</th>
+                <th>Mapel</th>
+                <th>Jenis</th>
+                <th>Nilai</th>
+                <th style="text-align: center;">Aksi Admin</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-admin-nilai-body">
+              <tr><td colspan="6" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 2: MONITORING ABSEN SISWA -->
+      <div id="admin-view-absen" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="font-size: 14px; font-weight: 700; color: #1e293b;">Data Kehadiran Siswa (Semua Mapel)</h4>
+          <button class="admin-btn admin-btn-primary" onclick="loadAdminAbsenData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Mapel</th>
+                <th>NISN / Siswa</th>
+                <th>Tanggal</th>
+                <th>Status</th>
+                <th style="text-align: center;">Aksi Admin</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-admin-absen-body">
+              <tr><td colspan="5" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: MONITORING BUKU KASUS -->
+      <div id="admin-view-kasus" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="font-size: 14px; font-weight: 700; color: #1e293b;">Buku Kasus / Catatan Kedisiplinan</h4>
+          <button class="admin-btn admin-btn-primary" onclick="bukaModalTambahKasus()"><i class="fa-solid fa-plus"></i> Tambah Catatan</button>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Tanggal/Waktu</th>
+                <th>NISN & Nama</th>
+                <th>Kasus / Pelanggaran</th>
+                <th>Tindak Lanjut</th>
+                <th>Guru Piket</th>
+                <th style="text-align: center;">Aksi Admin</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-admin-kasus-body">
+              <tr><td colspan="6" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 4: MANAJEMEN PENGGUNA -->
+      <div id="admin-view-user" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="font-size: 14px; font-weight: 700; color: #1e293b;">Daftar Pengguna Aplikasi (USER)</h4>
+          <button class="admin-btn admin-btn-primary" onclick="bukaModalTambahUser()"><i class="fa-solid fa-user-plus"></i> Tambah User Baru</button>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Ref ID</th>
+                <th style="text-align: center;">Aksi Manajemen</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-admin-user-body">
+              <tr><td colspan="4" style="text-align:center; color: #64748b;">Memuat data user...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
     <!-- A. DASHBOARD SISWA -->
     <div id="siswa-dashboard" class="hidden" style="text-align: center; padding: 10px 0;">
       <div style="margin: 10px 0 25px;">
@@ -316,16 +507,16 @@
         </div>
       </div>
 	  <!-- CARD KEHADIRAN -->
-<div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-  <div style="width: 48px; height: 48px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
-    <i class="fa-solid fa-calendar-check" style="color: #16a34a; font-size: 20px;"></i>
-  </div>
-  <h3 style="margin: 0 0 4px; font-size: 16px; color: #0f172a;">Kehadiran</h3>
-  <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Lihat rekapitulasi presensi mata pelajaran</p>
-  <button onclick="switchSiswaTab('kehadiran')" style="width: 100%; background: #16a34a; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer;">
-    Lihat Kehadiran
-  </button>
-</div>
+      <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+        <div style="width: 48px; height: 48px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+          <i class="fa-solid fa-calendar-check" style="color: #16a34a; font-size: 20px;"></i>
+        </div>
+        <h3 style="margin: 0 0 4px; font-size: 16px; color: #0f172a;">Kehadiran</h3>
+        <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Lihat rekapitulasi presensi mata pelajaran</p>
+        <button onclick="switchSiswaTab('kehadiran')" style="width: 100%; background: #16a34a; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          Lihat Kehadiran
+        </button>
+      </div>
     </div>
 
 
@@ -490,7 +681,7 @@
 
     <!-- C. TAMPILAN DETAIL SISWA -->
     <!-- TAB 1: DETAIL NILAI RAPOR SISWA -->
-<div id="view-tab-nilai" class="hidden">
+    <div id="view-tab-nilai" class="hidden">
       
       <!-- LEVEL 1: DAFTAR KARTU MAPEL -->
       <div id="container-level-mapel">
@@ -567,71 +758,74 @@
         </table>
       </div>
     </div>
-<!-- TAB 3: DETAIL KEHADIRAN SISWA -->
-<div id="view-tab-kehadiran" class="hidden">
-  <button id="btn-back-siswa-kehadiran" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
-    &larr; Kembali ke Dashboard
-  </button>
 
-  <!-- LEVEL 1: LIST KARTU MAPEL PRESENSI -->
-  <div id="container-kehadiran-level-mapel">
-    <h4 style="color: #16a34a; margin-top: 0;">Presensi Mata Pelajaran</h4>
-    <div id="grid-kartu-kehadiran-mapel" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 10px;">
-      <!-- Kartu Mapel Di-render lewat JS -->
+    <!-- TAB 3: DETAIL KEHADIRAN SISWA -->
+    <div id="view-tab-kehadiran" class="hidden">
+      <button id="btn-back-siswa-kehadiran" class="hidden" onclick="tutupMenuSiswa()" style="margin-bottom: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+        &larr; Kembali ke Dashboard
+      </button>
+
+      <!-- LEVEL 1: LIST KARTU MAPEL PRESENSI -->
+      <div id="container-kehadiran-level-mapel">
+        <h4 style="color: #16a34a; margin-top: 0;">Presensi Mata Pelajaran</h4>
+        <div id="grid-kartu-kehadiran-mapel" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 10px;">
+          <!-- Kartu Mapel Di-render lewat JS -->
+        </div>
+      </div>
+
+      <!-- LEVEL 2: DETAIL STATISTIK & TABEL PRESENSI PER MAPEL -->
+      <div id="container-kehadiran-level-rincian" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <button onclick="kembaliKeDaftarMapelKehadiran()" style="background: #e2e8f0; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 6px;">
+              &larr; Pilih Mapel Lain
+            </button>
+            <h4 id="judul-mapel-kehadiran-terpilih" style="color: #16a34a; margin: 0;">Mapel</h4>
+          </div>
+          <span id="badge-mapel-kehadiran-terpilih" style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 11px;">IPA</span>
+        </div>
+
+        <!-- Stat Ringkasan Khusus Mapel Ini -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px; margin-bottom: 15px;">
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px; text-align: center;">
+            <span style="font-size: 10px; color: #166534; font-weight: bold;">Hadir</span>
+            <h3 id="stat-hadir" style="margin: 2px 0 0; font-size: 16px; color: #15803d;">0</h3>
+          </div>
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px; text-align: center;">
+            <span style="font-size: 10px; color: #1e40af; font-weight: bold;">Izin</span>
+            <h3 id="stat-izin" style="margin: 2px 0 0; font-size: 16px; color: #1d4ed8;">0</h3>
+          </div>
+          <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 8px; text-align: center;">
+            <span style="font-size: 10px; color: #854d0e; font-weight: bold;">Sakit</span>
+            <h3 id="stat-sakit" style="margin: 2px 0 0; font-size: 16px; color: #a16207;">0</h3>
+          </div>
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px; text-align: center;">
+            <span style="font-size: 10px; color: #991b1b; font-weight: bold;">Alpa</span>
+            <h3 id="stat-alpa" style="margin: 2px 0 0; font-size: 16px; color: #b91c1c;">0</h3>
+          </div>
+        </div>
+
+        <!-- Tabel Riwayat Presensi Mapel Ini -->
+        <div style="overflow-x: auto;">
+          <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #e2e8f0; color: #333;">
+            <thead>
+              <tr style="background-color: #f8fafc; color: #334155;">
+                <th>Tanggal</th>
+                <th>Waktu</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="tabel-kehadiran-body">
+              <tr>
+                <td colspan="3" style="text-align:center;">Belum ada catatan presensi</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
+
   </div>
-
-  <!-- LEVEL 2: DETAIL STATISTIK & TABEL PRESENSI PER MAPEL -->
-  <div id="container-kehadiran-level-rincian" class="hidden">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <div>
-        <button onclick="kembaliKeDaftarMapelKehadiran()" style="background: #e2e8f0; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 6px;">
-          &larr; Pilih Mapel Lain
-        </button>
-        <h4 id="judul-mapel-kehadiran-terpilih" style="color: #16a34a; margin: 0;">Mapel</h4>
-      </div>
-      <span id="badge-mapel-kehadiran-terpilih" style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 11px;">IPA</span>
-    </div>
-
-    <!-- Stat Ringkasan Khusus Mapel Ini -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px; margin-bottom: 15px;">
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px; text-align: center;">
-        <span style="font-size: 10px; color: #166534; font-weight: bold;">Hadir</span>
-        <h3 id="stat-hadir" style="margin: 2px 0 0; font-size: 16px; color: #15803d;">0</h3>
-      </div>
-      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px; text-align: center;">
-        <span style="font-size: 10px; color: #1e40af; font-weight: bold;">Izin</span>
-        <h3 id="stat-izin" style="margin: 2px 0 0; font-size: 16px; color: #1d4ed8;">0</h3>
-      </div>
-      <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 8px; text-align: center;">
-        <span style="font-size: 10px; color: #854d0e; font-weight: bold;">Sakit</span>
-        <h3 id="stat-sakit" style="margin: 2px 0 0; font-size: 16px; color: #a16207;">0</h3>
-      </div>
-      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px; text-align: center;">
-        <span style="font-size: 10px; color: #991b1b; font-weight: bold;">Alpa</span>
-        <h3 id="stat-alpa" style="margin: 2px 0 0; font-size: 16px; color: #b91c1c;">0</h3>
-      </div>
-    </div>
-
-    <!-- Tabel Riwayat Presensi Mapel Ini -->
-    <div style="overflow-x: auto;">
-      <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border-color: #e2e8f0; color: #333;">
-        <thead>
-          <tr style="background-color: #f8fafc; color: #334155;">
-            <th>Tanggal</th>
-            <th>Waktu</th>
-            <th>Keterangan</th>
-          </tr>
-        </thead>
-        <tbody id="tabel-kehadiran-body">
-          <tr>
-            <td colspan="3" style="text-align:center;">Belum ada catatan presensi</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
   <script src="app.js"></script>
 </body>

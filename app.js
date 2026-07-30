@@ -149,10 +149,15 @@ function showAppScreen(user) {
 
   const dashboardSiswa = document.getElementById("siswa-dashboard");
   const dashboardGuru = document.getElementById("guru-dashboard");
+  const dashboardAdmin = document.getElementById("admin-dashboard");
+
+  // Reset tampilan awal dashboard
+  if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
+  if (dashboardGuru) dashboardGuru.classList.add("hidden");
+  if (dashboardAdmin) dashboardAdmin.classList.add("hidden");
 
   if (role === "SISWA") {
     if (dashboardSiswa) dashboardSiswa.classList.remove("hidden");
-    if (dashboardGuru) dashboardGuru.classList.add("hidden");
 
     const dataSiswa = masterSiswaGlobal.find(s => 
       String(s.ref_id) === String(user.ref_id) || 
@@ -168,19 +173,34 @@ function showAppScreen(user) {
 
     tutupMenuSiswa();
     tampilkanRiwayatNilai();
+  } else if (role === "ADMIN") {
+    // Tampilan Khusus Admin
+    if (dashboardAdmin) {
+      dashboardAdmin.classList.remove("hidden");
+    } else if (dashboardGuru) {
+      // Fallback jika container khusus admin tidak ada di HTML, gunakan dashboard guru
+      dashboardGuru.classList.remove("hidden");
+    }
+
+    namaTampil = user.nama || user.username || 'Administrator';
+
+    const elemUserInfo = document.getElementById("user-info");
+    const elemWelcomeAdmin = document.getElementById("admin-nama-welcome") || document.getElementById("guru-nama-welcome");
+    if (elemUserInfo) elemUserInfo.innerText = `${namaTampil} (Admin)`;
+    if (elemWelcomeAdmin) elemWelcomeAdmin.innerText = namaTampil;
+
+    tampilkanRiwayatNilai();
   } else {
-    if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
+    // Role GURU
     if (dashboardGuru) dashboardGuru.classList.remove("hidden");
     
     namaTampil = user.nama || user.username || 'Guru';
     
-    // Set Nama Guru di Topbar & Welcome Banner
     const elemUserInfo = document.getElementById("user-info");
     const elemWelcomeGuru = document.getElementById("guru-nama-welcome");
     if (elemUserInfo) elemUserInfo.innerText = namaTampil;
     if (elemWelcomeGuru) elemWelcomeGuru.innerText = namaTampil;
 
-    // OTOMATIS AMBIL DAN HITUNG NILAI TERINPUT UNTUK GURU
     tampilkanRiwayatNilai();
   }
 
@@ -207,7 +227,7 @@ function logout() {
 }
 
 // ==========================================
-// 5. MASTER DATA & TAMPILAN KELAS GURU
+// 5. MASTER DATA & TAMPILAN KELAS (GURU / ADMIN)
 // ==========================================
 function renderMasterData(listSiswa, listMapel, listKelas) {
   masterSiswaGlobal = listSiswa || [];
@@ -242,13 +262,15 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
           transition: all 0.2s ease;
         `;
 
+        const subTitle = (role === "ADMIN") ? "Akses Kelas Admin" : "Kelas Binaan";
+
         card.innerHTML = `
           <div style="margin-bottom: 10px;">
             <div style="font-weight: 800; font-size: 14px; color: #0f172a;">Kelas ${kelas}</div>
-            <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Kelas Binaan</div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 2px;">${subTitle}</div>
           </div>
           <button style="width: 100%; background: #2563eb; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer;">
-            Input Nilai
+            Input / Kelola Nilai
           </button>
         `;
 
@@ -269,14 +291,21 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
     }
   }
 
-  // 2. Render Dropdown Mapel khusus Guru
+  // 2. Render Dropdown Mapel (Guru & Admin)
   const selectMapel = document.getElementById("select-mapel");
   if (selectMapel && role !== "SISWA") {
     selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
-    let mapelGuru = userSession.mapel ? (Array.isArray(userSession.mapel) ? userSession.mapel : userSession.mapel.split(",")) : masterMapelGlobal;
 
-    mapelGuru.forEach(mapel => {
-      const namaMapel = mapel.trim();
+    // Admin mendapatkan akses ke seluruh mata pelajaran global
+    let listMapelAkses = masterMapelGlobal;
+    if (role === "GURU") {
+      listMapelAkses = userSession.mapel 
+        ? (Array.isArray(userSession.mapel) ? userSession.mapel : userSession.mapel.split(",")) 
+        : masterMapelGlobal;
+    }
+
+    listMapelAkses.forEach(mapel => {
+      const namaMapel = typeof mapel === "string" ? mapel.trim() : (mapel.nama_mapel || mapel.mapel || "").trim();
       if (namaMapel) {
         const opt = document.createElement("option");
         opt.value = namaMapel;
@@ -327,7 +356,7 @@ function kembaliKeDaftarKelas() {
 }
 
 // ==========================================
-// 6. INPUT & SIMPAN NILAI (GURU)
+// 6. INPUT & SIMPAN NILAI (GURU & ADMIN)
 // ==========================================
 async function simpanNilai() {
   const selectSiswa = document.getElementById("select-siswa");
@@ -354,7 +383,7 @@ async function simpanNilai() {
     mapel: mapel,
     jenis_penilaian: jenis,
     nilai: Number(nilai),
-    ref_id_guru: userSession.ref_id || "",
+    ref_id_guru: userSession.ref_id || userSession.username || "",
     kelas: kelasAktif,
     synced: false,
     timestamp: new Date().toISOString()
@@ -389,7 +418,6 @@ async function simpanNilai() {
 // 7. RIWAYAT NILAI, EDIT & HAPUS
 // ==========================================
 async function tampilkanRiwayatNilai() {
-  // 1. Ambil session user & master data
   let rawSession = localStorage.getItem("user_session") || localStorage.getItem("user") || "{}";
   let userSession = {};
   try {
@@ -403,7 +431,6 @@ async function tampilkanRiwayatNilai() {
   const role = String(userSession.role || "").toUpperCase();
   const userRefId = String(userSession.ref_id || userSession.username || userSession.nis || "").trim();
 
-  // Pilih target tbody yang tepat
   let tbody = document.getElementById("tabel-riwayat-body");
   if (role === "SISWA") {
     const tbodySiswa = document.getElementById("tabel-riwayat-siswa-body");
@@ -424,7 +451,7 @@ async function tampilkanRiwayatNilai() {
 
   let listNilai = [];
 
-  // 2. Fetch data dari Google Apps Script Server
+  // Fetch data dari Google Apps Script Server
   if (navigator.onLine) {
     try {
       const response = await fetch(API_URL, {
@@ -432,7 +459,7 @@ async function tampilkanRiwayatNilai() {
         body: JSON.stringify({
           action: "getNilai",
           role: role,
-          ref_id_guru: userRefId,
+          ref_id_guru: role === "ADMIN" ? "" : userRefId, // Admin bisa tarik seluruh data
           ref_id_siswa: currentSiswa ? currentSiswa.ref_id : userRefId
         })
       });
@@ -445,7 +472,7 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // 3. Fallback: Ambil dari IndexedDB lokal jika offline / server kosong
+  // Fallback: IndexedDB
   if (listNilai.length === 0 && typeof openDB === "function") {
     try {
       const db = await openDB();
@@ -471,7 +498,7 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // Update Statistik Total Nilai Terinput khusus Guru
+  // Update Statistik Nilai Terinput (Guru & Admin)
   if (role !== "SISWA") {
     const statTotalNilai = document.getElementById("stat-total-nilai");
     if (statTotalNilai) {
@@ -479,12 +506,11 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // Filter khusus untuk Guru jika sedang memilih kelas tertentu
+  // Filter jika memilih kelas tertentu
   if (role !== "SISWA" && kelasAktif) {
     listNilai = listNilai.filter(item => String(item.kelas || "").trim().toUpperCase() === String(kelasAktif).trim().toUpperCase());
   }
 
-  // 4. Render Data ke Tabel
   if (!listNilai || listNilai.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #94a3b8;">Belum ada data nilai terinput</td></tr>';
     return;
@@ -505,6 +531,7 @@ async function tampilkanRiwayatNilai() {
     const nilaiTampil = item.nilai !== undefined ? item.nilai : "-";
 
     let kolomAksi = "-";
+    // Role GURU dan ADMIN diizinkan mengedit/menghapus data nilai
     if (role !== "SISWA" && item.row_index) {
       kolomAksi = `
         <button onclick="editNilai(${item.row_index}, '${namaSiswaTampil}', ${nilaiTampil})" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; margin-right:4px;">
@@ -760,15 +787,12 @@ async function loadBukuKasusSiswa() {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: red;">Gagal terhubung ke server.</td></tr>';
   }
 }
+
 // ==========================================
 // 10. LOGIKA INTERAKTIF KARTU MAPEL SISWA
 // ==========================================
-
 let rawDataNilaiSiswa = [];
 
-/**
- * 1. Dipanggil saat siswa menekan menu "Nilai Rapor" di Dashboard
- */
 function muatHalamanNilaiSiswa() {
   const containerMapel = document.getElementById("container-level-mapel");
   const containerRincian = document.getElementById("container-level-rincian");
@@ -807,9 +831,6 @@ function muatHalamanNilaiSiswa() {
   });
 }
 
-/**
- * 2. Render Kartu Mapel (Hanya Menampilkan Mapel yang Ada Nilainya)
- */
 function renderKartuMapel(dataNilai) {
   const gridContainer = document.getElementById("grid-kartu-mapel");
   if (!gridContainer) return;
@@ -878,9 +899,6 @@ function renderKartuMapel(dataNilai) {
   });
 }
 
-/**
- * 3. Buka Tabel Rincian Nilai untuk Mapel Tertentu
- */
 function bukaRincianNilaiMapel(namaMapel) {
   const containerMapel = document.getElementById("container-level-mapel");
   const containerRincian = document.getElementById("container-level-rincian");
@@ -921,9 +939,6 @@ function bukaRincianNilaiMapel(namaMapel) {
   });
 }
 
-/**
- * 4. Tombol Navigasi "Kembali ke Daftar Mapel"
- */
 function kembaliKeDaftarMapel() {
   const containerMapel = document.getElementById("container-level-mapel");
   const containerRincian = document.getElementById("container-level-rincian");
@@ -931,8 +946,9 @@ function kembaliKeDaftarMapel() {
   if (containerRincian) containerRincian.classList.add("hidden");
   if (containerMapel) containerMapel.classList.remove("hidden");
 }
+
 // ==========================================
-// LOGIKA INTERAKTIF KARTU KEHADIRAN SISWA
+// 11. LOGIKA INTERAKTIF KARTU KEHADIRAN SISWA
 // ==========================================
 let rawDataKehadiranSiswa = [];
 
@@ -980,7 +996,6 @@ async function loadKehadiranSiswa() {
   }
 }
 
-// 1. Render Kartu Mapel Presensi (Hanya mapel yang ada datanya)
 function renderKartuMapelKehadiran(dataKehadiran) {
   const gridContainer = document.getElementById("grid-kartu-kehadiran-mapel");
   if (!gridContainer) return;
@@ -1049,7 +1064,6 @@ function renderKartuMapelKehadiran(dataKehadiran) {
   });
 }
 
-// 2. Buka Rincian Statistik + Tabel Khusus Mapel Terpilih
 function bukaRincianKehadiranMapel(namaMapel) {
   const containerMapel = document.getElementById("container-kehadiran-level-mapel");
   const containerRincian = document.getElementById("container-kehadiran-level-rincian");
@@ -1065,7 +1079,6 @@ function bukaRincianKehadiranMapel(namaMapel) {
 
   const listFiltered = rawDataKehadiranSiswa.filter(item => item.mapel && item.mapel.trim() === namaMapel);
 
-  // Hitung Stat Khusus Mapel Ini
   let stat = { hadir: 0, izin: 0, sakit: 0, alpa: 0 };
   listFiltered.forEach(item => {
     const ket = (item.keterangan || "").toLowerCase();
@@ -1080,7 +1093,6 @@ function bukaRincianKehadiranMapel(namaMapel) {
   document.getElementById("stat-sakit").textContent = stat.sakit;
   document.getElementById("stat-alpa").textContent = stat.alpa;
 
-  // Render Tabel
   if (listFiltered.length === 0) {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Belum ada catatan presensi.</td></tr>';
   } else {
@@ -1093,7 +1105,6 @@ function bukaRincianKehadiranMapel(namaMapel) {
       else if (ket === "sakit") color = "#ca8a04";
       else if (ket === "alpa" || ket === "alpha") color = "#dc2626";
 
-      // Helper rapihkan string tanggal Date JS
       let tglFormatted = item.tanggal;
       if (item.tanggal && item.tanggal.includes("GMT")) {
         try {
@@ -1101,7 +1112,6 @@ function bukaRincianKehadiranMapel(namaMapel) {
         } catch(e){}
       }
 
-      // Helper rapihkan string jam Date JS
       let waktuFormatted = item.waktu;
       if (item.waktu && item.waktu.includes("GMT")) {
         try {
@@ -1119,7 +1129,6 @@ function bukaRincianKehadiranMapel(namaMapel) {
   }
 }
 
-// 3. Tombol Navigasi Kembali Ke Daftar Mapel Presensi
 function kembaliKeDaftarMapelKehadiran() {
   const containerMapel = document.getElementById("container-kehadiran-level-mapel");
   const containerRincian = document.getElementById("container-kehadiran-level-rincian");
