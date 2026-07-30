@@ -1149,20 +1149,24 @@ function switchAdminTab(tabName) {
         user:  document.getElementById("admin-view-user")
     };
 
+    // Reset status tombol
     document.querySelectorAll("[data-admin-tab]").forEach(btn => {
         btn.classList.remove("active");
         btn.style.backgroundColor = "#ffffff";
         btn.style.color = "#334155";
     });
 
+    // Sembunyikan semua tab
     Object.values(views).forEach(view => {
         if (view) view.classList.add("hidden");
     });
 
+    // Tampilkan tab aktif
     if (views[tabName]) {
         views[tabName].classList.remove("hidden");
     }
 
+    // Sorot tombol aktif
     const activeBtn = document.querySelector(`[data-admin-tab="${tabName}"]`);
     if (activeBtn) {
         activeBtn.classList.add("active");
@@ -1170,8 +1174,13 @@ function switchAdminTab(tabName) {
         activeBtn.style.color = "#ffffff";
     }
 
+    // Panggil pemuat data sesuai tab yang dipilih
     if (tabName === 'nilai') tampilkanNilaiAdmin();
+    if (tabName === 'absen') tampilkanAbsenAdmin();
+    if (tabName === 'kasus') tampilkanKasusAdmin();
+    if (tabName === 'user')  tampilkanUserAdmin();
 }
+
 
 function initAdminTabListeners() {
     document.querySelectorAll("[data-admin-tab]").forEach(button => {
@@ -1217,4 +1226,92 @@ function tampilkanNilaiAdmin() {
       container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     })
     .getAdminNilaiData();
+}
+// --- LOAD DATA ABSEN ---
+function tampilkanAbsenAdmin() {
+  const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
+  if (!container) return;
+  container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data absen...</td></tr>`;
+
+  google.script.run
+    .withSuccessHandler(data => {
+      if (!data || data.length === 0) {
+        container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data absen.</td></tr>`;
+        return;
+      }
+      let html = "";
+      data.forEach(item => {
+        html += `<tr>
+          <td>${item.tanggal}</td>
+          <td>${item.namaSiswa}</td>
+          <td>${item.kelas}</td>
+          <td><b>${item.status}</b></td>
+          <td>
+            <button class="btn-edit" onclick="handleEditAbsen(${item.id})">Edit</button>
+            <button class="btn-delete" onclick="handleHapusAbsen(${item.id})">Hapus</button>
+          </td>
+        </tr>`;
+      });
+      container.innerHTML = html;
+    })
+    .getAdminAbsenData();
+}
+
+// --- LOAD DATA BUKU KASUS ---
+function tampilkanKasusAdmin() {
+  const container = document.getElementById("tbl-kasus-body") || document.querySelector("#admin-view-kasus tbody");
+  if (!container) return;
+  container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data kasus...</td></tr>`;
+
+  google.script.run
+    .withSuccessHandler(data => {
+      if (!data || data.length === 0) {
+        container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada catatan kasus.</td></tr>`;
+        return;
+      }
+      let html = "";
+      data.forEach(item => {
+        html += `<tr>
+          <td>${item.tanggal}</td>
+          <td>${item.namaSiswa}</td>
+          <td>${item.kasus}</td>
+          <td>${item.penanganan}</td>
+          <td>
+            <button class="btn-edit" onclick="handleEditKasus(${item.id})">Edit</button>
+            <button class="btn-delete" onclick="handleHapusKasus(${item.id})">Hapus</button>
+          </td>
+        </tr>`;
+      });
+      container.innerHTML = html;
+    })
+    .getAdminKasusData();
+}
+
+// --- LOAD DATA USER ---
+function tampilkanUserAdmin() {
+  const container = document.getElementById("tbl-user-body") || document.querySelector("#admin-view-user tbody");
+  if (!container) return;
+  container.innerHTML = `<tr><td colspan="4" style="text-align:center;">Memuat data user...</td></tr>`;
+
+  google.script.run
+    .withSuccessHandler(data => {
+      if (!data || data.length === 0) {
+        container.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada data user.</td></tr>`;
+        return;
+      }
+      let html = "";
+      data.forEach(item => {
+        html += `<tr>
+          <td>${item.username}</td>
+          <td><b>${item.role}</b></td>
+          <td>${item.refId}</td>
+          <td>
+            <button class="btn-edit" onclick="handleEditUser(${item.id})">Edit</button>
+            <button class="btn-delete" onclick="handleHapusUser(${item.id})">Hapus</button>
+          </td>
+        </tr>`;
+      });
+      container.innerHTML = html;
+    })
+    .getAdminUserData();
 }
