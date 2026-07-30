@@ -1260,23 +1260,22 @@ function bukaDetailNilai(namaMapel) {
 
       let html = "";
       data.forEach(item => {
-        // PERBAIKAN DI SINI: Gunakan item.namaSiswa || item.nama || item.nisn untuk toleransi nama variabel
-        const namaSiswa = item.namaSiswa || item.nama_siswa || item.nama || item.nisn || "Siswa";
-        const kelasSiswa = item.kelas || item.kelasSiswa || "";
+        const namaSiswa = item.nisn || "Siswa"; 
+  const kelasSiswa = item.nama || "-";
 
-        html += `<tr>
-          <td>
-            <b>${namaSiswa}</b><br>
-            <small style="color: #64748b;">${kelasSiswa}</small>
-          </td>
-          <td>${item.nilai}</td>
-          <td>${item.keterangan || item.tugas || '-'}</td>
-          <td style="text-align: center;">
-            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-trash"></i> Hapus</button>
-          </td>
-        </tr>`;
-      });
+  html += `<tr>
+    <td>
+      <b>${namaSiswa}</b><br>
+      <small style="color: #64748b;">${kelasSiswa}</small>
+    </td>
+    <td>${item.nilai}</td>
+    <td>${item.keterangan || '-'}</td>
+    <td style="text-align: center;">
+      <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+      <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-trash"></i> Hapus</button>
+    </td>
+  </tr>`;
+});
       tbody.innerHTML = html;
     })
     .catch(err => {
