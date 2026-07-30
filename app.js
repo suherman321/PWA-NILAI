@@ -1190,20 +1190,20 @@ function initAdminTabListeners() {
         });
     });
 }
-// Fungsi untuk memuat dan merender data nilai khusus Admin
+// 1. MONITORING NILAI
 function tampilkanNilaiAdmin() {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   if (!container) return;
 
   container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data nilai...</td></tr>`;
 
-  google.script.run
-    .withSuccessHandler(function(dataNilai) {
+  fetch(`${SCRIPT_URL}?action=getNilai`)
+    .then(res => res.json())
+    .then(dataNilai => {
       if (!dataNilai || dataNilai.length === 0) {
-        container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada data nilai terdaftar.</td></tr>`;
+        container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada data nilai.</td></tr>`;
         return;
       }
-
       let html = "";
       dataNilai.forEach((item) => {
         html += `
@@ -1217,24 +1217,25 @@ function tampilkanNilaiAdmin() {
               <button class="btn-edit" onclick="handleEditNilai(${item.id})">Edit</button>
               <button class="btn-delete" onclick="handleHapusNilai(${item.id})">Hapus</button>
             </td>
-          </tr>
-        `;
+          </tr>`;
       });
       container.innerHTML = html;
     })
-    .withFailureHandler(function(err) {
+    .catch(err => {
       container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
-    })
-    .getAdminNilaiData();
+    });
 }
-// --- LOAD DATA ABSEN ---
+
+// 2. MONITORING ABSEN
 function tampilkanAbsenAdmin() {
   const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
   if (!container) return;
+
   container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data absen...</td></tr>`;
 
-  google.script.run
-    .withSuccessHandler(data => {
+  fetch(`${SCRIPT_URL}?action=getAbsen`)
+    .then(res => res.json())
+    .then(data => {
       if (!data || data.length === 0) {
         container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data absen.</td></tr>`;
         return;
@@ -1254,17 +1255,21 @@ function tampilkanAbsenAdmin() {
       });
       container.innerHTML = html;
     })
-    .getAdminAbsenData();
+    .catch(err => {
+      container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+    });
 }
 
-// --- LOAD DATA BUKU KASUS ---
+// 3. BUKU KASUS
 function tampilkanKasusAdmin() {
   const container = document.getElementById("tbl-kasus-body") || document.querySelector("#admin-view-kasus tbody");
   if (!container) return;
+
   container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data kasus...</td></tr>`;
 
-  google.script.run
-    .withSuccessHandler(data => {
+  fetch(`${SCRIPT_URL}?action=getKasus`)
+    .then(res => res.json())
+    .then(data => {
       if (!data || data.length === 0) {
         container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada catatan kasus.</td></tr>`;
         return;
@@ -1284,17 +1289,21 @@ function tampilkanKasusAdmin() {
       });
       container.innerHTML = html;
     })
-    .getAdminKasusData();
+    .catch(err => {
+      container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+    });
 }
 
-// --- LOAD DATA USER ---
+// 4. MANAJEMEN USER
 function tampilkanUserAdmin() {
   const container = document.getElementById("tbl-user-body") || document.querySelector("#admin-view-user tbody");
   if (!container) return;
+
   container.innerHTML = `<tr><td colspan="4" style="text-align:center;">Memuat data user...</td></tr>`;
 
-  google.script.run
-    .withSuccessHandler(data => {
+  fetch(`${SCRIPT_URL}?action=getUser`)
+    .then(res => res.json())
+    .then(data => {
       if (!data || data.length === 0) {
         container.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada data user.</td></tr>`;
         return;
@@ -1313,5 +1322,7 @@ function tampilkanUserAdmin() {
       });
       container.innerHTML = html;
     })
-    .getAdminUserData();
+    .catch(err => {
+      container.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+    });
 }
