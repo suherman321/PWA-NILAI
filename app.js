@@ -1143,53 +1143,43 @@ function kembaliKeDaftarMapelKehadiran() {
   if (containerMapel) containerMapel.classList.remove("hidden");
 }
 function switchAdminTab(tabName) {
-  const views = {
-    nilai: document.getElementById("admin-view-nilai"),
-    absen: document.getElementById("admin-view-absen"),
-    kasus: document.getElementById("admin-view-kasus"),
-    user: document.getElementById("admin-view-users") // Disesuaikan ID dengan 's' di akhir
-  };
+    const views = {
+        nilai: document.getElementById("admin-view-nilai"),
+        absen: document.getElementById("admin-view-absen"),
+        kasus: document.getElementById("admin-view-kasus"),
+        user:  document.getElementById("admin-view-user")
+    };
 
-  // 1. Reset status visual tombol
-  document.querySelectorAll("[data-admin-tab]").forEach(btn => {
-    btn.classList.remove("active");
-    btn.style.backgroundColor = "#ffffff";
-    btn.style.color = "#334155";
-  });
+    // Reset status tombol
+    document.querySelectorAll("[data-admin-tab]").forEach(btn => {
+        btn.classList.remove("active");
+        btn.style.backgroundColor = "#ffffff";
+        btn.style.color = "#334155";
+    });
 
-  // 2. Sembunyikan semua tab
-  Object.values(views).forEach(view => {
-    if (view) view.classList.add("hidden");
-  });
+    // Sembunyikan semua tab
+    Object.values(views).forEach(view => {
+        if (view) view.classList.add("hidden");
+    });
 
-  // 3. Tampilkan tab yang dipilih
-  if (views[tabName]) {
-    views[tabName].classList.remove("hidden");
-  }
+    // Tampilkan tab aktif
+    if (views[tabName]) {
+        views[tabName].classList.remove("hidden");
+    }
 
-  // 4. Sorot tombol aktif
-  const activeBtn = document.querySelector(`[data-admin-tab="${tabName}"]`);
-  if (activeBtn) {
-    activeBtn.classList.add("active");
-    activeBtn.style.backgroundColor = "#2563eb";
-    activeBtn.style.color = "#ffffff";
-  }
+    // Sorot tombol aktif
+    const activeBtn = document.querySelector(`[data-admin-tab="${tabName}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add("active");
+        activeBtn.style.backgroundColor = "#2563eb";
+        activeBtn.style.color = "#ffffff";
+    }
 
-  // 5. Panggil fungsi pemuat data sesuai tab (dengan pengecekan aman)
-  if (tabName === 'nilai') {
-    if (typeof loadMenuNilaiAdmin === 'function') loadMenuNilaiAdmin();
-    else if (typeof tampilkanNilaiAdmin === 'function') tampilkanNilaiAdmin();
-  } else if (tabName === 'absen') {
-    if (typeof loadAdminAbsenData === 'function') loadAdminAbsenData();
-    else if (typeof loadMenuAbsenAdmin === 'function') loadMenuAbsenAdmin();
-    else if (typeof tampilkanAbsenAdmin === 'function') tampilkanAbsenAdmin();
-  } else if (tabName === 'kasus') {
-    if (typeof loadAdminKasusData === 'function') loadAdminKasusData();
-    else if (typeof tampilkanKasusAdmin === 'function') tampilkanKasusAdmin();
-  } else if (tabName === 'user') {
-    if (typeof loadAdminUserData === 'function') loadAdminUserData();
-    else if (typeof tampilkanUserAdmin === 'function') tampilkanUserAdmin();
-  }
+    // Panggil pemuat data sesuai tab yang dipilih
+    if (tabName === 'nilai') tampilkanNilaiAdmin();
+    if (tabName === 'absen') tampilkanAbsenAdmin();
+    if (tabName === 'kasus') tampilkanKasusAdmin();
+    if (tabName === 'user')  tampilkanUserAdmin();
 }
 
 
@@ -1202,119 +1192,45 @@ function initAdminTabListeners() {
     });
 }
 // 1. MONITORING NILAI
-// 1. MONITORING NILAI
-
-// Fungsi utama yang dipanggil saat Tab Nilai dibuka
 function tampilkanNilaiAdmin() {
-  loadMenuNilaiAdmin();
-}
-
-// Memuat daftar kartu mapel aktif
-function loadMenuNilaiAdmin() {
-  const container = document.getElementById("list-mapel-nilai-cards");
+  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   if (!container) return;
 
-  container.innerHTML = `<p style="color: #64748b; grid-column: 1/-1;">Memuat daftar mata pelajaran...</p>`;
+  container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data nilai...</td></tr>`;
 
-  fetch(`${SCRIPT_URL}?action=getMapelNilaiAktif`)
+  fetch(`${SCRIPT_URL}?action=getNilai`)
     .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data) || data.length === 0) {
-        container.innerHTML = `<p style="color: #64748b; grid-column: 1/-1;">Belum ada data nilai pada mapel manapun.</p>`;
+    .then(dataNilai => {
+      if (!dataNilai || dataNilai.length === 0) {
+        container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada data nilai.</td></tr>`;
         return;
       }
-
       let html = "";
-      data.forEach(m => {
+      dataNilai.forEach((item) => {
         html += `
-          <div class="mapel-card" onclick="bukaDetailNilai('${m.nama}')">
-            <div>
-              <div class="mapel-card-header">
-                <div class="mapel-card-icon"><i class="fa-solid fa-calendar-check"></i></div>
-              </div>
-              <div class="mapel-card-body">
-                <h4>${m.nama}</h4>
-              </div>
-            </div>
-            <div class="mapel-card-footer">
-              <span>${m.jumlahData} Catatan</span>
-              <i class="fa-solid fa-chevron-right"></i>
-            </div>
-          </div>
-        `;
+          <tr>
+            <td>${item.kelas}</td>
+            <td>${item.namaSiswa}</td>
+            <td>${item.mapel}</td>
+            <td>${item.jenis}</td>
+            <td><b>${item.nilai}</b></td>
+            <td>
+              <button class="btn-edit" onclick="handleEditNilai(${item.id})">Edit</button>
+              <button class="btn-delete" onclick="handleHapusNilai(${item.id})">Hapus</button>
+            </td>
+          </tr>`;
       });
       container.innerHTML = html;
     })
     .catch(err => {
-      container.innerHTML = `<p style="color: red; grid-column: 1/-1;">Gagal memuat data: ${err.message}</p>`;
+      container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
-}
-
-// Menampilkan detail tabel nilai saat kartu mapel diklik
-function bukaDetailNilai(namaMapel) {
-  resetFilterNilai();
-  document.getElementById("wrapper-list-mapel-nilai").style.display = "none";
-  document.getElementById("wrapper-detail-nilai").style.display = "block";
-  document.getElementById("judul-detail-mapel-nilai").innerText = `Mata Pelajaran: ${namaMapel}`;
-
-  const tbody = document.getElementById("tbl-nilai-detail-body");
-  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #64748b;">Memuat data nilai...</td></tr>`;
-
-  fetch(`${SCRIPT_URL}?action=getNilaiByMapel&mapel=${encodeURIComponent(namaMapel)}`)
-    .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data) || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #64748b;">Belum ada data nilai untuk mapel ini.</td></tr>`;
-        return;
-      }
-
-      let html = "";
-      data.forEach(item => {
-        const namaSiswa = item.nisn || "Siswa"; 
-  const kelasSiswa = item.nama || "-";
-
-  html += `<tr>
-    <td>
-      <b>${namaSiswa}</b><br>
-      <small style="color: #64748b;">${kelasSiswa}</small>
-    </td>
-    <td>${item.nilai}</td>
-    <td>${item.keterangan || '-'}</td>
-    <td style="text-align: center;">
-      <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-      <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-trash"></i> Hapus</button>
-    </td>
-  </tr>`;
-});
-      tbody.innerHTML = html;
-    })
-    .catch(err => {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
-    });
-}
-
-// Kembali ke daftar kartu mapel
-function kembaliKeDaftarMapelNilai() {
-  document.getElementById("wrapper-detail-nilai").style.display = "none";
-  document.getElementById("wrapper-list-mapel-nilai").style.display = "block";
-  loadMenuNilaiAdmin();
 }
 
 // 2. MONITORING ABSEN
 function tampilkanAbsenAdmin() {
-  // 1. Tampilkan container tab jika masih tersembunyi
-  const viewAbsen = document.getElementById("admin-view-absen");
-  if (viewAbsen) {
-    viewAbsen.style.display = "block";
-    viewAbsen.classList.remove("hidden");
-  }
-
-  // 2. Cari elemen tbody tempat data dirender
-  const container = document.getElementById("tbl-admin-absen-body");
-  if (!container) {
-    console.error("Elemen dengan ID 'tbl-admin-absen-body' tidak ditemukan di HTML!");
-    return;
-  }
+  const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
+  if (!container) return;
 
   container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data absen...</td></tr>`;
 
@@ -1323,46 +1239,35 @@ function tampilkanAbsenAdmin() {
     .then(data => {
       console.log("Response Absen:", data);
 
-      if (!Array.isArray(data) || data.length === 0) {
+      // Proteksi: Pastikan data benar-benar Array
+      if (!Array.isArray(data)) {
+        container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Format data server salah (Bukan Array).</td></tr>`;
+        return;
+      }
+
+      if (data.length === 0) {
         container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data absen.</td></tr>`;
         return;
       }
 
-      // 3. Render 890 data ke dalam tabel
       let html = "";
-      data.forEach((row, index) => {
-        // Ambil properti sesuai dari Kode.gs: mapel, namaSiswa/nisn, tanggal, status
-        const mapel = row.mapel || "-";
-        const nama = row.namaSiswa || row.nisn || "-";
-        const tanggal = row.tanggal || "-";
-        const status = row.status || "-";
-
-        html += `
-          <tr>
-            <td>${mapel}</td>
-            <td>${nama}</td>
-            <td>${tanggal}</td>
-            <td>
-              <span class="badge status-${String(status).toLowerCase()}">${status}</span>
-            </td>
-            <td style="text-align: center;">
-              <button class="btn-sm btn-danger" onclick="hapusAbsenAdmin('${mapel}', '${row.nisn || ''}', '${tanggal}')">Hapus</button>
-            </td>
-          </tr>
-        `;
+      data.forEach(item => {
+        html += `<tr>
+          <td>${item.mapel || '-'}</td>
+          <td>${item.namaSiswa || '-'}</td>
+          <td>${item.tanggal || '-'}</td>
+          <td><b>${item.status || '-'}</b></td>
+          <td>
+            <button class="btn-edit" onclick="handleEditAbsen('${item.id}')">Edit</button>
+            <button class="btn-delete" onclick="handleHapusAbsen('${item.id}')">Hapus</button>
+          </td>
+        </tr>`;
       });
-
       container.innerHTML = html;
     })
     .catch(err => {
-      console.error("Error Absen:", err);
       container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
-}
-
-// Alias agar dipanggil lewat nama fungsi apa saja tetap jalan
-function loadAdminAbsenData() {
-  tampilkanAbsenAdmin();
 }
 
 // 3. BUKU KASUS
@@ -1431,176 +1336,4 @@ function tampilkanUserAdmin() {
     .catch(err => {
       container.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
-}
-// ==========================================
-// MONITORING NILAI MODULAR (KARTU & FILTER)
-// ==========================================
-
-// 1. Memuat daftar kartu mapel aktif
-function loadMenuNilaiAdmin() {
-  const container = document.getElementById("list-mapel-nilai-cards");
-  if (!container) return;
-
-  container.innerHTML = `<p style="color: #64748b; grid-column: 1/-1;">Memuat daftar mata pelajaran...</p>`;
-
-  fetch(`${SCRIPT_URL}?action=getMapelNilaiAktif`)
-    .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data) || data.length === 0) {
-        container.innerHTML = `<p style="color: #64748b; grid-column: 1/-1;">Belum ada data nilai pada mapel manapun.</p>`;
-        return;
-      }
-
-      let html = "";
-      data.forEach(m => {
-        html += `
-          <div class="mapel-card" onclick="bukaDetailNilai('${m.nama}')">
-            <div>
-              <div class="mapel-card-header">
-                <div class="mapel-card-icon"><i class="fa-solid fa-calendar-check"></i></div>
-              </div>
-              <div class="mapel-card-body">
-                <h4>${m.nama}</h4>
-              </div>
-            </div>
-            <div class="mapel-card-footer">
-              <span>${m.jumlahData} Catatan</span>
-              <i class="fa-solid fa-chevron-right"></i>
-            </div>
-          </div>
-        `;
-      });
-      container.innerHTML = html;
-    })
-    .catch(err => {
-      container.innerHTML = `<p style="color: red; grid-column: 1/-1;">Gagal memuat data: ${err.message}</p>`;
-    });
-}
-
-// 1. FUNGSI BUKA DETAIL MAPEL & GENERATE DROPDOWN
-function bukaDetailNilai(namaMapel) {
-  resetFilterNilai();
-  document.getElementById("wrapper-list-mapel-nilai").style.display = "none";
-  document.getElementById("wrapper-detail-nilai").style.display = "block";
-  document.getElementById("judul-detail-mapel-nilai").innerText = `Mata Pelajaran: ${namaMapel}`;
-
-  const tbody = document.getElementById("tbl-nilai-detail-body");
-  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #64748b;">Memuat data nilai...</td></tr>`;
-
-  fetch(`${SCRIPT_URL}?action=getNilaiByMapel&mapel=${encodeURIComponent(namaMapel)}`)
-    .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data) || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #64748b;">Belum ada data nilai untuk mapel ini.</td></tr>`;
-        return;
-      }
-
-      let html = "";
-      const daftarKelas = new Set();
-
-      data.forEach(item => {
-        const namaSiswa = item.nisn || item.namaSiswa || "Siswa";
-        const kelasSiswa = item.nama || item.kelas || "-";
-
-        if (kelasSiswa && kelasSiswa !== "-") {
-          daftarKelas.add(kelasSiswa.trim());
-        }
-
-        html += `<tr>
-          <td>
-            <b>${namaSiswa}</b><br>
-            <small style="color: #64748b;">${kelasSiswa}</small>
-          </td>
-          <td>${item.nilai}</td>
-          <td>${item.keterangan || '-'}</td>
-          <td style="text-align: center;">
-            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px;" onclick="handleEditNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-            <button class="admin-btn" style="padding: 4px 8px; font-size: 12px; background: #ef4444; color: #fff;" onclick="handleHapusNilai('${namaMapel}', '${item.id || ''}')"><i class="fa-solid fa-trash"></i> Hapus</button>
-          </td>
-        </tr>`;
-      });
-
-      tbody.innerHTML = html;
-
-      // ISI DROPDOWN SECARA OTOMATIS
-      const selectKelas = document.getElementById("filter-kelas-nilai");
-      if (selectKelas) {
-        selectKelas.innerHTML = `<option value="">-- Semua Kelas --</option>`;
-        Array.from(daftarKelas).sort().forEach(kelas => {
-          selectKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
-        });
-      }
-    })
-    .catch(err => {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
-    });
-}
-
-// 2. FUNGSI FILTER TABEL (PERSISI SESUAI TEKS KELAS)
-function filterTabelNilai() {
-  const inputCari = document.getElementById("cari-siswa-nilai").value.toLowerCase();
-  const selectKelas = document.getElementById("filter-kelas-nilai").value.trim().toLowerCase();
-  const tbody = document.getElementById("tbl-nilai-detail-body");
-  const rows = tbody.getElementsByTagName("tr");
-
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const tdSiswa = row.getElementsByTagName("td")[0];
-
-    if (tdSiswa) {
-      const teksSiswa = (tdSiswa.textContent || tdSiswa.innerText).toLowerCase();
-      const smallTag = tdSiswa.querySelector("small");
-      const teksKelas = smallTag ? smallTag.textContent.trim().toLowerCase() : "";
-
-      const cocokNama = teksSiswa.includes(inputCari);
-      const cocokKelas = selectKelas === "" || teksKelas === selectKelas;
-
-      if (cocokNama && cocokKelas) {
-        row.style.display = "";
-      } else {
-        row.style.display = "none";
-      }
-    }
-  }
-}
-
-// 3. Kembali ke daftar kartu mapel
-function kembaliKeDaftarMapelNilai() {
-  resetFilterNilai();
-  document.getElementById("wrapper-detail-nilai").style.display = "none";
-  document.getElementById("wrapper-list-mapel-nilai").style.display = "block";
-  loadMenuNilaiAdmin();
-}
-
-// 4. Pencarian dan Filter Kelas
-function filterTabelNilai() {
-  const inputCari = document.getElementById("cari-siswa-nilai").value.toLowerCase();
-  const selectKelas = document.getElementById("filter-kelas-nilai").value.toLowerCase();
-  const tbody = document.getElementById("tbl-nilai-detail-body");
-  const rows = tbody.getElementsByTagName("tr");
-
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const tdSiswa = row.getElementsByTagName("td")[0];
-
-    if (tdSiswa) {
-      const teksSiswa = (tdSiswa.textContent || tdSiswa.innerText).toLowerCase();
-      const cocokNama = teksSiswa.includes(inputCari);
-      const cocokKelas = selectKelas === "" || teksSiswa.includes(selectKelas);
-
-      if (cocokNama && cocokKelas) {
-        row.style.display = "";
-      } else {
-        row.style.display = "none";
-      }
-    }
-  }
-}
-
-// 5. Reset input pencarian dan dropdown filter
-function resetFilterNilai() {
-  const inputCari = document.getElementById("cari-siswa-nilai");
-  const selectKelas = document.getElementById("filter-kelas-nilai");
-  if (inputCari) inputCari.value = "";
-  if (selectKelas) selectKelas.value = "";
 }

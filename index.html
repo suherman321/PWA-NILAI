@@ -13,61 +13,6 @@
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-	/* Grid Kartu Mapel Admin */
-    .mapel-card-grid {
-      display: grid !important;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 15px;
-    }
-
-    .mapel-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 16px;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 110px;
-    }
-
-    .mapel-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      border-color: #cbd5e1;
-    }
-
-    .mapel-card-icon {
-      background: #dcfce7;
-      color: #16a34a;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      margin-bottom: 12px;
-    }
-
-    .mapel-card-body h4 {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 600;
-      color: #0f172a;
-    }
-
-    .mapel-card-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      color: #64748b;
-      margin-top: 16px;
-    }
 
     body {
       background: linear-gradient(135deg, #020b24 0%, #0a2569 50%, #020b24 100%);
@@ -434,57 +379,28 @@
 
       <!-- TAB 1: MONITORING NILAI KELAS -->
       <div id="admin-view-nilai">
-        <!-- 1. TAMPILAN KARTU MAPEL -->
-  <div id="wrapper-list-mapel-nilai">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h4 style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0;">Pilih Mata Pelajaran</h4>
-      <button class="admin-btn admin-btn-primary" onclick="loadMenuNilaiAdmin()"><i class="fa-solid fa-rotate"></i> Refresh</button>
-    </div>
-    
-    <div id="list-mapel-nilai-cards" class="mapel-card-grid">
-      <!-- Kartu-kartu mapel akan dimuat di sini -->
-    </div>
-  </div>
-
-  <!-- 2. TAMPILAN DETAIL TABEL NILAI PER MAPEL (AWALNYA HIDDEN) -->
-  <div id="wrapper-detail-nilai" style="display: none;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-    <button class="admin-btn" onclick="kembaliKeDaftarMapelNilai()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Mapel</button>
-    <h4 id="judul-detail-mapel-nilai" style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0;"></h4>
-  </div>
-
-  <!-- TAMBAHAN: INPUT PENCARIAN & FILTER KELAS -->
-  <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-    <!-- Input Cari Nama / NISN -->
-    <div style="flex: 1; min-width: 200px; position: relative;">
-      <input type="text" id="cari-siswa-nilai" onkeyup="filterTabelNilai()" placeholder="🔍 Cari Nama / NISN Siswa..." 
-             style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;">
-    </div>
-    <!-- Dropdown Filter Kelas -->
-    <div style="width: 180px;">
-  <select id="filter-kelas-nilai" onchange="filterTabelNilai()" 
-          style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; background-color: white;">
-    <option value="">-- Semua Kelas --</option>
-  </select>
-</div>
-  </div>
-
-  <div class="admin-table-container">
-    <table class="admin-table" id="tbl-nilai-admin">
-      <thead>
-        <tr>
-          <th>NISN / Nama Siswa</th>
-          <th>Nilai</th>
-          <th>Keterangan</th>
-          <th style="text-align: center;">Aksi Admin</th>
-        </tr>
-      </thead>
-      <tbody id="tbl-nilai-detail-body">
-        <tr><td colspan="4" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="font-size: 14px; font-weight: 700; color: #1e293b;">Data Nilai Terdaftar</h4>
+          <button class="admin-btn admin-btn-primary" onclick="loadAdminNilaiData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Kelas</th>
+                <th>Siswa</th>
+                <th>Mapel</th>
+                <th>Jenis</th>
+                <th>Nilai</th>
+                <th style="text-align: center;">Aksi Admin</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-admin-nilai-body">
+              <tr><td colspan="6" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <!-- TAB 2: MONITORING ABSEN SISWA -->
       <div id="admin-view-absen" class="hidden">
