@@ -1170,7 +1170,7 @@ function switchAdminTab(tabName) {
         activeBtn.style.color = "#ffffff";
     }
 
-    if (tabName === 'nilai') tampilkanRiwayatNilai();
+    if (tabName === 'nilai') tampilkanNilaiAdmin();
 }
 
 function initAdminTabListeners() {
@@ -1180,4 +1180,41 @@ function initAdminTabListeners() {
             switchAdminTab(target);
         });
     });
+}
+// Fungsi untuk memuat dan merender data nilai khusus Admin
+function tampilkanNilaiAdmin() {
+  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  if (!container) return;
+
+  container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data nilai...</td></tr>`;
+
+  google.script.run
+    .withSuccessHandler(function(dataNilai) {
+      if (!dataNilai || dataNilai.length === 0) {
+        container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada data nilai terdaftar.</td></tr>`;
+        return;
+      }
+
+      let html = "";
+      dataNilai.forEach((item) => {
+        html += `
+          <tr>
+            <td>${item.kelas}</td>
+            <td>${item.namaSiswa}</td>
+            <td>${item.mapel}</td>
+            <td>${item.jenis}</td>
+            <td><b>${item.nilai}</b></td>
+            <td>
+              <button class="btn-edit" onclick="handleEditNilai(${item.id})">Edit</button>
+              <button class="btn-delete" onclick="handleHapusNilai(${item.id})">Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+      container.innerHTML = html;
+    })
+    .withFailureHandler(function(err) {
+      container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+    })
+    .getAdminNilaiData();
 }
