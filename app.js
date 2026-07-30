@@ -1,5 +1,3 @@
-// Wajib ditaruh di BARIS 1 file app.js
-var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdMJgp3qnc5uWmiw9Lm8pLWEweI8oLMzcOhZDIVyYHU8wf-caygBWjMwj90Kyyam2xg/exec";
 // ==========================================
 // 0. HELPER UI & FORM INTERACTION
 // ==========================================
