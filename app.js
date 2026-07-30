@@ -1237,20 +1237,29 @@ function tampilkanAbsenAdmin() {
   fetch(`${SCRIPT_URL}?action=getAbsen`)
     .then(res => res.json())
     .then(data => {
-      if (!data || data.length === 0) {
+      console.log("Response Absen:", data);
+
+      // Proteksi: Pastikan data benar-benar Array
+      if (!Array.isArray(data)) {
+        container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Format data server salah (Bukan Array).</td></tr>`;
+        return;
+      }
+
+      if (data.length === 0) {
         container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data absen.</td></tr>`;
         return;
       }
+
       let html = "";
       data.forEach(item => {
         html += `<tr>
-          <td>${item.tanggal}</td>
-          <td>${item.namaSiswa}</td>
-          <td>${item.kelas}</td>
-          <td><b>${item.status}</b></td>
+          <td>${item.mapel || '-'}</td>
+          <td>${item.namaSiswa || '-'}</td>
+          <td>${item.tanggal || '-'}</td>
+          <td><b>${item.status || '-'}</b></td>
           <td>
-            <button class="btn-edit" onclick="handleEditAbsen(${item.id})">Edit</button>
-            <button class="btn-delete" onclick="handleHapusAbsen(${item.id})">Hapus</button>
+            <button class="btn-edit" onclick="handleEditAbsen('${item.id}')">Edit</button>
+            <button class="btn-delete" onclick="handleHapusAbsen('${item.id}')">Hapus</button>
           </td>
         </tr>`;
       });
