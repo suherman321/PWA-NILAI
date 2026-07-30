@@ -1143,43 +1143,53 @@ function kembaliKeDaftarMapelKehadiran() {
   if (containerMapel) containerMapel.classList.remove("hidden");
 }
 function switchAdminTab(tabName) {
-    const views = {
-        nilai: document.getElementById("admin-view-nilai"),
-        absen: document.getElementById("admin-view-absen"),
-        kasus: document.getElementById("admin-view-kasus"),
-        user:  document.getElementById("admin-view-user")
-    };
+  const views = {
+    nilai: document.getElementById("admin-view-nilai"),
+    absen: document.getElementById("admin-view-absen"),
+    kasus: document.getElementById("admin-view-kasus"),
+    user: document.getElementById("admin-view-users") // Disesuaikan ID dengan 's' di akhir
+  };
 
-    // Reset status tombol
-    document.querySelectorAll("[data-admin-tab]").forEach(btn => {
-        btn.classList.remove("active");
-        btn.style.backgroundColor = "#ffffff";
-        btn.style.color = "#334155";
-    });
+  // 1. Reset status visual tombol
+  document.querySelectorAll("[data-admin-tab]").forEach(btn => {
+    btn.classList.remove("active");
+    btn.style.backgroundColor = "#ffffff";
+    btn.style.color = "#334155";
+  });
 
-    // Sembunyikan semua tab
-    Object.values(views).forEach(view => {
-        if (view) view.classList.add("hidden");
-    });
+  // 2. Sembunyikan semua tab
+  Object.values(views).forEach(view => {
+    if (view) view.classList.add("hidden");
+  });
 
-    // Tampilkan tab aktif
-    if (views[tabName]) {
-        views[tabName].classList.remove("hidden");
-    }
+  // 3. Tampilkan tab yang dipilih
+  if (views[tabName]) {
+    views[tabName].classList.remove("hidden");
+  }
 
-    // Sorot tombol aktif
-    const activeBtn = document.querySelector(`[data-admin-tab="${tabName}"]`);
-    if (activeBtn) {
-        activeBtn.classList.add("active");
-        activeBtn.style.backgroundColor = "#2563eb";
-        activeBtn.style.color = "#ffffff";
-    }
+  // 4. Sorot tombol aktif
+  const activeBtn = document.querySelector(`[data-admin-tab="${tabName}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add("active");
+    activeBtn.style.backgroundColor = "#2563eb";
+    activeBtn.style.color = "#ffffff";
+  }
 
-    // Panggil pemuat data sesuai tab yang dipilih
-    if (tabName === 'nilai') tampilkanNilaiAdmin();
-    if (tabName === 'absen') tampilkanAbsenAdmin();
-    if (tabName === 'kasus') tampilkanKasusAdmin();
-    if (tabName === 'user')  tampilkanUserAdmin();
+  // 5. Panggil fungsi pemuat data sesuai tab (dengan pengecekan aman)
+  if (tabName === 'nilai') {
+    if (typeof loadMenuNilaiAdmin === 'function') loadMenuNilaiAdmin();
+    else if (typeof tampilkanNilaiAdmin === 'function') tampilkanNilaiAdmin();
+  } else if (tabName === 'absen') {
+    if (typeof loadAdminAbsenData === 'function') loadAdminAbsenData();
+    else if (typeof loadMenuAbsenAdmin === 'function') loadMenuAbsenAdmin();
+    else if (typeof tampilkanAbsenAdmin === 'function') tampilkanAbsenAdmin();
+  } else if (tabName === 'kasus') {
+    if (typeof loadAdminKasusData === 'function') loadAdminKasusData();
+    else if (typeof tampilkanKasusAdmin === 'function') tampilkanKasusAdmin();
+  } else if (tabName === 'user') {
+    if (typeof loadAdminUserData === 'function') loadAdminUserData();
+    else if (typeof tampilkanUserAdmin === 'function') tampilkanUserAdmin();
+  }
 }
 
 
