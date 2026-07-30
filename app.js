@@ -1445,7 +1445,7 @@ function loadMenuNilaiAdmin() {
     });
 }
 
-// 2. Menampilkan detail tabel nilai saat kartu diklik
+// 2. Menampilkan detail tabel nilai saat kartu diklik (Solusi 1: Dropdown Dinamis)
 function bukaDetailNilai(namaMapel) {
   resetFilterNilai();
   document.getElementById("wrapper-list-mapel-nilai").style.display = "none";
@@ -1464,13 +1464,14 @@ function bukaDetailNilai(namaMapel) {
       }
 
       let html = "";
-      const daftarKelas = new Set(); // Tempat menyimpan daftar kelas unik
+      const daftarKelas = new Set(); // Menyimpan daftar kelas unik secara otomatis
 
       data.forEach(item => {
+        // Ambil data nama & kelas dari properti yang dikirim server
         const namaSiswa = item.nisn || item.namaSiswa || "Siswa";
         const kelasSiswa = item.nama || item.kelas || "-";
 
-        // Masukkan nama kelas ke daftar unik (jika ada)
+        // Tambahkan ke daftar kelas unik (jika ada nilainya)
         if (kelasSiswa && kelasSiswa !== "-") {
           daftarKelas.add(kelasSiswa);
         }
@@ -1491,10 +1492,11 @@ function bukaDetailNilai(namaMapel) {
 
       tbody.innerHTML = html;
 
-      // UPDATE DROPDOWN KELAS SECARA DINAMIS
+      // REPOPULATE DROPDOWN KELAS SECARA DINAMIS
       const selectKelas = document.getElementById("filter-kelas-nilai");
       if (selectKelas) {
         selectKelas.innerHTML = `<option value="">-- Semua Kelas --</option>`;
+        // Urutkan nama kelas (misal: Kelas VII.A, Kelas VII.B, dst.)
         Array.from(daftarKelas).sort().forEach(kelas => {
           selectKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
         });
