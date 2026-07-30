@@ -1228,46 +1228,37 @@ function tampilkanNilaiAdmin() {
 }
 
 // 2. MONITORING ABSEN
-function tampilkanAbsenAdmin() {
-  const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
-  if (!container) return;
+function getAdminAbsenData() {
+  const allAbsenData = [];
 
-  container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data absen...</td></tr>`;
+  MAPEL_SHEETS.forEach(mapel => {
+    try {
+      const ss = SpreadsheetApp.openById(mapel.id);
+      const sheet = ss.getSheetByName("Absen") || ss.getSheets()[0]; 
+      if (!sheet) return;
 
-  fetch(`${SCRIPT_URL}?action=getAbsen`)
-    .then(res => res.json())
-    .then(data => {
-      console.log("Response Absen:", data);
+      const data = sheet.getDataRange().getValues();
+      if (data.length <= 1) return;
 
-      // Proteksi: Pastikan data benar-benar Array
-      if (!Array.isArray(data)) {
-        container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Format data server salah (Bukan Array).</td></tr>`;
-        return;
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (row[0] !== "" && row[0] !== undefined) {
+          allAbsenData.push({
+            id: `${mapel.nama}_${i}`,
+            mapel: mapel.nama,
+            tanggal: row[0] ? Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), "dd/MM/yyyy") : "-",
+            namaSiswa: row[1] || "-",
+            kelas: row[2] || "-",
+            status: row[3] || "-"
+          });
+        }
       }
+    } catch (err) {
+      Logger.log("Gagal mengambil data dari mapel " + mapel.nama + ": " + err.message);
+    }
+  });
 
-      if (data.length === 0) {
-        container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data absen.</td></tr>`;
-        return;
-      }
-
-      let html = "";
-      data.forEach(item => {
-        html += `<tr>
-          <td>${item.mapel || '-'}</td>
-          <td>${item.namaSiswa || '-'}</td>
-          <td>${item.tanggal || '-'}</td>
-          <td><b>${item.status || '-'}</b></td>
-          <td>
-            <button class="btn-edit" onclick="handleEditAbsen('${item.id}')">Edit</button>
-            <button class="btn-delete" onclick="handleHapusAbsen('${item.id}')">Hapus</button>
-          </td>
-        </tr>`;
-      });
-      container.innerHTML = html;
-    })
-    .catch(err => {
-      container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
-    });
+  return allAbsenData; // Langsung kembalikan data tanpa CacheService
 }
 
 // 3. BUKU KASUS
