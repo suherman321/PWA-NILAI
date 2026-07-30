@@ -1170,18 +1170,21 @@ function switchTab(tabName) {
   }
 }
 
-// --- FUNGSI LOAD DATA USER UNTUK ADMIN ---
-function loadUsersData() {
+// --- FUNGSI LOAD DATA USER UNTUK ADMIN (VIA FETCH) ---
+async function loadUsersData() {
   const tbody = document.getElementById('table-user-body');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Memuat data...</td></tr>';
+  
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Memuat data pengguna...</td></tr>';
 
-  google.script.run
-    .withSuccessHandler(function(res) {
-      if (!res || !res.success || !res.data) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Gagal atau tidak ada data pengguna.</td></tr>';
-        return;
-      }
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "getUsers" })
+    });
+    const res = await response.json();
+
+    if (res && res.success && res.data) {
       let html = '';
       res.data.forEach(function(u) {
         html += `<tr style="border-bottom: 1px solid #e2e8f0;">
@@ -1194,41 +1197,61 @@ function loadUsersData() {
         </tr>`;
       });
       tbody.innerHTML = html;
-    })
-    .withFailureHandler(function(err) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: red; padding: 20px;">Gagal memuat data.</td></tr>';
-    })
-    .getUsers();
+    } else {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color:red;">${res.message || 'Gagal memuat data pengguna.'}</td></tr>`;
+    }
+  } catch (error) {
+    console.error("Error loadUsersData:", error);
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:red;">Gagal terhubung ke server.</td></tr>';
+  }
 }
 
-// --- FUNGSI LOAD REKAP NILAI UNTUK ADMIN ---
-function loadMonitoringData() {
+// --- FUNGSI LOAD REKAP NILAI UNTUK ADMIN (VIA FETCH) ---
+async function loadMonitoringData() {
   const container = document.getElementById('admin-monitoring-content');
   if (!container) return;
+
   container.innerHTML = '<p style="text-align:center;">Memuat rekap nilai...</p>';
 
-  google.script.run
-    .withSuccessHandler(function(res) {
-      if (!res || !res.success) {
-        container.innerHTML = `<p style="color:red; text-align:center;">Gagal memuat rekap nilai.</p>`;
-        return;
-      }
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "getNilai", role: "ADMIN" })
+    });
+    const res = await response.json();
+
+    if (res && res.success) {
       container.innerHTML = `<div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
         <p style="margin: 0; color: #059669; font-weight: bold;">✅ Berhasil terhubung ke database nilai!</p>
-        <p style="margin: 5px 0 0 0; font-size: 13px; color: #475569;">Total data nilai tersimpan: <strong>${res.data.length}</strong> baris.</p>
+        <p style="margin: 5px 0 0 0; font-size: 13px; color: #475569;">Total data nilai tersimpan: <strong>${res.data ? res.data.length : 0}</strong> baris.</p>
       </div>`;
-    })
-    .getNilai({ role: 'ADMIN' });
+    } else {
+      container.innerHTML = `<p style="color:red; text-align:center;">${res.message || 'Gagal memuat rekap nilai.'}</p>`;
+    }
+  } catch (error) {
+    console.error("Error loadMonitoringData:", error);
+    container.innerHTML = '<p style="color:red; text-align:center;">Gagal terhubung ke server.</p>';
+  }
 }
 
-// --- FUNGSI RESET PASSWORD ---
-function resetUserPassword(rowIndex, username) {
+// --- FUNGSI RESET PASSWORD (VIA FETCH) ---
+async function resetUserPassword(rowIndex, username) {
   const newPass = prompt(`Masukkan password baru untuk user "${username}":`);
   if (!newPass) return;
 
-  google.script.run
-    .withSuccessHandler(function(res) {
-      alert(res.message || "Password berhasil direset!");
-    })
-    .resetPassword({ row_index: rowIndex, new_password: newPass });
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "resetPassword",
+        row_index: rowIndex,
+        new_password: newPass
+      })
+    });
+    const res = await response.json();
+    alert(res.message || "Password berhasil direset!");
+  } catch (error) {
+    console.error("Error resetUserPassword:", error);
+    alert("Gagal mereset password. Pastikan koneksi internet stabil.");
+  }
 }
