@@ -114,8 +114,7 @@ async function prosesLogin() {
       body: JSON.stringify({
         action: "login",
         username: usernameInput,
-        password: passwordInput,
-        role: document.getElementById("login-role") ? document.getElementById("login-role").value : "ADMIN"
+        password: passwordInput
       })
     });
 
@@ -151,54 +150,37 @@ function showAppScreen(user) {
   const dashboardSiswa = document.getElementById("siswa-dashboard");
   const dashboardGuru = document.getElementById("guru-dashboard");
 
-  // --- CEK NAVIGASI TAB ADMIN ---
-  const tabAdminUser = document.getElementById("tab-admin-user");
-  const tabAdminMon = document.getElementById("tab-admin-monitoring");
-  
-  // Sembunyikan tab admin secara default
-  if (tabAdminUser) tabAdminUser.classList.add("hidden");
-  if (tabAdminMon) tabAdminMon.classList.add("hidden");
-
-  if (role === "ADMIN") {
-    // TAMPILKAN KHUSUS ADMIN
-    if (tabAdminUser) tabAdminUser.classList.remove("hidden");
-    if (tabAdminMon) tabAdminMon.classList.remove("hidden");
-    if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
-    if (dashboardGuru) dashboardGuru.classList.add("hidden");
-
-    switchTab("admin-user");
-
-  } else if (role === "SISWA") {
+  if (role === "SISWA") {
     if (dashboardSiswa) dashboardSiswa.classList.remove("hidden");
     if (dashboardGuru) dashboardGuru.classList.add("hidden");
 
     const dataSiswa = masterSiswaGlobal.find(s => 
-      String(s.ref_id) === String(user.ref_id) ||
-      String(s.nisn) === String(user.username) ||
+      String(s.ref_id) === String(user.ref_id) || 
+      String(s.nisn) === String(user.username) || 
       String(s.ref_id) === String(user.username)
     );
     if (dataSiswa && dataSiswa.nama_siswa) {
       namaTampil = dataSiswa.nama_siswa;
     }
-
+    
     const elemWelcome = document.getElementById("siswa-nama-welcome");
     if (elemWelcome) elemWelcome.innerText = namaTampil;
 
     tutupMenuSiswa();
     tampilkanRiwayatNilai();
-
   } else {
-    // JIKA ROLE GURU
     if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
     if (dashboardGuru) dashboardGuru.classList.remove("hidden");
-
+    
     namaTampil = user.nama || user.username || 'Guru';
-
+    
+    // Set Nama Guru di Topbar & Welcome Banner
     const elemUserInfo = document.getElementById("user-info");
     const elemWelcomeGuru = document.getElementById("guru-nama-welcome");
     if (elemUserInfo) elemUserInfo.innerText = namaTampil;
     if (elemWelcomeGuru) elemWelcomeGuru.innerText = namaTampil;
 
+    // OTOMATIS AMBIL DAN HITUNG NILAI TERINPUT UNTUK GURU
     tampilkanRiwayatNilai();
   }
 
@@ -732,16 +714,13 @@ async function loadBukuKasusSiswa() {
   const masterData = JSON.parse(localStorage.getItem("master_data") || "{}");
   
   const listSiswa = masterData.list_siswa || [];
-  let currentSiswa = listSiswa.find(s => 
+  const currentSiswa = listSiswa.find(s => 
     String(s.ref_id) === String(userSession.ref_id) || 
     String(s.nisn) === String(userSession.username)
   );
-
-  // Fallback NISN langsung dari userSession jika tidak ketemu di listSiswa
-  const nisnTarget = (currentSiswa && currentSiswa.nisn) ? currentSiswa.nisn : (userSession.username || userSession.ref_id);
-
-  if (!nisnTarget) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">NISN tidak ditemukan. Silakan login ulang.</td></tr>';
+  
+  if (!currentSiswa || !currentSiswa.nisn) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">NISN tidak ditemukan.</td></tr>';
     return;
   }
 
@@ -753,7 +732,7 @@ async function loadBukuKasusSiswa() {
       method: "POST",
       body: JSON.stringify({
         action: "getBukuKasus",
-        nisn: nisnTarget
+        nisn: currentSiswa.nisn
       })
     });
 
@@ -765,10 +744,10 @@ async function loadBukuKasusSiswa() {
       result.data.forEach(item => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><strong>${item.hari || ''}</strong>, ${item.tanggal || ''}<br><small style="color:#666">${item.waktu || ''}</small></td>
-          <td style="color: #dc3545; font-weight: bold;">${item.kasus || item.pelanggaran || '-'}</td>
-          <td>${item.tindak_lanjut || item.tindakLanjut || '-'}</td>
-          <td>${item.guru_piket || item.guruPiket || '-'}</td>
+          <td><strong>${item.hari}</strong>, ${item.tanggal}<br><small style="color:#666">${item.waktu}</small></td>
+          <td style="color: #dc3545; font-weight: bold;">${item.kasus}</td>
+          <td>${item.tindak_lanjut}</td>
+          <td>${item.guru_piket}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -960,7 +939,7 @@ let rawDataKehadiranSiswa = [];
 async function loadKehadiranSiswa() {
   const containerMapel = document.getElementById("container-kehadiran-level-mapel");
   const containerRincian = document.getElementById("container-kehadiran-level-rincian");
-
+  
   if (containerMapel) containerMapel.classList.remove("hidden");
   if (containerRincian) containerRincian.classList.add("hidden");
 
@@ -968,8 +947,7 @@ async function loadKehadiranSiswa() {
   if (!gridContainer) return;
 
   const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
-  // Mengambil ref_id, username, atau nisn
-  const nisnSiswa = userSession.ref_id || userSession.username || userSession.nisn || userSession.ref_id_siswa;
+  const nisnSiswa = userSession.username || userSession.nisn || userSession.ref_id_siswa;
 
   if (!nisnSiswa) {
     gridContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:red;">Gagal mengidentifikasi data siswa. Silakan login ulang.</div>';
@@ -981,6 +959,7 @@ async function loadKehadiranSiswa() {
   try {
     const response = await fetch(API_URL, {
       method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         action: "getKehadiran",
         ref_id_siswa: nisnSiswa
@@ -993,7 +972,7 @@ async function loadKehadiranSiswa() {
       rawDataKehadiranSiswa = result.data || [];
       renderKartuMapelKehadiran(rawDataKehadiranSiswa);
     } else {
-      gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Gagal: ${result.message || 'Data tidak ditemukan.'}</div>`;
+      gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Gagal: ${result.message}</div>`;
     }
   } catch (err) {
     gridContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Terjadi kesalahan koneksi.</div>';
@@ -1147,114 +1126,4 @@ function kembaliKeDaftarMapelKehadiran() {
   
   if (containerRincian) containerRincian.classList.add("hidden");
   if (containerMapel) containerMapel.classList.remove("hidden");
-}
-// ==========================================
-// FUNGSI NAVIGASI & TAB ADMIN
-// ==========================================
-function switchTab(tabName) {
-  // Sembunyikan semua section dashboard
-  const siswaDash = document.getElementById('siswa-dashboard');
-  const guruDash = document.getElementById('guru-dashboard');
-  const adminUserDash = document.getElementById('admin-user-dashboard');
-  const adminMonDash = document.getElementById('admin-monitoring-dashboard');
-
-  if (siswaDash) siswaDash.classList.add('hidden');
-  if (guruDash) guruDash.classList.add('hidden');
-  if (adminUserDash) adminUserDash.classList.add('hidden');
-  if (adminMonDash) adminMonDash.classList.add('hidden');
-
-  // Tampilkan tab yang dipilih
-  if (tabName === 'admin-user' && adminUserDash) {
-    adminUserDash.classList.remove('hidden');
-    loadUsersData();
-  } else if (tabName === 'admin-monitoring' && adminMonDash) {
-    adminMonDash.classList.remove('hidden');
-    loadMonitoringData();
-  }
-}
-
-// --- FUNGSI LOAD DATA USER UNTUK ADMIN (VIA FETCH) ---
-async function loadUsersData() {
-  const tbody = document.getElementById('table-user-body');
-  if (!tbody) return;
-  
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Memuat data pengguna...</td></tr>';
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "getUsers" })
-    });
-    const res = await response.json();
-
-    if (res && res.success && res.data) {
-      let html = '';
-      res.data.forEach(function(u) {
-        html += `<tr style="border-bottom: 1px solid #e2e8f0;">
-          <td style="padding: 10px 15px;"><strong>${u.username}</strong></td>
-          <td style="padding: 10px 15px;"><span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${u.role}</span></td>
-          <td style="padding: 10px 15px;">${u.ref_id || '-'}</td>
-          <td style="padding: 10px 15px; text-align: center;">
-            <button onclick="resetUserPassword(${u.row_index}, '${u.username}')" style="background: #f59e0b; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset Pass</button>
-          </td>
-        </tr>`;
-      });
-      tbody.innerHTML = html;
-    } else {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color:red;">${res.message || 'Gagal memuat data pengguna.'}</td></tr>`;
-    }
-  } catch (error) {
-    console.error("Error loadUsersData:", error);
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:red;">Gagal terhubung ke server.</td></tr>';
-  }
-}
-
-// --- FUNGSI LOAD REKAP NILAI UNTUK ADMIN (VIA FETCH) ---
-async function loadMonitoringData() {
-  const container = document.getElementById('admin-monitoring-content');
-  if (!container) return;
-
-  container.innerHTML = '<p style="text-align:center;">Memuat rekap nilai...</p>';
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "getNilai", role: "ADMIN" })
-    });
-    const res = await response.json();
-
-    if (res && res.success) {
-      container.innerHTML = `<div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-        <p style="margin: 0; color: #059669; font-weight: bold;">✅ Berhasil terhubung ke database nilai!</p>
-        <p style="margin: 5px 0 0 0; font-size: 13px; color: #475569;">Total data nilai tersimpan: <strong>${res.data ? res.data.length : 0}</strong> baris.</p>
-      </div>`;
-    } else {
-      container.innerHTML = `<p style="color:red; text-align:center;">${res.message || 'Gagal memuat rekap nilai.'}</p>`;
-    }
-  } catch (error) {
-    console.error("Error loadMonitoringData:", error);
-    container.innerHTML = '<p style="color:red; text-align:center;">Gagal terhubung ke server.</p>';
-  }
-}
-
-// --- FUNGSI RESET PASSWORD (VIA FETCH) ---
-async function resetUserPassword(rowIndex, username) {
-  const newPass = prompt(`Masukkan password baru untuk user "${username}":`);
-  if (!newPass) return;
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "resetPassword",
-        row_index: rowIndex,
-        new_password: newPass
-      })
-    });
-    const res = await response.json();
-    alert(res.message || "Password berhasil direset!");
-  } catch (error) {
-    console.error("Error resetUserPassword:", error);
-    alert("Gagal mereset password. Pastikan koneksi internet stabil.");
-  }
 }
