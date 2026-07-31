@@ -1220,12 +1220,12 @@ function tampilkanNilaiAdmin() {
             <td>${item.jenis}</td>
             <td><b>${item.nilai}</b></td>
             <td>
-              <button class="btn btn-sm btn-primary me-1 px-2 py-1" onclick="handleEditNilai('${item.id}')" title="Edit">
-                <i class="fa-solid fa-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-danger px-2 py-1" onclick="handleHapusNilai('${item.id}')" title="Hapus">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
+              <button onclick="handleEditNilai('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+  <i class="fa-solid fa-pen"></i>
+</button>
+<button onclick="handleHapusNilai('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+  <i class="fa-solid fa-trash"></i>
+</button>
             </td>
           </tr>`;
       });
@@ -1264,13 +1264,13 @@ function tampilkanAbsenAdmin() {
           <td>${item.tanggal || '-'}</td>
           <td><b>${item.status || '-'}</b></td>
           <td>
-              <button class="btn btn-sm btn-primary me-1 px-2 py-1" onclick="handleEditAbsen('${item.id}')" title="Edit">
-                <i class="fa-solid fa-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-danger px-2 py-1" onclick="handleHapusAbsen('${item.id}')" title="Hapus">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </td>
+            <button onclick="handleEditAbsen('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="handleHapusAbsen('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
         </tr>`;
       });
       container.innerHTML = html;
@@ -1303,13 +1303,13 @@ function tampilkanKasusAdmin() {
           <td>${item.penanganan || '-'}</td>
           <td>${item.guruPiket || '-'}</td>
           <td>
-              <button class="btn btn-sm btn-primary me-1 px-2 py-1" onclick="handleEditAbsen('${item.id}')" title="Edit">
-                <i class="fa-solid fa-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-danger px-2 py-1" onclick="handleHapusAbsen('${item.id}')" title="Hapus">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </td>
+            <button onclick="handleEditKasus('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="handleHapusKasus('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
         </tr>`;
       });
       container.innerHTML = html;
@@ -1340,13 +1340,13 @@ function tampilkanUserAdmin() {
           <td><b>${item.role}</b></td>
           <td>${item.refId}</td>
           <td>
-              <button class="btn btn-sm btn-primary me-1 px-2 py-1" onclick="handleEditAbsen('${item.id}')" title="Edit">
-                <i class="fa-solid fa-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-danger px-2 py-1" onclick="handleHapusAbsen('${item.id}')" title="Hapus">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </td>
+            <button onclick="handleEditUser('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="handleHapusUser('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
         </tr>`;
       });
       container.innerHTML = html;
