@@ -1228,12 +1228,12 @@ function tampilkanNilaiAdmin() {
       container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
 }
-// Fungsi untuk menampilkan grid tombol/card Mapel
+// Fungsi untuk menampilkan grid tombol/card Mapel bergaya Gambar 2
 function renderKategoriMapel(daftarMapel) {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   const tableElement = container.closest("table");
   
-  // Sembunyikan tabel sementara, kita ganti dengan grid Card Mapel
+  // Sembunyikan tabel sementara
   tableElement.style.display = "none";
 
   let mapelContainer = document.getElementById("mapel-grid-container");
@@ -1246,19 +1246,29 @@ function renderKategoriMapel(daftarMapel) {
 
   let htmlMapel = "";
   daftarMapel.forEach(mapel => {
-    // Hitung berapa banyak nilai yang sudah terisi di mapel ini
+    // Hitung jumlah data nilai per mapel
     const jumlahNilai = globalDataNilai.filter(item => item.mapel === mapel).length;
 
     htmlMapel += `
-      <div class="col-md-4 col-sm-6">
-        <div class="card h-100 shadow-sm border-0" onclick="pilihMapelAdmin('${mapel}')" style="cursor: pointer; background: #f8fafc; border-left: 4px solid #2563eb !important; transition: transform 0.2s;">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-              <h6 class="fw-bold mb-1 text-dark">${mapel}</h6>
-              <small class="text-muted">${jumlahNilai} Data Nilai</small>
-            </div>
-            <i class="fa-solid fa-chevron-right text-primary"></i>
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="card h-100 p-3" onclick="pilihMapelAdmin('${mapel}')" 
+             style="cursor: pointer; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease-in-out; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          
+          <!-- Ikon Atas (Kotak Hijau Muda dengan Ikon) -->
+          <div class="mb-3 d-flex align-items-center justify-content-center" 
+               style="width: 36px; height: 36px; background-color: #dcfce7; border-radius: 8px;">
+            <i class="fa-solid fa-book-bookmark" style="color: #16a34a; font-size: 16px;"></i>
           </div>
+
+          <!-- Nama Mapel -->
+          <h6 class="fw-bold mb-3 text-dark" style="font-size: 15px;">${mapel}</h6>
+
+          <!-- Jumlah Data & Panah di Bawah -->
+          <div class="d-flex justify-content-between align-items-center mt-auto">
+            <small class="text-muted" style="font-size: 13px;">${jumlahNilai} Data Nilai</small>
+            <i class="fa-solid fa-chevron-right" style="color: #94a3b8; font-size: 12px;"></i>
+          </div>
+
         </div>
       </div>
     `;
