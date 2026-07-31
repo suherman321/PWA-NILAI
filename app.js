@@ -1220,8 +1220,12 @@ function tampilkanNilaiAdmin() {
             <td>${item.jenis}</td>
             <td><b>${item.nilai}</b></td>
             <td>
-              <button class="btn-edit" onclick="handleEditNilai(${item.id})">Edit</button>
-              <button class="btn-delete" onclick="handleHapusNilai(${item.id})">Hapus</button>
+              <button class="btn btn-sm btn-primary me-1 px-2 py-1" onclick="handleEditNilai('${item.id}')" title="Edit">
+                <i class="fa-solid fa-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-danger px-2 py-1" onclick="handleHapusNilai('${item.id}')" title="Hapus">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
             </td>
           </tr>`;
       });
@@ -1260,9 +1264,13 @@ function tampilkanAbsenAdmin() {
           <td>${item.tanggal || '-'}</td>
           <td><b>${item.status || '-'}</b></td>
           <td>
-            <button class="btn-edit" onclick="handleEditAbsen('${item.id}')">Edit</button>
-            <button class="btn-delete" onclick="handleHapusAbsen('${item.id}')">Hapus</button>
-          </td>
+              <button class="btn btn-sm btn-primary me-1 px-2 py-1" onclick="handleEditAbsen('${item.id}')" title="Edit">
+                <i class="fa-solid fa-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-danger px-2 py-1" onclick="handleHapusAbsen('${item.id}')" title="Hapus">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
         </tr>`;
       });
       container.innerHTML = html;
@@ -1295,9 +1303,13 @@ function tampilkanKasusAdmin() {
           <td>${item.penanganan || '-'}</td>
           <td>${item.guruPiket || '-'}</td>
           <td>
-            <button class="btn-edit" onclick="handleEditKasus(${item.id})">Edit</button>
-            <button class="btn-delete" onclick="handleHapusKasus(${item.id})">Hapus</button>
-          </td>
+              <button class="btn btn-sm btn-primary me-1 px-2 py-1" onclick="handleEditAbsen('${item.id}')" title="Edit">
+                <i class="fa-solid fa-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-danger px-2 py-1" onclick="handleHapusAbsen('${item.id}')" title="Hapus">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
         </tr>`;
       });
       container.innerHTML = html;
@@ -1328,9 +1340,13 @@ function tampilkanUserAdmin() {
           <td><b>${item.role}</b></td>
           <td>${item.refId}</td>
           <td>
-            <button class="btn-edit" onclick="handleEditUser(${item.id})">Edit</button>
-            <button class="btn-delete" onclick="handleHapusUser(${item.id})">Hapus</button>
-          </td>
+              <button class="btn btn-sm btn-primary me-1 px-2 py-1" onclick="handleEditAbsen('${item.id}')" title="Edit">
+                <i class="fa-solid fa-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-danger px-2 py-1" onclick="handleHapusAbsen('${item.id}')" title="Hapus">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
         </tr>`;
       });
       container.innerHTML = html;
