@@ -1197,11 +1197,16 @@ function initAdminTabListeners() {
 }
 
 // 1. MONITORING NILAI
+let globalDataNilai = [];
+
 function tampilkanNilaiAdmin() {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  const parentContainer = container ? container.closest('.card-body') || container.closest('.table-responsive') || container.parentElement : null;
+
   if (!container) return;
 
-  container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data nilai...</td></tr>`;
+  // Tampilkan loader saat mengambil data
+  container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat daftar mata pelajaran...</td></tr>`;
 
   fetch(`${SCRIPT_URL}?action=getNilai`)
     .then(res => res.json())
@@ -1210,30 +1215,105 @@ function tampilkanNilaiAdmin() {
         container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada data nilai.</td></tr>`;
         return;
       }
-      let html = "";
-      dataNilai.forEach((item) => {
-        html += `
-          <tr>
-            <td>${item.kelas}</td>
-            <td>${item.namaSiswa}</td>
-            <td>${item.mapel}</td>
-            <td>${item.jenis}</td>
-            <td><b>${item.nilai}</b></td>
-            <td>
-              <button onclick="handleEditNilai('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
-  <i class="fa-solid fa-pen"></i>
-</button>
-<button onclick="handleHapusNilai('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
-  <i class="fa-solid fa-trash"></i>
-</button>
-            </td>
-          </tr>`;
-      });
-      container.innerHTML = html;
+
+      globalDataNilai = dataNilai; // Simpan data ke variabel global
+
+      // Ambil daftar Mapel unik yang HANYA ADA di data/database
+      const daftarMapel = [...new Set(dataNilai.map(item => item.mapel))].filter(Boolean);
+
+      // Render tampilan Pilihan Mapel (Card/Tombol)
+      renderKategoriMapel(daftarMapel);
     })
     .catch(err => {
       container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
+}
+// Fungsi untuk menampilkan grid tombol/card Mapel
+function renderKategoriMapel(daftarMapel) {
+  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  const tableElement = container.closest("table");
+  
+  // Sembunyikan tabel sementara, kita ganti dengan grid Card Mapel
+  tableElement.style.display = "none";
+
+  let mapelContainer = document.getElementById("mapel-grid-container");
+  if (!mapelContainer) {
+    mapelContainer = document.createElement("div");
+    mapelContainer.id = "mapel-grid-container";
+    mapelContainer.className = "row g-3 my-2";
+    tableElement.parentNode.insertBefore(mapelContainer, tableElement);
+  }
+
+  let htmlMapel = "";
+  daftarMapel.forEach(mapel => {
+    // Hitung berapa banyak nilai yang sudah terisi di mapel ini
+    const jumlahNilai = globalDataNilai.filter(item => item.mapel === mapel).length;
+
+    htmlMapel += `
+      <div class="col-md-4 col-sm-6">
+        <div class="card h-100 shadow-sm border-0" onclick="pilihMapelAdmin('${mapel}')" style="cursor: pointer; background: #f8fafc; border-left: 4px solid #2563eb !important; transition: transform 0.2s;">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="fw-bold mb-1 text-dark">${mapel}</h6>
+              <small class="text-muted">${jumlahNilai} Data Nilai</small>
+            </div>
+            <i class="fa-solid fa-chevron-right text-primary"></i>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  mapelContainer.innerHTML = htmlMapel;
+  mapelContainer.style.display = "flex";
+}
+
+// Fungsi saat salah satu Mapel diklik
+function pilihMapelAdmin(mapelDipilih) {
+  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  const tableElement = container.closest("table");
+  const mapelContainer = document.getElementById("mapel-grid-container");
+
+  // Sembunyikan grid mapel dan tampilkan kembali tabelnya
+  if (mapelContainer) mapelContainer.style.display = "none";
+  tableElement.style.display = "table";
+
+  // Filter data sesuai mapel yang diklik
+  const dataFiltered = globalDataNilai.filter(item => item.mapel === mapelDipilih);
+
+  let html = `
+    <tr class="table-light">
+      <td colspan="6">
+        <div class="d-flex justify-content-between align-items-center py-1">
+          <b><i class="fa-solid fa-book me-2"></i>Mapel: ${mapelDipilih}</b>
+          <button class="btn btn-sm btn-outline-secondary" onclick="tampilkanNilaiAdmin()">
+            <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Daftar Mapel
+          </button>
+        </div>
+      </td>
+    </tr>
+  `;
+
+  dataFiltered.forEach((item) => {
+    html += `
+      <tr>
+        <td>${item.kelas}</td>
+        <td>${item.namaSiswa}</td>
+        <td>${item.mapel}</td>
+        <td>${item.jenis}</td>
+        <td><b>${item.nilai}</b></td>
+        <td>
+          <button onclick="handleEditNilai('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button onclick="handleHapusNilai('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>`;
+  });
+
+  container.innerHTML = html;
 }
 
 // 2. MONITORING ABSEN
