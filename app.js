@@ -191,10 +191,7 @@ function showAppScreen(user) {
     if (elemWelcomeAdmin) elemWelcomeAdmin.innerText = namaTampil;
 
     // --- TAMBAHAN UNTUK TAB ADMIN ---
-    // 1. Set default tab yang aktif ke 'nilai' saat awal login
     switchAdminTab('nilai'); 
-    
-    // 2. Inisialisasi event listener klik untuk semua tombol menu admin
     initAdminTabListeners();
 } else {
     // Role GURU
@@ -302,7 +299,6 @@ function renderMasterData(listSiswa, listMapel, listKelas) {
   if (selectMapel && role !== "SISWA") {
     selectMapel.innerHTML = '<option value="">-- Pilih Mapel --</option>';
 
-    // Admin mendapatkan akses ke seluruh mata pelajaran global
     let listMapelAkses = masterMapelGlobal;
     if (role === "GURU") {
       listMapelAkses = userSession.mapel 
@@ -457,7 +453,6 @@ async function tampilkanRiwayatNilai() {
 
   let listNilai = [];
 
-  // Fetch data dari Google Apps Script Server
   if (navigator.onLine) {
     try {
       const response = await fetch(API_URL, {
@@ -465,7 +460,7 @@ async function tampilkanRiwayatNilai() {
         body: JSON.stringify({
           action: "getNilai",
           role: role,
-          ref_id_guru: role === "ADMIN" ? "" : userRefId, // Admin bisa tarik seluruh data
+          ref_id_guru: role === "ADMIN" ? "" : userRefId,
           ref_id_siswa: currentSiswa ? currentSiswa.ref_id : userRefId
         })
       });
@@ -478,7 +473,6 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // Fallback: IndexedDB
   if (listNilai.length === 0 && typeof openDB === "function") {
     try {
       const db = await openDB();
@@ -504,7 +498,6 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // Update Statistik Nilai Terinput (Guru & Admin)
   if (role !== "SISWA") {
     const statTotalNilai = document.getElementById("stat-total-nilai");
     if (statTotalNilai) {
@@ -512,7 +505,6 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
-  // Filter jika memilih kelas tertentu
   if (role !== "SISWA" && kelasAktif) {
     listNilai = listNilai.filter(item => String(item.kelas || "").trim().toUpperCase() === String(kelasAktif).trim().toUpperCase());
   }
@@ -537,7 +529,6 @@ async function tampilkanRiwayatNilai() {
     const nilaiTampil = item.nilai !== undefined ? item.nilai : "-";
 
     let kolomAksi = "-";
-    // Role GURU dan ADMIN diizinkan mengedit/menghapus data nilai
     if (role !== "SISWA" && item.row_index) {
       kolomAksi = `
         <button onclick="editNilai(${item.row_index}, '${namaSiswaTampil}', ${nilaiTampil})" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; margin-right:4px;">
@@ -1142,6 +1133,10 @@ function kembaliKeDaftarMapelKehadiran() {
   if (containerRincian) containerRincian.classList.add("hidden");
   if (containerMapel) containerMapel.classList.remove("hidden");
 }
+
+// ==========================================
+// 12. LOGIKA TAB ADMIN (NAVIGASI & AKTIVASI)
+// ==========================================
 function switchAdminTab(tabName) {
     const views = {
         nilai: document.getElementById("admin-view-nilai"),
@@ -1150,47 +1145,57 @@ function switchAdminTab(tabName) {
         user:  document.getElementById("admin-view-user")
     };
 
-    // Reset status tombol
-    document.querySelectorAll("[data-admin-tab]").forEach(btn => {
-        btn.classList.remove("active");
-        btn.style.backgroundColor = "#ffffff";
-        btn.style.color = "#334155";
+    const buttons = {
+        nilai: document.getElementById("btn-tab-admin-nilai") || document.querySelector("[data-admin-tab='nilai']"),
+        absen: document.getElementById("btn-tab-admin-absen") || document.querySelector("[data-admin-tab='absen']"),
+        kasus: document.getElementById("btn-tab-admin-kasus") || document.querySelector("[data-admin-tab='kasus']"),
+        user:  document.getElementById("btn-tab-admin-user")  || document.querySelector("[data-admin-tab='user']")
+    };
+
+    // 1. Reset class active dari semua tombol
+    Object.values(buttons).forEach(btn => {
+        if (btn) {
+            btn.classList.remove("active");
+            btn.style.backgroundColor = ""; // Mengembalikan gaya asli CSS
+            btn.style.color = "";
+        }
     });
 
-    // Sembunyikan semua tab
+    // 2. Sembunyikan semua tampilan tab
     Object.values(views).forEach(view => {
         if (view) view.classList.add("hidden");
     });
 
-    // Tampilkan tab aktif
+    // 3. Tampilkan tab yang dipilih
     if (views[tabName]) {
         views[tabName].classList.remove("hidden");
     }
 
-    // Sorot tombol aktif
-    const activeBtn = document.querySelector(`[data-admin-tab="${tabName}"]`);
+    // 4. Sorot tombol yang aktif
+    const activeBtn = buttons[tabName];
     if (activeBtn) {
         activeBtn.classList.add("active");
-        activeBtn.style.backgroundColor = "#2563eb";
-        activeBtn.style.color = "#ffffff";
     }
 
-    // Panggil pemuat data sesuai tab yang dipilih
+    // 5. Muat data sesuai tab
     if (tabName === 'nilai') tampilkanNilaiAdmin();
     if (tabName === 'absen') tampilkanAbsenAdmin();
     if (tabName === 'kasus') tampilkanKasusAdmin();
     if (tabName === 'user')  tampilkanUserAdmin();
 }
 
-
 function initAdminTabListeners() {
-    document.querySelectorAll("[data-admin-tab]").forEach(button => {
-        button.addEventListener("click", () => {
-            const target = button.getAttribute("data-admin-tab");
-            switchAdminTab(target);
-        });
+    const tabs = ['nilai', 'absen', 'kasus', 'user'];
+    
+    tabs.forEach(tab => {
+        // Cari via ID terlebih dahulu, jika tidak ada cari via data-admin-tab
+        const btn = document.getElementById(`btn-tab-admin-${tab}`) || document.querySelector(`[data-admin-tab='${tab}']`);
+        if (btn) {
+            btn.onclick = () => switchAdminTab(tab);
+        }
     });
 }
+
 // 1. MONITORING NILAI
 function tampilkanNilaiAdmin() {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
@@ -1237,9 +1242,6 @@ function tampilkanAbsenAdmin() {
   fetch(`${SCRIPT_URL}?action=getAbsen`)
     .then(res => res.json())
     .then(data => {
-      console.log("Response Absen:", data);
-
-      // Proteksi: Pastikan data benar-benar Array
       if (!Array.isArray(data)) {
         container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Format data server salah (Bukan Array).</td></tr>`;
         return;
