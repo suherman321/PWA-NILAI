@@ -1363,48 +1363,174 @@ function pilihMapelAdmin(mapelDipilih) {
   container.innerHTML = html;
 }
 
-// 2. MONITORING ABSEN
+// Variabel penampung global khusus data absen admin
+let globalDataAbsen = [];
+
+// 1. Fungsi Utama Monitoring Absen
 function tampilkanAbsenAdmin() {
   const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
+  const tableElement = container ? container.closest("table") : null;
+
   if (!container) return;
 
-  container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data absen...</td></tr>`;
+  // Tampilkan pesan muat data
+  container.innerHTML = `<tr><td colspan="7" style="text-align:center;">Memuat data presensi...</td></tr>`;
 
   fetch(`${SCRIPT_URL}?action=getAbsen`)
     .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data)) {
-        container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Format data server salah (Bukan Array).</td></tr>`;
+    .then(dataAbsen => {
+      if (!dataAbsen || dataAbsen.length === 0) {
+        container.innerHTML = `<tr><td colspan="7" style="text-align:center;">Belum ada data presensi.</td></tr>`;
         return;
       }
 
-      if (data.length === 0) {
-        container.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data absen.</td></tr>`;
-        return;
-      }
+      globalDataAbsen = dataAbsen; // Simpan data ke variabel global
 
-      let html = "";
-      data.forEach(item => {
-        html += `<tr>
-          <td>${item.mapel || '-'}</td>
-          <td>${item.namaSiswa || '-'}</td>
-          <td>${item.tanggal || '-'}</td>
-          <td><b>${item.status || '-'}</b></td>
-          <td>
-            <button onclick="handleEditAbsen('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            <button onclick="handleHapusAbsen('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
-        </tr>`;
-      });
-      container.innerHTML = html;
+      // Filter daftar Mapel unik yang HANYA ADA di data presensi
+      const daftarMapelAbsen = [...new Set(dataAbsen.map(item => item.mapel))].filter(Boolean);
+
+      // Tampilkan grid kartu mapel presensi
+      renderKategoriMapelAbsen(daftarMapelAbsen);
     })
     .catch(err => {
-      container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+      container.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
+}
+
+// 2. Fungsi Render Grid Kartu Mapel Absen (CSS Grid)
+function renderKategoriMapelAbsen(daftarMapel) {
+  const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
+  const tableElement = container ? container.closest("table") : null;
+
+  if (tableElement) {
+    tableElement.style.display = "none"; // Sembunyikan tabel utama sementara
+  }
+
+  // Buat atau cari container grid khusus mapel absen
+  let gridContainer = document.getElementById("absen-mapel-grid-container");
+  if (!gridContainer) {
+    gridContainer = document.createElement("div");
+    gridContainer.id = "absen-mapel-grid-container";
+    if (tableElement && tableElement.parentNode) {
+      tableElement.parentNode.insertBefore(gridContainer, tableElement);
+    }
+  }
+
+  // Terapkan CSS Grid Layout
+  gridContainer.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+  `;
+  gridContainer.innerHTML = "";
+
+  if (daftarMapel.length === 0) {
+    gridContainer.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; color: #64748b;">
+        <i class="fa-solid fa-clipboard-user" style="font-size: 24px; margin-bottom: 8px; color: #94a3b8;"></i><br>
+        Belum ada catatan presensi mata pelajaran.
+      </div>`;
+    return;
+  }
+
+  daftarMapel.forEach(namaMapel => {
+    const totalAbsenMapel = globalDataAbsen.filter(d => d.mapel && d.mapel.trim() === namaMapel).length;
+
+    const card = document.createElement("div");
+    card.style.cssText = `
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    `;
+
+    // Efek Hover
+    card.onmouseover = () => {
+      card.style.borderColor = "#16a34a";
+      card.style.transform = "translateY(-2px)";
+      card.style.boxShadow = "0 4px 12px rgba(22, 163, 74, 0.15)";
+    };
+    card.onmouseout = () => {
+      card.style.borderColor = "#e2e8f0";
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+    };
+
+    // Klik kartu -> tampilkan tabel rincian presensi mapel ini
+    card.onclick = () => pilihMapelAbsenAdmin(namaMapel);
+
+    card.innerHTML = `
+      <div>
+        <div style="width: 32px; height: 32px; border-radius: 6px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 14px;">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <h5 style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: #1e293b;">${namaMapel}</h5>
+      </div>
+      <div style="font-size: 11px; color: #64748b; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <span>${totalAbsenMapel} Catatan</span>
+        <i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #94a3b8;"></i>
+      </div>
+    `;
+
+    gridContainer.appendChild(card);
+  });
+}
+
+// 3. Fungsi Menampilkan Tabel Rincian Absen Mapel Dipilih
+function pilihMapelAbsenAdmin(mapelDipilih) {
+  const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
+  const tableElement = container ? container.closest("table") : null;
+  const gridContainer = document.getElementById("absen-mapel-grid-container");
+
+  // Sembunyikan grid kartu dan munculkan tabel kembali
+  if (gridContainer) gridContainer.style.display = "none";
+  if (tableElement) tableElement.style.display = "table";
+
+  // Filter data absen khusus mapel yang diklik
+  const dataFiltered = globalDataAbsen.filter(item => item.mapel === mapelDipilih);
+
+  let html = `
+    <tr class="table-light">
+      <td colspan="7">
+        <div class="d-flex justify-content-between align-items-center py-1">
+          <b><i class="fa-solid fa-book me-2"></i>Presensi Mapel: ${mapelDipilih}</b>
+          <button class="btn btn-sm btn-outline-secondary" onclick="tampilkanAbsenAdmin()">
+            <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Daftar Mapel
+          </button>
+        </div>
+      </td>
+    </tr>
+  `;
+
+  dataFiltered.forEach((item) => {
+    html += `
+      <tr>
+        <td>${item.tanggal || '-'}</td>
+        <td>${item.kelas || '-'}</td>
+        <td>${item.namaSiswa || '-'}</td>
+        <td>${item.mapel || '-'}</td>
+        <td><b>${item.status || '-'}</b></td>
+        <td>${item.keterangan || '-'}</td>
+        <td>
+          <button onclick="handleEditAbsen('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button onclick="handleHapusAbsen('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>`;
+  });
+
+  container.innerHTML = html;
 }
 
 // 3. BUKU KASUS
