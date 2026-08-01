@@ -1327,13 +1327,13 @@ function pilihMapelAdmin(mapelDipilih) {
   if (gridContainer) gridContainer.style.display = "none";
   if (tableElement) tableElement.style.display = "table";
 
-  // Ambil data mapel aktif
+  // Filter data mapel aktif
   const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
   
-  // Ambil daftar KELAS UNIK dari Kolom H (kelas)
+  // Ambil daftar KELAS UNIK murni dari item.kelas (Kolom H)
   const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas))].filter(Boolean).sort();
 
-  // 1. Buat Baris Filter Luar Tabel Nilai (jika belum ada)
+  // 1. Buat Baris Filter DI LUAR TABEL (di atas elemen table)
   let filterBarContainer = document.getElementById("nilai-filter-bar");
   if (!filterBarContainer) {
     filterBarContainer = document.createElement("div");
@@ -1354,7 +1354,7 @@ function pilihMapelAdmin(mapelDipilih) {
     <div class="d-flex align-items-center gap-2">
       <b class="text-dark"><i class="fa-solid fa-book me-1"></i>Mapel Nilai: ${mapelDipilih}</b>
       <button class="btn btn-sm btn-outline-secondary ms-2" onclick="kembaliKeMapelNilai()">
-        <i class="fa-solid fa-arrow-left me-1"></i> Kembali
+        <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Daftar Mapel
       </button>
     </div>
     <div class="d-flex align-items-center gap-2">
@@ -1375,7 +1375,7 @@ function kembaliKeMapelNilai() {
   tampilkanNilaiAdmin();
 }
 
-// Render baris data nilai (Sesuai Struktur Header Tabel)
+// Render baris tabel nilai (Urutan Kolom Tepat Sesuai Header)
 function renderBarisTabelNilai(dataList) {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   container.innerHTML = "";
@@ -1387,35 +1387,34 @@ function renderBarisTabelNilai(dataList) {
 
   let html = "";
   dataList.forEach((item) => {
-    // Membaca Kolom H (kelas), Kolom B (ref_id_siswa / nama), Kolom D (jenis_penilaian)
-    const namaSiswa = item.ref_id_siswa || item.namaSiswa || item.nama || '-';
+    // Membaca data yang dikirim dari kode.gs yang baru
+    const namaSiswa = item.namaSiswa || item.nama_siswa || item.ref_id_siswa || item.nama || '-';
     const kelasSiswa = item.kelas || '-';
     const jenisPenilaian = item.jenis_penilaian || item.jenis || item.keterangan || '-';
-    const idTransaksi = item.id_transaksi || item.id || item.nisn || '';
 
     html += `
       <tr>
-        <!-- 1. Kelas (Diambil dari Kolom H) -->
+        <!-- 1. Kolom Kelas (Tampil: VIII, VII.A, IX) -->
         <td>${kelasSiswa}</td>
         
-        <!-- 2. Siswa (Diambil dari Kolom B) -->
+        <!-- 2. Kolom Siswa (Tampil: Abdul Gofar) -->
         <td>${namaSiswa}</td>
         
-        <!-- 3. Mapel (Diambil dari Kolom C) -->
+        <!-- 3. Kolom Mapel -->
         <td>${item.mapel || mapelAktifNilai}</td>
         
-        <!-- 4. Jenis (Diambil dari Kolom D) -->
+        <!-- 4. Kolom Jenis (Tampil: Tugas 1) -->
         <td>${jenisPenilaian}</td>
         
-        <!-- 5. Nilai (Diambil dari Kolom E) -->
+        <!-- 5. Kolom Nilai -->
         <td><b>${item.nilai || '-'}</b></td>
         
-        <!-- 6. Aksi Admin -->
+        <!-- 6. Kolom Aksi Admin -->
         <td>
-          <button onclick="handleEditNilai('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+          <button onclick="handleEditNilai('${item.id || item.id_transaksi}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
             <i class="fa-solid fa-pen"></i>
           </button>
-          <button onclick="handleHapusNilai('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+          <button onclick="handleHapusNilai('${item.id || item.id_transaksi}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
             <i class="fa-solid fa-trash"></i>
           </button>
         </td>
@@ -1425,7 +1424,7 @@ function renderBarisTabelNilai(dataList) {
   container.innerHTML = html;
 }
 
-// Pemicu filter nilai (Akurat berdasarkan kelas Kolom H & pencarian nama/id)
+// Pemicu filter nilai
 function terapkanFilterNilai() {
   const keywordNama = (document.getElementById("filter-nama-nilai")?.value || "").toLowerCase();
   const kelasPilihan = document.getElementById("filter-kelas-nilai")?.value || "";
@@ -1433,13 +1432,13 @@ function terapkanFilterNilai() {
   const hasilFilter = globalDataNilai.filter(item => {
     const cocokMapel = item.mapel === mapelAktifNilai;
     
-    // Pencocokan Kelas dari Kolom H
+    // Saring Kelas
     const kelasSiswa = item.kelas || "";
     const cocokKelas = kelasPilihan === "" || kelasSiswa === kelasPilihan;
     
-    // Pencocokan Nama / ID Transaksi
-    const namaSiswa = (item.ref_id_siswa || item.namaSiswa || item.nama || "").toLowerCase();
-    const idSiswa = (item.id_transaksi || item.nisn || "").toString().toLowerCase();
+    // Saring Nama atau ID Transaksi
+    const namaSiswa = (item.namaSiswa || item.nama_siswa || item.ref_id_siswa || item.nama || "").toLowerCase();
+    const idSiswa = (item.id_transaksi || item.id || item.ref_id_siswa || "").toString().toLowerCase();
     const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
 
     return cocokMapel && cocokKelas && cocokNama;
