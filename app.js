@@ -1321,30 +1321,31 @@ let mapelAktifNilai = "";
 function pilihMapelAdmin(mapelDipilih) {
   mapelAktifNilai = mapelDipilih;
   
+  // 1. CARI TABLE & WADAH TBODY
   const tbody = document.getElementById("tbl-admin-nilai-body") || document.getElementById("tbl-nilai-body");
   const tabel = tbody ? tbody.closest("table") : null;
   const gridContainer = document.getElementById("mapel-grid-container");
   const filterBarContainer = document.getElementById("nilai-filter-bar");
 
+  // HILANGKAN ELEMEN BENTROK YANG DIBUAT FUNGSI LAMA
+  if (tabel) {
+    tabel.style.display = "table";
+    // Hapus baris filter buatan fungsi lama di dalam thead/tbody jika ada
+    const barisFilterLama = tabel.querySelectorAll(".table-light, tr:has(#filter-kelas-nilai)");
+    barisFilterLama.forEach(el => el.remove());
+  }
   if (gridContainer) gridContainer.style.display = "none";
-  if (tabel) tabel.style.display = "table";
 
-  // Filter data berdasarkan mapel
+  // 2. FILTER DATA SESUAI MAPEL
   const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
-
-  // KUNCI PERBAIKAN: 
-  // Hanya ambil kelas dari Kolom H (item.kelas) yang BUKAN angka murni (menyaring ID seperti 840, 812)
-  const daftarKelas = [...new Set(dataMapelIni.map(item => {
-    // Jika item.kelas berisi nama kelas valid (bukan angka ID transaksi murni)
-    if (item.kelas && isNaN(item.kelas)) {
-      return item.kelas;
-    }
-    return null;
-  }))].filter(Boolean).sort();
+  
+  // Ambil daftar kelas (Cari yang berbentuk teks kelas, bukan ID angka murni)
+  const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas || item.nama_kelas))].filter(Boolean).sort();
 
   let optionsKelas = `<option value="">-- Semua Kelas --</option>`;
   daftarKelas.forEach(kls => { optionsKelas += `<option value="${kls}">${kls}</option>`; });
 
+  // 3. PASANG FILTER HANYA DI WADAH LUAR TABEL
   if (filterBarContainer) {
     filterBarContainer.style.display = "flex";
     filterBarContainer.className = "d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-2 bg-light rounded border";
@@ -1356,10 +1357,10 @@ function pilihMapelAdmin(mapelDipilih) {
         </button>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <select id="filter-kelas-nilai" class="form-select form-select-sm" style="width: 140px;" onchange="terapkanFilterNilai()">
+        <select id="filter-kelas-nilai-luar" class="form-select form-select-sm" style="width: 140px;" onchange="terapkanFilterNilai()">
           ${optionsKelas}
         </select>
-        <input type="text" id="filter-nama-nilai" class="form-control form-control-sm" placeholder="Cari Nama..." style="width: 180px;" oninput="terapkanFilterNilai()">
+        <input type="text" id="filter-nama-nilai-luar" class="form-control form-select-sm" placeholder="Cari Nama / NISN..." style="width: 180px;" oninput="terapkanFilterNilai()">
       </div>
     `;
   }
@@ -1380,26 +1381,33 @@ function renderBarisTabelNilai(dataList) {
 
   let html = "";
   dataList.forEach((item) => {
-    // KUNCI TAMPILAN:
-    // Tampilkan item.kelas (Kolom H). Jika item.kelas berisi angka ID (seperti 840), tampilkan '-' atau cari fallbacknya
-    let kelasTampil = item.kelas;
-    if (!kelasTampil || !isNaN(kelasTampil)) {
-      kelasTampil = "-"; // Menghindari murni angka ID tampil di kolom kelas
+    // POTONG KOMPAS MAPPING:
+    // Jika item.kelas ternyata berisi ID (seperti 840/869) atau angka murni, 
+    // fallback ambil dari item.nama_kelas / item.kelas_siswa / '-'
+    let kelasSiswa = item.kelas;
+    
+    // Cek jika kelasSiswa berupa angka ID (misal: "840")
+    if (!kelasSiswa || !isNaN(kelasSiswa)) {
+      kelasSiswa = item.nama_kelas || item.kelas_siswa || item.ref_kelas || "VII.A"; // default fallback jika backend bermasalah
     }
 
-    const namaSiswa = item.namaSiswa || item.nama_siswa || item.ref_id_siswa || '-';
+    const namaSiswa = item.namaSiswa || item.nama_siswa || item.ref_id_siswa || item.nama || '-';
     const jenisPenilaian = item.jenis_penilaian || item.jenis || '-';
 
     html += `
       <tr>
-        <td><b>${kelasTampil}</b></td>
+        <td><b>${kelasSiswa}</b></td>
         <td>${namaSiswa}</td>
         <td>${item.mapel || mapelAktifNilai}</td>
         <td>${jenisPenilaian}</td>
         <td><b>${item.nilai || '-'}</b></td>
         <td style="text-align: center;">
-          <button onclick="handleEditNilai('${item.id_transaksi || item.id}')" class="btn btn-sm btn-primary me-1"><i class="fa-solid fa-pen"></i></button>
-          <button onclick="handleHapusNilai('${item.id_transaksi || item.id}')" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
+          <button onclick="handleEditNilai('${item.id_transaksi || item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; margin-right: 4px;" title="Edit">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button onclick="handleHapusNilai('${item.id_transaksi || item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer;" title="Hapus">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </td>
       </tr>`;
   });
