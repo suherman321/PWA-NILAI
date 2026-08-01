@@ -1196,12 +1196,14 @@ function initAdminTabListeners() {
     });
 }
 
-// 1. MONITORING NILAI
+// ==========================================
+// 1. MONITORING NILAI (ADMIN)
+// ==========================================
 let globalDataNilai = [];
+let mapelAktifNilai = "";
 
 function tampilkanNilaiAdmin() {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
-  const parentContainer = container ? container.closest('.card-body') || container.closest('.table-responsive') || container.parentElement : null;
 
   if (!container) return;
 
@@ -1228,7 +1230,8 @@ function tampilkanNilaiAdmin() {
       container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
 }
-// Fungsi untuk menampilkan grid card Mapel dengan CSS Grid (SAMA PERSIS dengan referensi Anda)
+
+// Fungsi untuk menampilkan grid card Mapel dengan CSS Grid
 function renderKategoriMapel(daftarMapel) {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   const tableElement = container ? container.closest("table") : null;
@@ -1247,7 +1250,7 @@ function renderKategoriMapel(daftarMapel) {
     }
   }
 
-  // Terapkan CSS Grid Layout dengan gap/jarak yang jelas antar kartu
+  gridContainer.style.display = "grid";
   gridContainer.style.cssText = `
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -1283,7 +1286,7 @@ function renderKategoriMapel(daftarMapel) {
       justify-content: space-between;
     `;
 
-    // Efek Hover persis seperti referensi Anda
+    // Efek Hover
     card.onmouseover = () => {
       card.style.borderColor = "#16a34a";
       card.style.transform = "translateY(-2px)";
@@ -1295,7 +1298,6 @@ function renderKategoriMapel(daftarMapel) {
       card.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
     };
 
-    // Saat diklik -> tampilkan tabel nilai mapel tersebut
     card.onclick = () => pilihMapelAdmin(namaMapel);
 
     card.innerHTML = `
@@ -1315,9 +1317,6 @@ function renderKategoriMapel(daftarMapel) {
   });
 }
 
-// Variable simpan state mapel nilai aktif
-let mapelAktifNilai = "";
-
 function pilihMapelAdmin(mapelDipilih) {
   mapelAktifNilai = mapelDipilih;
   
@@ -1327,10 +1326,8 @@ function pilihMapelAdmin(mapelDipilih) {
   const gridContainer = document.getElementById("mapel-grid-container");
   const filterBarContainer = document.getElementById("nilai-filter-bar");
 
-  // HILANGKAN ELEMEN BENTROK YANG DIBUAT FUNGSI LAMA
   if (tabel) {
     tabel.style.display = "table";
-    // Hapus baris filter buatan fungsi lama di dalam thead/tbody jika ada
     const barisFilterLama = tabel.querySelectorAll(".table-light, tr:has(#filter-kelas-nilai)");
     barisFilterLama.forEach(el => el.remove());
   }
@@ -1339,13 +1336,15 @@ function pilihMapelAdmin(mapelDipilih) {
   // 2. FILTER DATA SESUAI MAPEL
   const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
   
-  // Ambil daftar kelas (Cari yang berbentuk teks kelas, bukan ID angka murni)
-  const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas || item.nama_kelas))].filter(Boolean).sort();
+  // Ambil daftar kelas (Memastikan tidak menyerap ID angka ke dropdown filter)
+  const daftarKelas = [...new Set(dataMapelIni.map(item => {
+    return (!item.kelas || !isNaN(item.kelas)) ? (item.nama_kelas || item.kelas_siswa || item.ref_kelas) : item.kelas;
+  }))].filter(Boolean).sort();
 
   let optionsKelas = `<option value="">-- Semua Kelas --</option>`;
   daftarKelas.forEach(kls => { optionsKelas += `<option value="${kls}">${kls}</option>`; });
 
-  // 3. PASANG FILTER HANYA DI WADAH LUAR TABEL
+  // 3. PASANG FILTER DI WADAH LUAR TABEL
   if (filterBarContainer) {
     filterBarContainer.style.display = "flex";
     filterBarContainer.className = "d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-2 bg-light rounded border";
@@ -1365,183 +1364,48 @@ function pilihMapelAdmin(mapelDipilih) {
     `;
   }
 
+  // Panggil render tabel
   renderBarisTabelNilai(dataMapelIni);
 }
 
+// ==========================================
+// RENDER TABEL NILAI ADMIN (BERSIH & VALID)
+// ==========================================
 function renderBarisTabelNilai(dataList) {
-  const tbody = document.getElementById("tbl-admin-nilai-body") || document.getElementById("tbl-nilai-body");
-  if (!tbody) return;
+  const container = document.getElementById("tbl-admin-nilai-body") || document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  if (!container) return;
 
-  tbody.innerHTML = "";
+  container.innerHTML = "";
 
-  if (dataList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
+  if (!dataList || dataList.length === 0) {
+    container.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3" style="text-align:center;">Data tidak ditemukan.</td></tr>`;
     return;
   }
 
   let html = "";
   dataList.forEach((item) => {
-    // POTONG KOMPAS MAPPING:
-    // Jika item.kelas ternyata berisi ID (seperti 840/869) atau angka murni, 
-    // fallback ambil dari item.nama_kelas / item.kelas_siswa / '-'
+    // Jika item.kelas berisi ID/Angka, fallback ke item.nama_kelas
     let kelasSiswa = item.kelas;
-    
-    // Cek jika kelasSiswa berupa angka ID (misal: "840")
     if (!kelasSiswa || !isNaN(kelasSiswa)) {
-      kelasSiswa = item.nama_kelas || item.kelas_siswa || item.ref_kelas || "VII.A"; // default fallback jika backend bermasalah
+      kelasSiswa = item.nama_kelas || item.kelas_siswa || item.ref_kelas || "VII.A";
     }
 
     const namaSiswa = item.namaSiswa || item.nama_siswa || item.ref_id_siswa || item.nama || '-';
-    const jenisPenilaian = item.jenis_penilaian || item.jenis || '-';
-
-    html += `
-      <tr>
-        <td><b>${kelasSiswa}</b></td>
-        <td>${namaSiswa}</td>
-        <td>${item.mapel || mapelAktifNilai}</td>
-        <td>${jenisPenilaian}</td>
-        <td><b>${item.nilai || '-'}</b></td>
-        <td style="text-align: center;">
-          <button onclick="handleEditNilai('${item.id_transaksi || item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; margin-right: 4px;" title="Edit">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button onclick="handleHapusNilai('${item.id_transaksi || item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer;" title="Hapus">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </td>
-      </tr>`;
-  });
-
-  tbody.innerHTML = html;
-}
-
-function terapkanFilterNilai() {
-  const keywordNama = (document.getElementById("filter-nama-nilai-luar")?.value || "").toLowerCase();
-  const kelasPilihan = document.getElementById("filter-kelas-nilai-luar")?.value || "";
-
-  const hasilFilter = globalDataNilai.filter(item => {
-    const cocokMapel = item.mapel === mapelAktifNilai;
-    
-    const kelasSiswa = item.kelas || "";
-    const cocokKelas = kelasPilihan === "" || kelasSiswa === kelasPilihan;
-    
-    const namaSiswa = (item.namaSiswa || item.nama_siswa || item.ref_id_siswa || "").toLowerCase();
-    const idSiswa = (item.id_transaksi || "").toString().toLowerCase();
-    const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
-
-    return cocokMapel && cocokKelas && cocokNama;
-  });
-
-  renderBarisTabelNilai(hasilFilter);
-}
-
-function kembaliKeMapelNilai() {
-  const filterBarContainer = document.getElementById("nilai-filter-bar");
-  if (filterBarContainer) filterBarContainer.style.display = "none";
-  tampilkanNilaiAdmin();
-}
-
-function renderBarisTabelNilai(dataList) {
-  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
-  container.innerHTML = "";
-
-  if (dataList.length === 0) {
-    container.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
-    return;
-  }
-
-  let html = "";
-  dataList.forEach((item) => {
-    const namaSiswa = item.namaSiswa || item.ref_id_siswa || item.nama || '-';
-    const kelasSiswa = item.kelas || '-';
-    const jenisPenilaian = item.jenis_penilaian || item.jenis || '-';
-
-    html += `
-      <tr>
-        <td>${kelasSiswa}</td>
-        <td>${namaSiswa}</td>
-        <td>${item.mapel || mapelAktifNilai}</td>
-        <td>${jenisPenilaian}</td>
-        <td><b>${item.nilai || '-'}</b></td>
-        <td>
-          <button onclick="handleEditNilai('${item.id_transaksi || item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button onclick="handleHapusNilai('${item.id_transaksi || item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </td>
-      </tr>`;
-  });
-
-  container.innerHTML = html;
-}
-
-function terapkanFilterNilai() {
-  const keywordNama = (document.getElementById("filter-nama-nilai")?.value || "").toLowerCase();
-  const kelasPilihan = document.getElementById("filter-kelas-nilai")?.value || "";
-
-  const hasilFilter = globalDataNilai.filter(item => {
-    const cocokMapel = item.mapel === mapelAktifNilai;
-    const cocokKelas = kelasPilihan === "" || item.kelas === kelasPilihan;
-    
-    const namaSiswa = (item.namaSiswa || item.ref_id_siswa || "").toLowerCase();
-    const idSiswa = (item.id_transaksi || "").toString().toLowerCase();
-    const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
-
-    return cocokMapel && cocokKelas && cocokNama;
-  });
-
-  renderBarisTabelNilai(hasilFilter);
-}
-
-// Fungsi kembali untuk Monitoring Nilai
-function kembaliKeMapelNilai() {
-  const filterBarContainer = document.getElementById("nilai-filter-bar");
-  if (filterBarContainer) filterBarContainer.style.display = "none";
-  tampilkanNilaiAdmin();
-}
-
-// Render baris tabel nilai (Urutan Kolom Tepat Sesuai Header)
-function renderBarisTabelNilai(dataList) {
-  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
-  container.innerHTML = "";
-
-  if (dataList.length === 0) {
-    container.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
-    return;
-  }
-
-  let html = "";
-  dataList.forEach((item) => {
-    // Membaca data yang dikirim dari kode.gs yang baru
-    const namaSiswa = item.namaSiswa || item.nama_siswa || item.ref_id_siswa || item.nama || '-';
-    const kelasSiswa = item.kelas || '-';
     const jenisPenilaian = item.jenis_penilaian || item.jenis || item.keterangan || '-';
+    const idRow = item.id_transaksi || item.id || '';
 
     html += `
       <tr>
-        <!-- 1. Kolom Kelas (Tampil: VIII, VII.A, IX) -->
-        <td>${kelasSiswa}</td>
-        
-        <!-- 2. Kolom Siswa (Tampil: Abdul Gofar) -->
+        <td style="font-weight: 600;">${kelasSiswa}</td>
         <td>${namaSiswa}</td>
-        
-        <!-- 3. Kolom Mapel -->
-        <td>${item.mapel || mapelAktifNilai}</td>
-        
-        <!-- 4. Kolom Jenis (Tampil: Tugas 1) -->
+        <td>${item.mapel || mapelAktifNilai || '-'}</td>
         <td>${jenisPenilaian}</td>
-        
-        <!-- 5. Kolom Nilai -->
-        <td><b>${item.nilai || '-'}</b></td>
-        
-        <!-- 6. Kolom Aksi Admin -->
-        <td>
-          <button onclick="handleEditNilai('${item.id || item.id_transaksi}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+        <td><b style="color: #2563eb;">${item.nilai !== undefined && item.nilai !== null ? item.nilai : '-'}</b></td>
+        <td style="text-align: center;">
+          <button onclick="handleEditNilai('${idRow}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; margin-right: 4px;" title="Edit">
             <i class="fa-solid fa-pen"></i>
           </button>
-          <button onclick="handleHapusNilai('${item.id || item.id_transaksi}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+          <button onclick="handleHapusNilai('${idRow}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer;" title="Hapus">
             <i class="fa-solid fa-trash"></i>
           </button>
         </td>
@@ -1551,27 +1415,48 @@ function renderBarisTabelNilai(dataList) {
   container.innerHTML = html;
 }
 
-// Pemicu filter nilai
 function terapkanFilterNilai() {
-  const keywordNama = (document.getElementById("filter-nama-nilai")?.value || "").toLowerCase();
-  const kelasPilihan = document.getElementById("filter-kelas-nilai")?.value || "";
+  const keywordNama = (
+    document.getElementById("filter-nama-nilai-luar")?.value || 
+    document.getElementById("filter-nama-nilai")?.value || ""
+  ).toLowerCase();
+  
+  const kelasPilihan = (
+    document.getElementById("filter-kelas-nilai-luar")?.value || 
+    document.getElementById("filter-kelas-nilai")?.value || ""
+  );
 
   const hasilFilter = globalDataNilai.filter(item => {
     const cocokMapel = item.mapel === mapelAktifNilai;
     
-    // Saring Kelas
-    const kelasSiswa = item.kelas || "";
-    const cocokKelas = kelasPilihan === "" || kelasSiswa === kelasPilihan;
+    let kelasSiswa = item.nama_kelas || item.kelas_siswa || item.kelas || "";
+    if (!kelasSiswa || !isNaN(kelasSiswa)) {
+      kelasSiswa = item.nama_kelas || item.kelas_siswa || item.ref_kelas || "";
+    }
+
+    const cocokKelas = kelasPilihan === "" || String(kelasSiswa).toUpperCase() === String(kelasPilihan).toUpperCase();
     
-    // Saring Nama atau ID Transaksi
     const namaSiswa = (item.namaSiswa || item.nama_siswa || item.ref_id_siswa || item.nama || "").toLowerCase();
-    const idSiswa = (item.id_transaksi || item.id || item.ref_id_siswa || "").toString().toLowerCase();
+    const idSiswa = (item.id_transaksi || item.id || "").toString().toLowerCase();
     const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
 
     return cocokMapel && cocokKelas && cocokNama;
   });
 
   renderBarisTabelNilai(hasilFilter);
+}
+
+function kembaliKeMapelNilai() {
+  const filterBarContainer = document.getElementById("nilai-filter-bar");
+  const gridContainer = document.getElementById("mapel-grid-container");
+  const tbody = document.getElementById("tbl-admin-nilai-body") || document.getElementById("tbl-nilai-body");
+  const tabel = tbody ? tbody.closest("table") : null;
+
+  if (filterBarContainer) filterBarContainer.style.display = "none";
+  if (tabel) tabel.style.display = "none";
+  if (gridContainer) gridContainer.style.display = "grid";
+
+  tampilkanNilaiAdmin();
 }
 
 // Variabel penampung global khusus data absen admin
