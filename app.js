@@ -1197,7 +1197,7 @@ function initAdminTabListeners() {
 }
 
 // ==========================================
-// FIX MONITORING NILAI - RESOLVE KELAS & FILTER
+// MONITORING NILAI - SESUAI STRUKTUR SHEET
 // ==========================================
 
 function pilihMapelAdmin(mapelDipilih) {
@@ -1213,18 +1213,8 @@ function pilihMapelAdmin(mapelDipilih) {
 
   const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
   
-  // Extract semua kemungkinan nama properti kelas dari backend
-  const daftarKelas = [...new Set(dataMapelIni.map(item => {
-    // 1. Jika ada properti khusus nama kelas
-    if (item.nama_kelas) return item.nama_kelas;
-    if (item.kelas_siswa) return item.kelas_siswa;
-    if (item.ref_kelas) return item.ref_kelas;
-    
-    // 2. Jika item.kelas berisi TEKS (bukan angka/ID murni)
-    if (item.kelas && isNaN(item.kelas)) return item.kelas;
-
-    return null;
-  }))].filter(Boolean).sort();
+  // Ambil daftar kelas unik langsung dari kolom 'kelas' Google Sheet
+  const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas))].filter(Boolean).sort();
 
   let optionsKelas = `<option value="">-- Semua Kelas --</option>`;
   daftarKelas.forEach(kls => { optionsKelas += `<option value="${kls}">${kls}</option>`; });
@@ -1243,7 +1233,7 @@ function pilihMapelAdmin(mapelDipilih) {
         <select id="filter-kelas-nilai-luar" class="form-select form-select-sm" style="width: 140px;" onchange="terapkanFilterNilai()">
           ${optionsKelas}
         </select>
-        <input type="text" id="filter-nama-nilai-luar" class="form-control form-select-sm" placeholder="Cari Nama / NISN..." style="width: 180px;" oninput="terapkanFilterNilai()">
+        <input type="text" id="filter-nama-nilai-luar" class="form-control form-select-sm" placeholder="Cari Nama Siswa..." style="width: 180px;" oninput="terapkanFilterNilai()">
       </div>
     `;
   }
@@ -1264,15 +1254,10 @@ function renderBarisTabelNilai(dataList) {
 
   let html = "";
   dataList.forEach((item) => {
-    // EKSTRAKSI NAMA KELAS YANG AKURAT (Tanpa Hardcode "VII.A")
-    let kelasSiswa = '-';
-    if (item.nama_kelas) kelasSiswa = item.nama_kelas;
-    else if (item.kelas_siswa) kelasSiswa = item.kelas_siswa;
-    else if (item.ref_kelas) kelasSiswa = item.ref_kelas;
-    else if (item.kelas && isNaN(item.kelas)) kelasSiswa = item.kelas;
-
-    const namaSiswa = item.namaSiswa || item.nama_siswa || item.ref_id_siswa || item.nama || '-';
-    const jenisPenilaian = item.jenis_penilaian || item.jenis || item.keterangan || '-';
+    // Sesuai dengan kolom di Google Sheet:
+    const kelasSiswa = item.kelas || '-';
+    const namaSiswa = item.ref_id_siswa || item.namaSiswa || item.nama_siswa || '-';
+    const jenisPenilaian = item.jenis_penilaian || item.jenis || '-';
     const idRow = item.id_transaksi || item.id || '';
 
     html += `
@@ -1310,15 +1295,11 @@ function terapkanFilterNilai() {
   const hasilFilter = globalDataNilai.filter(item => {
     const cocokMapel = item.mapel === mapelAktifNilai;
     
-    let kelasSiswa = item.nama_kelas || item.kelas_siswa || item.ref_kelas || "";
-    if (!kelasSiswa && item.kelas && isNaN(item.kelas)) {
-      kelasSiswa = item.kelas;
-    }
-
+    const kelasSiswa = item.kelas || "";
     const cocokKelas = kelasPilihan === "" || String(kelasSiswa).toUpperCase() === String(kelasPilihan).toUpperCase();
     
-    const namaSiswa = (item.namaSiswa || item.nama_siswa || item.ref_id_siswa || item.nama || "").toLowerCase();
-    const idSiswa = (item.id_transaksi || item.id || "").toString().toLowerCase();
+    const namaSiswa = (item.ref_id_siswa || item.namaSiswa || item.nama_siswa || "").toLowerCase();
+    const idSiswa = (item.id_transaksi || "").toString().toLowerCase();
     const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
 
     return cocokMapel && cocokKelas && cocokNama;
