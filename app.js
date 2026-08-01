@@ -1327,19 +1327,18 @@ function pilihMapelAdmin(mapelDipilih) {
   if (gridContainer) gridContainer.style.display = "none";
   if (tableElement) tableElement.style.display = "table";
 
-  // Filter data mapel aktif
+  // Filter data mapel
   const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
   
-  // Ambil daftar KELAS UNIK murni dari item.kelas (Kolom H)
+  // Ambil daftar kelas
   const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas))].filter(Boolean).sort();
 
-  // 1. Buat Baris Filter DI LUAR TABEL (di atas elemen table)
+  // WADAH FILTER DI LUAR TABEL
   let filterBarContainer = document.getElementById("nilai-filter-bar");
   if (!filterBarContainer) {
     filterBarContainer = document.createElement("div");
     filterBarContainer.id = "nilai-filter-bar";
     filterBarContainer.className = "d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-2 bg-light rounded border";
-    
     if (tableElement && tableElement.parentNode) {
       tableElement.parentNode.insertBefore(filterBarContainer, tableElement);
     }
@@ -1354,7 +1353,7 @@ function pilihMapelAdmin(mapelDipilih) {
     <div class="d-flex align-items-center gap-2">
       <b class="text-dark"><i class="fa-solid fa-book me-1"></i>Mapel Nilai: ${mapelDipilih}</b>
       <button class="btn btn-sm btn-outline-secondary ms-2" onclick="kembaliKeMapelNilai()">
-        <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Daftar Mapel
+        <i class="fa-solid fa-arrow-left me-1"></i> Kembali
       </button>
     </div>
     <div class="d-flex align-items-center gap-2">
@@ -1366,6 +1365,66 @@ function pilihMapelAdmin(mapelDipilih) {
   `;
 
   renderBarisTabelNilai(dataMapelIni);
+}
+
+function kembaliKeMapelNilai() {
+  const filterBarContainer = document.getElementById("nilai-filter-bar");
+  if (filterBarContainer) filterBarContainer.style.display = "none";
+  tampilkanNilaiAdmin();
+}
+
+function renderBarisTabelNilai(dataList) {
+  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  container.innerHTML = "";
+
+  if (dataList.length === 0) {
+    container.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
+    return;
+  }
+
+  let html = "";
+  dataList.forEach((item) => {
+    const namaSiswa = item.namaSiswa || item.ref_id_siswa || item.nama || '-';
+    const kelasSiswa = item.kelas || '-';
+    const jenisPenilaian = item.jenis_penilaian || item.jenis || '-';
+
+    html += `
+      <tr>
+        <td>${kelasSiswa}</td>
+        <td>${namaSiswa}</td>
+        <td>${item.mapel || mapelAktifNilai}</td>
+        <td>${jenisPenilaian}</td>
+        <td><b>${item.nilai || '-'}</b></td>
+        <td>
+          <button onclick="handleEditNilai('${item.id_transaksi || item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button onclick="handleHapusNilai('${item.id_transaksi || item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function terapkanFilterNilai() {
+  const keywordNama = (document.getElementById("filter-nama-nilai")?.value || "").toLowerCase();
+  const kelasPilihan = document.getElementById("filter-kelas-nilai")?.value || "";
+
+  const hasilFilter = globalDataNilai.filter(item => {
+    const cocokMapel = item.mapel === mapelAktifNilai;
+    const cocokKelas = kelasPilihan === "" || item.kelas === kelasPilihan;
+    
+    const namaSiswa = (item.namaSiswa || item.ref_id_siswa || "").toLowerCase();
+    const idSiswa = (item.id_transaksi || "").toString().toLowerCase();
+    const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
+
+    return cocokMapel && cocokKelas && cocokNama;
+  });
+
+  renderBarisTabelNilai(hasilFilter);
 }
 
 // Fungsi kembali untuk Monitoring Nilai
