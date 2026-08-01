@@ -1197,8 +1197,122 @@ function initAdminTabListeners() {
 }
 
 // ==========================================
-// MONITORING NILAI - SESUAI STRUKTUR SHEET
+// 1. MONITORING NILAI (ADMIN)
 // ==========================================
+let globalDataNilai = [];
+let mapelAktifNilai = "";
+
+function tampilkanNilaiAdmin() {
+  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+
+  if (!container) return;
+
+  // Tampilkan loader saat mengambil data
+  container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat daftar mata pelajaran...</td></tr>`;
+
+  fetch(`${SCRIPT_URL}?action=getNilai`)
+    .then(res => res.json())
+    .then(dataNilai => {
+      if (!dataNilai || dataNilai.length === 0) {
+        container.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada data nilai.</td></tr>`;
+        return;
+      }
+
+      globalDataNilai = dataNilai; // Simpan data ke variabel global
+
+      // Ambil daftar Mapel unik yang HANYA ADA di data/database
+      const daftarMapel = [...new Set(dataNilai.map(item => item.mapel))].filter(Boolean);
+
+      // Render tampilan Pilihan Mapel (Card/Tombol)
+      renderKategoriMapel(daftarMapel);
+    })
+    .catch(err => {
+      container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
+    });
+}
+
+function renderKategoriMapel(daftarMapel) {
+  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  const tableElement = container ? container.closest("table") : null;
+  
+  if (tableElement) {
+    tableElement.style.display = "none";
+  }
+
+  let gridContainer = document.getElementById("mapel-grid-container");
+  if (!gridContainer) {
+    gridContainer = document.createElement("div");
+    gridContainer.id = "mapel-grid-container";
+    if (tableElement && tableElement.parentNode) {
+      tableElement.parentNode.insertBefore(gridContainer, tableElement);
+    }
+  }
+
+  gridContainer.style.display = "grid";
+  gridContainer.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+  `;
+  gridContainer.innerHTML = "";
+
+  if (daftarMapel.length === 0) {
+    gridContainer.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; color: #64748b;">
+        <i class="fa-solid fa-book-open" style="font-size: 24px; margin-bottom: 8px; color: #94a3b8;"></i><br>
+        Belum ada data nilai mata pelajaran.
+      </div>`;
+    return;
+  }
+
+  daftarMapel.forEach(namaMapel => {
+    const totalNilaiMapel = globalDataNilai.filter(d => d.mapel && d.mapel.trim() === namaMapel).length;
+
+    const card = document.createElement("div");
+    card.style.cssText = `
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    `;
+
+    card.onmouseover = () => {
+      card.style.borderColor = "#16a34a";
+      card.style.transform = "translateY(-2px)";
+      card.style.boxShadow = "0 4px 12px rgba(22, 163, 74, 0.15)";
+    };
+    card.onmouseout = () => {
+      card.style.borderColor = "#e2e8f0";
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+    };
+
+    card.onclick = () => pilihMapelAdmin(namaMapel);
+
+    card.innerHTML = `
+      <div>
+        <div style="width: 32px; height: 32px; border-radius: 6px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 14px;">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <h5 style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: #1e293b;">${namaMapel}</h5>
+      </div>
+      <div style="font-size: 11px; color: #64748b; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <span>${totalNilaiMapel} Data Nilai</span>
+        <i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #94a3b8;"></i>
+      </div>
+    `;
+
+    gridContainer.appendChild(card);
+  });
+}
 
 function pilihMapelAdmin(mapelDipilih) {
   mapelAktifNilai = mapelDipilih;
@@ -1213,7 +1327,7 @@ function pilihMapelAdmin(mapelDipilih) {
 
   const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
   
-  // Ambil daftar kelas unik langsung dari kolom 'kelas' Google Sheet
+  // Ambil daftar kelas unik
   const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas))].filter(Boolean).sort();
 
   let optionsKelas = `<option value="">-- Semua Kelas --</option>`;
@@ -1254,7 +1368,6 @@ function renderBarisTabelNilai(dataList) {
 
   let html = "";
   dataList.forEach((item) => {
-    // Sesuai dengan kolom di Google Sheet:
     const kelasSiswa = item.kelas || '-';
     const namaSiswa = item.ref_id_siswa || item.namaSiswa || item.nama_siswa || '-';
     const jenisPenilaian = item.jenis_penilaian || item.jenis || '-';
@@ -1306,6 +1419,19 @@ function terapkanFilterNilai() {
   });
 
   renderBarisTabelNilai(hasilFilter);
+}
+
+function kembaliKeMapelNilai() {
+  const filterBarContainer = document.getElementById("nilai-filter-bar");
+  const gridContainer = document.getElementById("mapel-grid-container");
+  const tbody = document.getElementById("tbl-admin-nilai-body") || document.getElementById("tbl-nilai-body");
+  const tabel = tbody ? tbody.closest("table") : null;
+
+  if (filterBarContainer) filterBarContainer.style.display = "none";
+  if (tabel) tabel.style.display = "none";
+  if (gridContainer) gridContainer.style.display = "grid";
+
+  tampilkanNilaiAdmin();
 }
 
 // Variabel penampung global khusus data absen admin
