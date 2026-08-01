@@ -1484,7 +1484,7 @@ function renderKategoriMapelAbsen(daftarMapel) {
   });
 }
 
-// 3. Fungsi Menampilkan Tabel Rincian Absen Mapel Dipilih
+// Fungsi Menampilkan Tabel Rincian Absen Mapel Dipilih (Urutan Kolom Sesuai Header)
 function pilihMapelAbsenAdmin(mapelDipilih) {
   const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
   const tableElement = container ? container.closest("table") : null;
@@ -1515,7 +1515,7 @@ function pilihMapelAbsenAdmin(mapelDipilih) {
       <tr>
         <td>${item.tanggal || '-'}</td>
         <td>${item.kelas || '-'}</td>
-        <td>${item.namaSiswa || '-'}</td>
+        <td>${item.namaSiswa || item.siswa || '-'}</td>
         <td>${item.mapel || '-'}</td>
         <td><b>${item.status || '-'}</b></td>
         <td>${item.keterangan || '-'}</td>
