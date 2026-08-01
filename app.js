@@ -1484,7 +1484,7 @@ function renderKategoriMapelAbsen(daftarMapel) {
   });
 }
 
-// Fungsi Menampilkan Tabel Rincian Absen Mapel Dipilih (Urutan Kolom Sesuai Header)
+// Fungsi Menampilkan Tabel Rincian Absen (Pas 5 Kolom Sesuai Header Aplikasi)
 function pilihMapelAbsenAdmin(mapelDipilih) {
   const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
   const tableElement = container ? container.closest("table") : null;
@@ -1499,7 +1499,7 @@ function pilihMapelAbsenAdmin(mapelDipilih) {
 
   let html = `
     <tr class="table-light">
-      <td colspan="7">
+      <td colspan="5">
         <div class="d-flex justify-content-between align-items-center py-1">
           <b><i class="fa-solid fa-book me-2"></i>Presensi Mapel: ${mapelDipilih}</b>
           <button class="btn btn-sm btn-outline-secondary" onclick="tampilkanAbsenAdmin()">
@@ -1511,14 +1511,25 @@ function pilihMapelAbsenAdmin(mapelDipilih) {
   `;
 
   dataFiltered.forEach((item) => {
+    // Ambil nama atau gabungan NISN/Siswa
+    const namaSiswa = item.namaSiswa || item.nama || item.siswa || '-';
+    const nisnSiswa = item.nisn ? `${item.nisn} / ${namaSiswa}` : namaSiswa;
+
     html += `
       <tr>
+        <!-- 1. Mapel -->
+        <td>${item.mapel || mapelDipilih}</td>
+        
+        <!-- 2. NISN / Siswa -->
+        <td>${nisnSiswa}</td>
+        
+        <!-- 3. Tanggal -->
         <td>${item.tanggal || '-'}</td>
-        <td>${item.kelas || '-'}</td>
-        <td>${item.namaSiswa || item.siswa || '-'}</td>
-        <td>${item.mapel || '-'}</td>
-        <td><b>${item.status || '-'}</b></td>
-        <td>${item.keterangan || '-'}</td>
+        
+        <!-- 4. Status -->
+        <td><b>${item.keterangan || item.status || '-'}</b></td>
+        
+        <!-- 5. Aksi Admin -->
         <td>
           <button onclick="handleEditAbsen('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
             <i class="fa-solid fa-pen"></i>
