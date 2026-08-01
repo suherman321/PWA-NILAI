@@ -1315,40 +1315,84 @@ function renderKategoriMapel(daftarMapel) {
   });
 }
 
-// Fungsi saat salah satu Mapel diklik
+// Variable simpan state mapel nilai aktif
+let mapelAktifNilai = "";
+
 function pilihMapelAdmin(mapelDipilih) {
+  mapelAktifNilai = mapelDipilih;
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
-  const tableElement = container.closest("table");
-  const mapelContainer = document.getElementById("mapel-grid-container");
+  const tableElement = container ? container.closest("table") : null;
+  const gridContainer = document.getElementById("mapel-grid-container");
 
-  // Sembunyikan grid mapel dan tampilkan kembali tabelnya
-  if (mapelContainer) mapelContainer.style.display = "none";
-  tableElement.style.display = "table";
+  if (gridContainer) gridContainer.style.display = "none";
+  if (tableElement) tableElement.style.display = "table";
 
-  // Filter data sesuai mapel yang diklik
-  const dataFiltered = globalDataNilai.filter(item => item.mapel === mapelDipilih);
+  // Ambil pilihan kelas unik khusus mapel ini
+  const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
+  const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas))].filter(Boolean).sort();
 
-  let html = `
-    <tr class="table-light">
-      <td colspan="6">
-        <div class="d-flex justify-content-between align-items-center py-1">
-          <b><i class="fa-solid fa-book me-2"></i>Mapel: ${mapelDipilih}</b>
-          <button class="btn btn-sm btn-outline-secondary" onclick="tampilkanNilaiAdmin()">
-            <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Daftar Mapel
-          </button>
-        </div>
-      </td>
-    </tr>
+  // 1. Buat Baris Filter Luar Tabel Nilai (jika belum ada)
+  let filterBarContainer = document.getElementById("nilai-filter-bar");
+  if (!filterBarContainer) {
+    filterBarContainer = document.createElement("div");
+    filterBarContainer.id = "nilai-filter-bar";
+    filterBarContainer.className = "d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-2 bg-light rounded border";
+    
+    if (tableElement && tableElement.parentNode) {
+      tableElement.parentNode.insertBefore(filterBarContainer, tableElement);
+    }
+  }
+
+  filterBarContainer.style.display = "flex";
+
+  let optionsKelas = `<option value="">-- Semua Kelas --</option>`;
+  daftarKelas.forEach(kls => { optionsKelas += `<option value="${kls}">${kls}</option>`; });
+
+  filterBarContainer.innerHTML = `
+    <div class="d-flex align-items-center gap-2">
+      <b class="text-dark"><i class="fa-solid fa-book me-1"></i>Mapel Nilai: ${mapelDipilih}</b>
+      <button class="btn btn-sm btn-outline-secondary ms-2" onclick="kembaliKeMapelNilai()">
+        <i class="fa-solid fa-arrow-left me-1"></i> Kembali
+      </button>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <select id="filter-kelas-nilai" class="form-select form-select-sm" style="width: 140px;" onchange="terapkanFilterNilai()">
+        ${optionsKelas}
+      </select>
+      <input type="text" id="filter-nama-nilai" class="form-control form-select-sm" placeholder="Cari Nama / NISN..." style="width: 180px;" oninput="terapkanFilterNilai()">
+    </div>
   `;
 
-  dataFiltered.forEach((item) => {
+  renderBarisTabelNilai(dataMapelIni);
+}
+
+// Fungsi kembali untuk Monitoring Nilai
+function kembaliKeMapelNilai() {
+  const filterBarContainer = document.getElementById("nilai-filter-bar");
+  if (filterBarContainer) filterBarContainer.style.display = "none";
+  tampilkanNilaiAdmin();
+}
+
+// Render baris data nilai
+function renderBarisTabelNilai(dataList) {
+  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  container.innerHTML = "";
+
+  if (dataList.length === 0) {
+    container.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
+    return;
+  }
+
+  let html = "";
+  dataList.forEach((item) => {
     html += `
       <tr>
-        <td>${item.kelas}</td>
-        <td>${item.namaSiswa}</td>
-        <td>${item.mapel}</td>
-        <td>${item.jenis}</td>
-        <td><b>${item.nilai}</b></td>
+        <td>${item.nisn || '-'}</td>
+        <td>${item.namaSiswa || item.nama || '-'}</td>
+        <td>${item.kelas || '-'}</td>
+        <td>${item.mapel || mapelAktifNilai}</td>
+        <td><b>${item.nilai || '-'}</b></td>
+        <td>${item.keterangan || '-'}</td>
         <td>
           <button onclick="handleEditNilai('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
             <i class="fa-solid fa-pen"></i>
@@ -1361,6 +1405,25 @@ function pilihMapelAdmin(mapelDipilih) {
   });
 
   container.innerHTML = html;
+}
+
+// Pemicu filter nilai
+function terapkanFilterNilai() {
+  const keywordNama = (document.getElementById("filter-nama-nilai")?.value || "").toLowerCase();
+  const kelasPilihan = document.getElementById("filter-kelas-nilai")?.value || "";
+
+  const hasilFilter = globalDataNilai.filter(item => {
+    const cocokMapel = item.mapel === mapelAktifNilai;
+    const cocokKelas = kelasPilihan === "" || item.kelas === kelasPilihan;
+    
+    const namaSiswa = (item.namaSiswa || item.nama || "").toLowerCase();
+    const nisnSiswa = (item.nisn || "").toString().toLowerCase();
+    const cocokNama = namaSiswa.includes(keywordNama) || nisnSiswa.includes(keywordNama);
+
+    return cocokMapel && cocokKelas && cocokNama;
+  });
+
+  renderBarisTabelNilai(hasilFilter);
 }
 
 // Variabel penampung global khusus data absen admin
