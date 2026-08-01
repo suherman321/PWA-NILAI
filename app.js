@@ -1228,60 +1228,91 @@ function tampilkanNilaiAdmin() {
       container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
 }
-// Fungsi untuk menampilkan grid card Mapel dengan jarak rapi (seperti Gambar 2)
+// Fungsi untuk menampilkan grid card Mapel dengan CSS Grid (SAMA PERSIS dengan referensi Anda)
 function renderKategoriMapel(daftarMapel) {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   const tableElement = container ? container.closest("table") : null;
   
   if (tableElement) {
-    tableElement.style.display = "none"; // Sembunyikan tabel sementara
+    tableElement.style.display = "none"; // Sembunyikan tabel utama sementara
   }
 
-  // Cari atau buat container grid di luar tabel agar jarak Bootstrap berfungsi optimal
-  let mapelContainer = document.getElementById("mapel-grid-container");
-  if (!mapelContainer) {
-    mapelContainer = document.createElement("div");
-    mapelContainer.id = "mapel-grid-container";
-    // g-3 memberikan jarak/gap horizontal & vertikal antar kartu
-    mapelContainer.className = "row g-3 my-3"; 
-    
+  // Buat atau cari container khusus grid mapel
+  let gridContainer = document.getElementById("mapel-grid-container");
+  if (!gridContainer) {
+    gridContainer = document.createElement("div");
+    gridContainer.id = "mapel-grid-container";
     if (tableElement && tableElement.parentNode) {
-      tableElement.parentNode.insertBefore(mapelContainer, tableElement);
+      tableElement.parentNode.insertBefore(gridContainer, tableElement);
     }
   }
 
-  let htmlMapel = "";
-  daftarMapel.forEach(mapel => {
-    // Hitung jumlah data nilai per mapel
-    const jumlahNilai = globalDataNilai.filter(item => item.mapel === mapel).length;
+  // Terapkan CSS Grid Layout dengan gap/jarak yang jelas antar kartu
+  gridContainer.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+  `;
+  gridContainer.innerHTML = "";
 
-    htmlMapel += `
-      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-        <div class="card h-100 p-3 shadow-sm" onclick="pilihMapelAdmin('${mapel}')" 
-             style="cursor: pointer; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease-in-out;">
-          
-          <!-- Ikon Atas (Kotak Hijau Muda dengan Ikon) -->
-          <div class="mb-3 d-flex align-items-center justify-content-center" 
-               style="width: 40px; height: 40px; background-color: #e8f5e9; border-radius: 8px;">
-            <i class="fa-solid fa-calendar-check" style="color: #2e7d32; font-size: 18px;"></i>
-          </div>
+  if (daftarMapel.length === 0) {
+    gridContainer.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; color: #64748b;">
+        <i class="fa-solid fa-book-open" style="font-size: 24px; margin-bottom: 8px; color: #94a3b8;"></i><br>
+        Belum ada data nilai mata pelajaran.
+      </div>`;
+    return;
+  }
 
-          <!-- Nama Mapel -->
-          <h6 class="fw-bold mb-3 text-dark" style="font-size: 15px; line-height: 1.4;">${mapel}</h6>
+  daftarMapel.forEach(namaMapel => {
+    const totalNilaiMapel = globalDataNilai.filter(d => d.mapel && d.mapel.trim() === namaMapel).length;
 
-          <!-- Jumlah Data & Panah di Bawah -->
-          <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
-            <small class="text-muted" style="font-size: 13px;">${jumlahNilai} Data Nilai</small>
-            <i class="fa-solid fa-chevron-right" style="color: #94a3b8; font-size: 12px;"></i>
-          </div>
+    const card = document.createElement("div");
+    card.style.cssText = `
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    `;
 
+    // Efek Hover persis seperti referensi Anda
+    card.onmouseover = () => {
+      card.style.borderColor = "#16a34a";
+      card.style.transform = "translateY(-2px)";
+      card.style.boxShadow = "0 4px 12px rgba(22, 163, 74, 0.15)";
+    };
+    card.onmouseout = () => {
+      card.style.borderColor = "#e2e8f0";
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+    };
+
+    // Saat diklik -> tampilkan tabel nilai mapel tersebut
+    card.onclick = () => pilihMapelAdmin(namaMapel);
+
+    card.innerHTML = `
+      <div>
+        <div style="width: 32px; height: 32px; border-radius: 6px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 14px;">
+          <i class="fa-solid fa-calendar-check"></i>
         </div>
+        <h5 style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: #1e293b;">${namaMapel}</h5>
+      </div>
+      <div style="font-size: 11px; color: #64748b; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <span>${totalNilaiMapel} Data Nilai</span>
+        <i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #94a3b8;"></i>
       </div>
     `;
-  });
 
-  mapelContainer.innerHTML = htmlMapel;
-  mapelContainer.style.display = "flex";
+    gridContainer.appendChild(card);
+  });
 }
 
 // Fungsi saat salah satu Mapel diklik
