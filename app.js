@@ -1228,20 +1228,26 @@ function tampilkanNilaiAdmin() {
       container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
 }
-// Fungsi untuk menampilkan grid tombol/card Mapel bergaya Gambar 2
+// Fungsi untuk menampilkan grid card Mapel dengan jarak rapi (seperti Gambar 2)
 function renderKategoriMapel(daftarMapel) {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
-  const tableElement = container.closest("table");
+  const tableElement = container ? container.closest("table") : null;
   
-  // Sembunyikan tabel sementara
-  tableElement.style.display = "none";
+  if (tableElement) {
+    tableElement.style.display = "none"; // Sembunyikan tabel sementara
+  }
 
+  // Cari atau buat container grid di luar tabel agar jarak Bootstrap berfungsi optimal
   let mapelContainer = document.getElementById("mapel-grid-container");
   if (!mapelContainer) {
     mapelContainer = document.createElement("div");
     mapelContainer.id = "mapel-grid-container";
-    mapelContainer.className = "row g-3 my-2";
-    tableElement.parentNode.insertBefore(mapelContainer, tableElement);
+    // g-3 memberikan jarak/gap horizontal & vertikal antar kartu
+    mapelContainer.className = "row g-3 my-3"; 
+    
+    if (tableElement && tableElement.parentNode) {
+      tableElement.parentNode.insertBefore(mapelContainer, tableElement);
+    }
   }
 
   let htmlMapel = "";
@@ -1250,21 +1256,21 @@ function renderKategoriMapel(daftarMapel) {
     const jumlahNilai = globalDataNilai.filter(item => item.mapel === mapel).length;
 
     htmlMapel += `
-      <div class="col-lg-3 col-md-4 col-sm-6">
-        <div class="card h-100 p-3" onclick="pilihMapelAdmin('${mapel}')" 
-             style="cursor: pointer; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease-in-out; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+        <div class="card h-100 p-3 shadow-sm" onclick="pilihMapelAdmin('${mapel}')" 
+             style="cursor: pointer; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease-in-out;">
           
           <!-- Ikon Atas (Kotak Hijau Muda dengan Ikon) -->
           <div class="mb-3 d-flex align-items-center justify-content-center" 
-               style="width: 36px; height: 36px; background-color: #dcfce7; border-radius: 8px;">
-            <i class="fa-solid fa-book-bookmark" style="color: #16a34a; font-size: 16px;"></i>
+               style="width: 40px; height: 40px; background-color: #e8f5e9; border-radius: 8px;">
+            <i class="fa-solid fa-calendar-check" style="color: #2e7d32; font-size: 18px;"></i>
           </div>
 
           <!-- Nama Mapel -->
-          <h6 class="fw-bold mb-3 text-dark" style="font-size: 15px;">${mapel}</h6>
+          <h6 class="fw-bold mb-3 text-dark" style="font-size: 15px; line-height: 1.4;">${mapel}</h6>
 
           <!-- Jumlah Data & Panah di Bawah -->
-          <div class="d-flex justify-content-between align-items-center mt-auto">
+          <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
             <small class="text-muted" style="font-size: 13px;">${jumlahNilai} Data Nilai</small>
             <i class="fa-solid fa-chevron-right" style="color: #94a3b8; font-size: 12px;"></i>
           </div>
