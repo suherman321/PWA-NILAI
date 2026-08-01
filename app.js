@@ -1320,51 +1320,112 @@ let mapelAktifNilai = "";
 
 function pilihMapelAdmin(mapelDipilih) {
   mapelAktifNilai = mapelDipilih;
-  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  
+  const container = document.getElementById("tbl-admin-nilai-body");
   const tableElement = container ? container.closest("table") : null;
   const gridContainer = document.getElementById("mapel-grid-container");
+  const filterBarContainer = document.getElementById("nilai-filter-bar");
 
   if (gridContainer) gridContainer.style.display = "none";
   if (tableElement) tableElement.style.display = "table";
 
-  // Filter data mapel
+  // Ambil data mapel aktif
   const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
   
-  // Ambil daftar kelas
+  // Ambil daftar KELAS UNIK dari item.kelas (Kolom H)
   const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas))].filter(Boolean).sort();
-
-  // WADAH FILTER DI LUAR TABEL
-  let filterBarContainer = document.getElementById("nilai-filter-bar");
-  if (!filterBarContainer) {
-    filterBarContainer = document.createElement("div");
-    filterBarContainer.id = "nilai-filter-bar";
-    filterBarContainer.className = "d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-2 bg-light rounded border";
-    if (tableElement && tableElement.parentNode) {
-      tableElement.parentNode.insertBefore(filterBarContainer, tableElement);
-    }
-  }
-
-  filterBarContainer.style.display = "flex";
 
   let optionsKelas = `<option value="">-- Semua Kelas --</option>`;
   daftarKelas.forEach(kls => { optionsKelas += `<option value="${kls}">${kls}</option>`; });
 
-  filterBarContainer.innerHTML = `
-    <div class="d-flex align-items-center gap-2">
-      <b class="text-dark"><i class="fa-solid fa-book me-1"></i>Mapel Nilai: ${mapelDipilih}</b>
-      <button class="btn btn-sm btn-outline-secondary ms-2" onclick="kembaliKeMapelNilai()">
-        <i class="fa-solid fa-arrow-left me-1"></i> Kembali
-      </button>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <select id="filter-kelas-nilai" class="form-select form-select-sm" style="width: 140px;" onchange="terapkanFilterNilai()">
-        ${optionsKelas}
-      </select>
-      <input type="text" id="filter-nama-nilai" class="form-control form-select-sm" placeholder="Cari Nama / NISN..." style="width: 180px;" oninput="terapkanFilterNilai()">
-    </div>
-  `;
+  if (filterBarContainer) {
+    filterBarContainer.style.display = "flex";
+    filterBarContainer.className = "d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-2 bg-light rounded border";
+    filterBarContainer.innerHTML = `
+      <div class="d-flex align-items-center gap-2">
+        <b class="text-dark"><i class="fa-solid fa-book me-1"></i>Mapel Nilai: ${mapelDipilih}</b>
+        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="kembaliKeMapelNilai()">
+          <i class="fa-solid fa-arrow-left me-1"></i> Kembali
+        </button>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <select id="filter-kelas-nilai" class="form-select form-select-sm" style="width: 140px;" onchange="terapkanFilterNilai()">
+          ${optionsKelas}
+        </select>
+        <input type="text" id="filter-nama-nilai" class="form-control form-select-sm" placeholder="Cari Nama / NISN..." style="width: 180px;" oninput="terapkanFilterNilai()">
+      </div>
+    `;
+  }
 
   renderBarisTabelNilai(dataMapelIni);
+}
+
+function kembaliKeMapelNilai() {
+  const filterBarContainer = document.getElementById("nilai-filter-bar");
+  const container = document.getElementById("tbl-admin-nilai-body");
+  const tableElement = container ? container.closest("table") : null;
+  const gridContainer = document.getElementById("mapel-grid-container");
+
+  if (filterBarContainer) filterBarContainer.style.display = "none";
+  if (tableElement) tableElement.style.display = "none";
+  if (gridContainer) gridContainer.style.display = "flex";
+}
+
+function renderBarisTabelNilai(dataList) {
+  const container = document.getElementById("tbl-admin-nilai-body");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (dataList.length === 0) {
+    container.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
+    return;
+  }
+
+  let html = "";
+  dataList.forEach((item) => {
+    // Paksa Baca item.kelas (Kolom H) & item.nama_siswa/namaSiswa (Kolom B)
+    const kelasSiswa = item.kelas || '-';
+    const namaSiswa = item.namaSiswa || item.nama_siswa || item.ref_id_siswa || '-';
+    const jenisPenilaian = item.jenis_penilaian || item.jenis || '-';
+
+    html += `
+      <tr>
+        <td><b>${kelasSiswa}</b></td>
+        <td>${namaSiswa}</td>
+        <td>${item.mapel || mapelAktifNilai}</td>
+        <td>${jenisPenilaian}</td>
+        <td><b>${item.nilai || '-'}</b></td>
+        <td style="text-align: center;">
+          <button onclick="handleEditNilai('${item.id_transaksi || item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; margin-right: 4px;" title="Edit">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button onclick="handleHapusNilai('${item.id_transaksi || item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer;" title="Hapus">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function terapkanFilterNilai() {
+  const keywordNama = (document.getElementById("filter-nama-nilai")?.value || "").toLowerCase();
+  const kelasPilihan = document.getElementById("filter-kelas-nilai")?.value || "";
+
+  const hasilFilter = globalDataNilai.filter(item => {
+    const cocokMapel = item.mapel === mapelAktifNilai;
+    const cocokKelas = kelasPilihan === "" || item.kelas === kelasPilihan;
+    
+    const namaSiswa = (item.namaSiswa || item.nama_siswa || item.ref_id_siswa || "").toLowerCase();
+    const idSiswa = (item.id_transaksi || "").toString().toLowerCase();
+    const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
+
+    return cocokMapel && cocokKelas && cocokNama;
+  });
+
+  renderBarisTabelNilai(hasilFilter);
 }
 
 function kembaliKeMapelNilai() {

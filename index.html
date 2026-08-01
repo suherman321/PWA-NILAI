@@ -113,29 +113,34 @@
       </div>
 
       <!-- TAB 1: MONITORING NILAI KELAS -->
-      <div id="admin-view-nilai">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h4 style="font-size: 14px; font-weight: 700; color: #1e293b;">Data Nilai Terdaftar</h4>
-          <button class="admin-btn admin-btn-primary" onclick="loadAdminNilaiData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
-        </div>
-        <div class="admin-table-container">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Kelas</th>
-                <th>Siswa</th>
-                <th>Mapel</th>
-                <th>Jenis</th>
-                <th>Nilai</th>
-                <th style="text-align: center;">Aksi Admin</th>
-              </tr>
-            </thead>
-            <tbody id="tbl-admin-nilai-body">
-              <tr><td colspan="6" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+<div id="admin-view-nilai">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h4 style="font-size: 14px; font-weight: 700; color: #1e293b;">Data Nilai Terdaftar</h4>
+    <button class="admin-btn admin-btn-primary" onclick="loadAdminNilaiData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+  </div>
+
+  <!-- WADAH BARU UNTUK FILTER DI LUAR TABEL -->
+  <div id="nilai-filter-bar" style="margin-bottom: 12px; display: none;"></div>
+
+  <div class="admin-table-container">
+    <table class="admin-table" id="tabel-nilai-admin">
+      <thead>
+        <tr>
+          <th>Kelas</th>
+          <th>Siswa</th>
+          <th>Mapel</th>
+          <th>Jenis</th>
+          <th>Nilai</th>
+          <th style="text-align: center;">Aksi Admin</th>
+        </tr>
+      </thead>
+      <!-- SAMA KAN ID TBODY SESUAI INDEX.HTML ANDA -->
+      <tbody id="tbl-admin-nilai-body">
+        <tr><td colspan="6" style="text-align:center; color: #64748b;">Memuat data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
       <!-- TAB 2: MONITORING ABSEN SISWA -->
       <div id="admin-view-absen" class="hidden">
