@@ -1484,52 +1484,83 @@ function renderKategoriMapelAbsen(daftarMapel) {
   });
 }
 
-// Fungsi Menampilkan Tabel Rincian Absen (Pas 5 Kolom Sesuai Header Aplikasi)
+// Variable simpan state aktif
+let mapelAktifAbsen = "";
+
 function pilihMapelAbsenAdmin(mapelDipilih) {
+  mapelAktifAbsen = mapelDipilih;
   const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
   const tableElement = container ? container.closest("table") : null;
   const gridContainer = document.getElementById("absen-mapel-grid-container");
 
-  // Sembunyikan grid kartu dan munculkan tabel kembali
   if (gridContainer) gridContainer.style.display = "none";
   if (tableElement) tableElement.style.display = "table";
 
-  // Filter data absen khusus mapel yang diklik
-  const dataFiltered = globalDataAbsen.filter(item => item.mapel === mapelDipilih);
+  // Ambil pilihan kelas unik
+  const dataMapelIni = globalDataAbsen.filter(item => item.mapel === mapelDipilih);
+  const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas))].filter(Boolean).sort();
 
-  let html = `
-    <tr class="table-light">
-      <td colspan="5">
-        <div class="d-flex justify-content-between align-items-center py-1">
-          <b><i class="fa-solid fa-book me-2"></i>Presensi Mapel: ${mapelDipilih}</b>
-          <button class="btn btn-sm btn-outline-secondary" onclick="tampilkanAbsenAdmin()">
-            <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Daftar Mapel
-          </button>
-        </div>
-      </td>
-    </tr>
+  // 1. Buat Baris Filter Luar Tabel (jika belum ada)
+  let filterBarContainer = document.getElementById("absen-filter-bar");
+  if (!filterBarContainer) {
+    filterBarContainer = document.createElement("div");
+    filterBarContainer.id = "absen-filter-bar";
+    filterBarContainer.className = "d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-2 bg-light rounded border";
+    
+    if (tableElement && tableElement.parentNode) {
+      tableElement.parentNode.insertBefore(filterBarContainer, tableElement);
+    }
+  }
+
+  filterBarContainer.style.display = "flex";
+
+  let optionsKelas = `<option value="">-- Semua Kelas --</option>`;
+  daftarKelas.forEach(kls => { optionsKelas += `<option value="${kls}">${kls}</option>`; });
+
+  filterBarContainer.innerHTML = `
+    <div class="d-flex align-items-center gap-2">
+      <b class="text-dark"><i class="fa-solid fa-book me-1"></i>Presensi Mapel: ${mapelDipilih}</b>
+      <button class="btn btn-sm btn-outline-secondary ms-2" onclick="kembaliKeMapelAbsen()">
+        <i class="fa-solid fa-arrow-left me-1"></i> Kembali
+      </button>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <select id="filter-kelas-absen" class="form-select form-select-sm" style="width: 140px;" onchange="terapkanFilterAbsen()">
+        ${optionsKelas}
+      </select>
+      <input type="text" id="filter-nama-absen" class="form-control form-select-sm" placeholder="Cari Nama / NISN..." style="width: 180px;" oninput="terapkanFilterAbsen()">
+    </div>
   `;
 
-  dataFiltered.forEach((item) => {
-    // Ambil nama atau gabungan NISN/Siswa
+  renderBarisTabelAbsen(dataMapelIni);
+}
+
+function kembaliKeMapelAbsen() {
+  const filterBarContainer = document.getElementById("absen-filter-bar");
+  if (filterBarContainer) filterBarContainer.style.display = "none";
+  tampilkanAbsenAdmin();
+}
+
+function renderBarisTabelAbsen(dataList) {
+  const container = document.getElementById("tbl-absen-body") || document.querySelector("#admin-view-absen tbody");
+  container.innerHTML = "";
+
+  if (dataList.length === 0) {
+    container.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
+    return;
+  }
+
+  let html = "";
+  dataList.forEach((item) => {
     const namaSiswa = item.namaSiswa || item.nama || item.siswa || '-';
     const nisnSiswa = item.nisn ? `${item.nisn} / ${namaSiswa}` : namaSiswa;
 
     html += `
       <tr>
-        <!-- 1. Mapel -->
-        <td>${item.mapel || mapelDipilih}</td>
-        
-        <!-- 2. NISN / Siswa -->
+        <td>${item.mapel || mapelAktifAbsen}</td>
         <td>${nisnSiswa}</td>
-        
-        <!-- 3. Tanggal -->
         <td>${item.tanggal || '-'}</td>
-        
-        <!-- 4. Status -->
         <td><b>${item.keterangan || item.status || '-'}</b></td>
-        
-        <!-- 5. Aksi Admin -->
         <td>
           <button onclick="handleEditAbsen('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
             <i class="fa-solid fa-pen"></i>
@@ -1542,6 +1573,24 @@ function pilihMapelAbsenAdmin(mapelDipilih) {
   });
 
   container.innerHTML = html;
+}
+
+function terapkanFilterAbsen() {
+  const keywordNama = (document.getElementById("filter-nama-absen")?.value || "").toLowerCase();
+  const kelasPilihan = document.getElementById("filter-kelas-absen")?.value || "";
+
+  const hasilFilter = globalDataAbsen.filter(item => {
+    const cocokMapel = item.mapel === mapelAktifAbsen;
+    const cocokKelas = kelasPilihan === "" || item.kelas === kelasPilihan;
+    
+    const namaSiswa = (item.namaSiswa || item.nama || item.siswa || "").toLowerCase();
+    const nisnSiswa = (item.nisn || "").toString().toLowerCase();
+    const cocokNama = namaSiswa.includes(keywordNama) || nisnSiswa.includes(keywordNama);
+
+    return cocokMapel && cocokKelas && cocokNama;
+  });
+
+  renderBarisTabelAbsen(hasilFilter);
 }
 
 // 3. BUKU KASUS
