@@ -1327,8 +1327,10 @@ function pilihMapelAdmin(mapelDipilih) {
   if (gridContainer) gridContainer.style.display = "none";
   if (tableElement) tableElement.style.display = "table";
 
-  // Ambil pilihan kelas unik khusus mapel ini
+  // Ambil data mapel aktif
   const dataMapelIni = globalDataNilai.filter(item => item.mapel === mapelDipilih);
+  
+  // Ambil daftar KELAS UNIK dari Kolom H (kelas)
   const daftarKelas = [...new Set(dataMapelIni.map(item => item.kelas))].filter(Boolean).sort();
 
   // 1. Buat Baris Filter Luar Tabel Nilai (jika belum ada)
@@ -1373,26 +1375,42 @@ function kembaliKeMapelNilai() {
   tampilkanNilaiAdmin();
 }
 
-// Render baris data nilai
+// Render baris data nilai (Sesuai Struktur Header Tabel)
 function renderBarisTabelNilai(dataList) {
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   container.innerHTML = "";
 
   if (dataList.length === 0) {
-    container.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
+    container.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">Data tidak ditemukan.</td></tr>`;
     return;
   }
 
   let html = "";
   dataList.forEach((item) => {
+    // Membaca Kolom H (kelas), Kolom B (ref_id_siswa / nama), Kolom D (jenis_penilaian)
+    const namaSiswa = item.ref_id_siswa || item.namaSiswa || item.nama || '-';
+    const kelasSiswa = item.kelas || '-';
+    const jenisPenilaian = item.jenis_penilaian || item.jenis || item.keterangan || '-';
+    const idTransaksi = item.id_transaksi || item.id || item.nisn || '';
+
     html += `
       <tr>
-        <td>${item.nisn || '-'}</td>
-        <td>${item.namaSiswa || item.nama || '-'}</td>
-        <td>${item.kelas || '-'}</td>
+        <!-- 1. Kelas (Diambil dari Kolom H) -->
+        <td>${kelasSiswa}</td>
+        
+        <!-- 2. Siswa (Diambil dari Kolom B) -->
+        <td>${namaSiswa}</td>
+        
+        <!-- 3. Mapel (Diambil dari Kolom C) -->
         <td>${item.mapel || mapelAktifNilai}</td>
+        
+        <!-- 4. Jenis (Diambil dari Kolom D) -->
+        <td>${jenisPenilaian}</td>
+        
+        <!-- 5. Nilai (Diambil dari Kolom E) -->
         <td><b>${item.nilai || '-'}</b></td>
-        <td>${item.keterangan || '-'}</td>
+        
+        <!-- 6. Aksi Admin -->
         <td>
           <button onclick="handleEditNilai('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
             <i class="fa-solid fa-pen"></i>
@@ -1407,18 +1425,22 @@ function renderBarisTabelNilai(dataList) {
   container.innerHTML = html;
 }
 
-// Pemicu filter nilai
+// Pemicu filter nilai (Akurat berdasarkan kelas Kolom H & pencarian nama/id)
 function terapkanFilterNilai() {
   const keywordNama = (document.getElementById("filter-nama-nilai")?.value || "").toLowerCase();
   const kelasPilihan = document.getElementById("filter-kelas-nilai")?.value || "";
 
   const hasilFilter = globalDataNilai.filter(item => {
     const cocokMapel = item.mapel === mapelAktifNilai;
-    const cocokKelas = kelasPilihan === "" || item.kelas === kelasPilihan;
     
-    const namaSiswa = (item.namaSiswa || item.nama || "").toLowerCase();
-    const nisnSiswa = (item.nisn || "").toString().toLowerCase();
-    const cocokNama = namaSiswa.includes(keywordNama) || nisnSiswa.includes(keywordNama);
+    // Pencocokan Kelas dari Kolom H
+    const kelasSiswa = item.kelas || "";
+    const cocokKelas = kelasPilihan === "" || kelasSiswa === kelasPilihan;
+    
+    // Pencocokan Nama / ID Transaksi
+    const namaSiswa = (item.ref_id_siswa || item.namaSiswa || item.nama || "").toLowerCase();
+    const idSiswa = (item.id_transaksi || item.nisn || "").toString().toLowerCase();
+    const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
 
     return cocokMapel && cocokKelas && cocokNama;
   });
