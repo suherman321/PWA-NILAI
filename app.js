@@ -343,6 +343,15 @@ function bukaFormInputNilai(kelas) {
     selectSiswa.appendChild(opt);
   });
 
+ // Filter nilai transaksi yang sesuai dengan kelas aktif saat ini
+  const nilaiKelasIni = databaseNilai.filter(n => 
+    String(n.kelas).trim().toUpperCase() === String(kelas).trim().toUpperCase()
+  );
+
+  // Render Tabel Matriks Khusus Kelas Ini
+  renderRiwayatNilaiMatriks(nilaiKelasIni, siswaKelasIni);
+
+  // Tetap tampilkan riwayat umum di bawah
   tampilkanRiwayatNilai();
 }
 
@@ -1738,4 +1747,156 @@ function tampilkanUserAdmin() {
     .catch(err => {
       container.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
+}
+// ==========================================
+// 1. FUNGSI FILTER TAB (Tugas / UH / Ujian)
+// ==========================================
+function filterMatriksPenilaian(kategori, btnEl) {
+  // Update style tombol aktif
+  const buttons = document.querySelectorAll('.btn-tab-kat');
+  buttons.forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+
+  // Ambil elemen kolom (Header TH & Data TD)
+  const colTugas = document.querySelectorAll('.col-kat-tugas');
+  const colUH = document.querySelectorAll('.col-kat-uh');
+  const colUjian = document.querySelectorAll('.col-kat-ujian');
+
+  // Helper untuk toggle display
+  const setDisplay = (elements, show) => {
+    elements.forEach(el => el.style.display = show ? '' : 'none');
+  };
+
+  // Logika Penyaringan Kolom
+  if (kategori === 'ALL') {
+    setDisplay(colTugas, true);
+    setDisplay(colUH, true);
+    setDisplay(colUjian, true);
+  } else if (kategori === 'Tugas') {
+    setDisplay(colTugas, true);
+    setDisplay(colUH, false);
+    setDisplay(colUjian, false);
+  } else if (kategori === 'UH') {
+    setDisplay(colTugas, false);
+    setDisplay(colUH, true);
+    setDisplay(colUjian, false);
+  } else if (kategori === 'Ujian') {
+    setDisplay(colTugas, false);
+    setDisplay(colUH, false);
+    setDisplay(colUjian, true);
+  }
+}
+
+// ==========================================
+// 2. FUNGSI RENDER TABEL MATRIKS KHUSUS KELAS
+// ==========================================
+/**
+ * Memetakan data nilai transaksi ke bentuk Matriks Per Siswa
+ * @param {Array} dataNilaiKelas - Array data nilai yang difilter untuk kelas aktif
+ * @param {Array} listSiswaKelas - Array daftar siswa di kelas aktif
+ */
+function renderRiwayatNilaiMatriks(dataNilaiKelas = [], listSiswaKelas = []) {
+  const tbody = document.getElementById("tbl-riwayat-matriks-body");
+  if (!tbody) return;
+
+  if (!listSiswaKelas || listSiswaKelas.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="18" style="text-align:center; padding: 15px; color: #94a3b8;">Tidak ada data siswa untuk kelas ini.</td></tr>`;
+    return;
+  }
+
+  // 1. Inisialisasi struktur objek penampung nilai per siswa
+  let mapNilai = {};
+  listSiswaKelas.forEach(siswa => {
+    let nama = siswa.nama_siswa || siswa.nama;
+    mapNilai[nama] = {
+      nama: nama,
+      t1: '-', t2: '-', t3: '-', t4: '-', t5: '-', t6: '-', t7: '-', t8: '-', t9: '-', t10: '-',
+      uh1: '-', uh2: '-', uh3: '-', uh4: '-', uh5: '-',
+      pts: '-', pas: '-'
+    };
+  });
+
+  // 2. Isi nilai dari transaksi database ke peta siswa
+  dataNilaiKelas.forEach(item => {
+    let nama = item.nama_siswa || item.namaSiswa || item.nama;
+    let jenis = (item.jenis || item.jenis_penilaian || item.jenisPenilaian || "").toLowerCase().trim();
+
+    if (mapNilai[nama]) {
+      // Pemetaan Tugas 1 - 10
+      if (jenis === "tugas 1") mapNilai[nama].t1 = item.nilai;
+      else if (jenis === "tugas 2") mapNilai[nama].t2 = item.nilai;
+      else if (jenis === "tugas 3") mapNilai[nama].t3 = item.nilai;
+      else if (jenis === "tugas 4") mapNilai[nama].t4 = item.nilai;
+      else if (jenis === "tugas 5") mapNilai[nama].t5 = item.nilai;
+      else if (jenis === "tugas 6") mapNilai[nama].t6 = item.nilai;
+      else if (jenis === "tugas 7") mapNilai[nama].t7 = item.nilai;
+      else if (jenis === "tugas 8") mapNilai[nama].t8 = item.nilai;
+      else if (jenis === "tugas 9") mapNilai[nama].t9 = item.nilai;
+      else if (jenis === "tugas 10") mapNilai[nama].t10 = item.nilai;
+      
+      // Pemetaan UH 1 - 5
+      else if (jenis === "uh 1" || jenis === "uh1") mapNilai[nama].uh1 = item.nilai;
+      else if (jenis === "uh 2" || jenis === "uh2") mapNilai[nama].uh2 = item.nilai;
+      else if (jenis === "uh 3" || jenis === "uh3") mapNilai[nama].uh3 = item.nilai;
+      else if (jenis === "uh 4" || jenis === "uh4") mapNilai[nama].uh4 = item.nilai;
+      else if (jenis === "uh 5" || jenis === "uh5") mapNilai[nama].uh5 = item.nilai;
+      
+      // Pemetaan Ujian (PTS & PAS)
+      else if (jenis === "pts" || jenis === "uts") mapNilai[nama].pts = item.nilai;
+      else if (jenis === "pas" || jenis === "uas") mapNilai[nama].pas = item.nilai;
+    }
+  });
+
+  // 3. Render HTML Baris Matriks Siswa
+  let html = "";
+  Object.values(mapNilai).forEach(s => {
+    html += `
+      <tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="font-weight: 700; text-align: left; padding: 8px 10px; color: #1e293b; background: #ffffff;">${s.nama}</td>
+        
+        <!-- KOLOM TUGAS -->
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t1)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t2)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t3)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t4)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t5)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t6)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t7)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t8)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t9)}</td>
+        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t10)}</td>
+
+        <!-- KOLOM UH -->
+        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh1)}</td>
+        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh2)}</td>
+        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh3)}</td>
+        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh4)}</td>
+        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh5)}</td>
+
+        <!-- KOLOM UJIAN -->
+        <td class="col-kat-ujian" style="padding: 6px 4px; font-weight: 700; color: #2563eb;">${formatNilaiCell(s.pts)}</td>
+        <td class="col-kat-ujian" style="padding: 6px 4px; font-weight: 700; color: #16a34a;">${formatNilaiCell(s.pas)}</td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+
+  // Pastikan filter posisi ter-refresh sesuai tab yang sedang aktif
+  const activeTab = document.querySelector('.btn-tab-kat.active');
+  if (activeTab) {
+    const textTab = activeTab.innerText.trim();
+    if (textTab.includes("Tugas")) filterMatriksPenilaian('Tugas', activeTab);
+    else if (textTab.includes("UH")) filterMatriksPenilaian('UH', activeTab);
+    else if (textTab.includes("Ujian")) filterMatriksPenilaian('Ujian', activeTab);
+    else filterMatriksPenilaian('ALL', activeTab);
+  }
+}
+
+// Helper mempercantik tampilan cell nilai
+function formatNilaiCell(val) {
+  if (val === '-' || val === undefined || val === null) {
+    return `<span style="color: #cbd5e1;">-</span>`;
+  }
+  return `<span style="font-weight: 600; color: #0f172a;">${val}</span>`;
 }
