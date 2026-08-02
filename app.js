@@ -585,9 +585,9 @@ async function tampilkanRiwayatNilai() {
     if (tbodySiswa) tbody = tbodySiswa;
   }
 
-  if (!tbody) return;
-
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data nilai...</td></tr>';
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data nilai...</td></tr>';
+  }
 
   const masterData = JSON.parse(localStorage.getItem("master_data") || "{}");
   const listSiswaMaster = masterData.list_siswa || masterSiswaGlobal || [];
@@ -599,6 +599,7 @@ async function tampilkanRiwayatNilai() {
 
   let listNilai = [];
 
+  // A. Ambil Online dari Apps Script / Server
   if (navigator.onLine) {
     try {
       const response = await fetch(API_URL, {
@@ -619,6 +620,7 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
+  // B. Ambil Offline dari IndexedDB (jika server kosong / offline)
   if (listNilai.length === 0 && typeof openDB === "function") {
     try {
       const db = await openDB();
@@ -651,9 +653,18 @@ async function tampilkanRiwayatNilai() {
     }
   }
 
+  // C. HIT UTAMA MATRIKS: Panggil Render Matriks untuk Kelas Aktif
+  if (role !== "SISWA" && kelasAktif) {
+    const siswaKelasIni = listSiswaMaster.filter(s => String(s.kelas).trim().toUpperCase() === String(kelasAktif).trim().toUpperCase());
+    renderRiwayatNilaiMatriks(listNilai, siswaKelasIni, kelasAktif);
+  }
+
+  // Filter listNilai tabel transaksi umum jika ada kelas aktif
   if (role !== "SISWA" && kelasAktif) {
     listNilai = listNilai.filter(item => String(item.kelas || "").trim().toUpperCase() === String(kelasAktif).trim().toUpperCase());
   }
+
+  if (!tbody) return;
 
   if (!listNilai || listNilai.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #94a3b8;">Belum ada data nilai terinput</td></tr>';
@@ -1932,7 +1943,7 @@ function filterMatriksPenilaian(kategori, btnEl) {
  * @param {Array} dataNilaiKelas - Array data nilai yang difilter untuk kelas aktif
  * @param {Array} listSiswaKelas - Array daftar siswa di kelas aktif
  */
-function renderRiwayatNilaiMatriks(dataNilaiKelas = [], listSiswaKelas = []) {
+function renderRiwayatNilaiMatriks(dataNilaiAll = [], listSiswaKelas = [], kelasAktif = "") {
   const tbody = document.getElementById("tbl-riwayat-matriks-body");
   if (!tbody) return;
 
@@ -1941,83 +1952,109 @@ function renderRiwayatNilaiMatriks(dataNilaiKelas = [], listSiswaKelas = []) {
     return;
   }
 
-  // 1. Inisialisasi struktur objek penampung nilai per siswa
+  // 1. Inisialisasi peta siswa
   let mapNilai = {};
   listSiswaKelas.forEach(siswa => {
-    let nama = siswa.nama_siswa || siswa.nama;
-    mapNilai[nama] = {
+    let nama = siswa.nama_siswa || siswa.nama || "Tanpa Nama";
+    let refId = String(siswa.ref_id || "").trim();
+    let nisn = String(siswa.nisn || "").trim();
+
+    let nodeNilai = {
       nama: nama,
+      ref_id: refId,
+      nisn: nisn,
       t1: '-', t2: '-', t3: '-', t4: '-', t5: '-', t6: '-', t7: '-', t8: '-', t9: '-', t10: '-',
       uh1: '-', uh2: '-', uh3: '-', uh4: '-', uh5: '-',
       pts: '-', pas: '-'
     };
+
+    // Indexing berdasarkan Nama, RefID, dan NISN
+    mapNilai[nama.toLowerCase().trim()] = nodeNilai;
+    if (refId) mapNilai[refId.toLowerCase()] = nodeNilai;
+    if (nisn) mapNilai[nisn.toLowerCase()] = nodeNilai;
   });
 
-  // 2. Isi nilai dari transaksi database ke peta siswa
-  dataNilaiKelas.forEach(item => {
-    let nama = item.nama_siswa || item.namaSiswa || item.nama;
-    let jenis = (item.jenis || item.jenis_penilaian || item.jenisPenilaian || "").toLowerCase().trim();
+  // 2. Petakan nilai dari database/server ke setiap siswa
+  if (Array.isArray(dataNilaiAll)) {
+    dataNilaiAll.forEach(item => {
+      // Filter kelas jika ada
+      if (item.kelas && kelasAktif) {
+        if (String(item.kelas).trim().toUpperCase() !== String(kelasAktif).trim().toUpperCase()) return;
+      }
 
-    if (mapNilai[nama]) {
-      // Pemetaan Tugas 1 - 10
-      if (jenis === "tugas 1") mapNilai[nama].t1 = item.nilai;
-      else if (jenis === "tugas 2") mapNilai[nama].t2 = item.nilai;
-      else if (jenis === "tugas 3") mapNilai[nama].t3 = item.nilai;
-      else if (jenis === "tugas 4") mapNilai[nama].t4 = item.nilai;
-      else if (jenis === "tugas 5") mapNilai[nama].t5 = item.nilai;
-      else if (jenis === "tugas 6") mapNilai[nama].t6 = item.nilai;
-      else if (jenis === "tugas 7") mapNilai[nama].t7 = item.nilai;
-      else if (jenis === "tugas 8") mapNilai[nama].t8 = item.nilai;
-      else if (jenis === "tugas 9") mapNilai[nama].t9 = item.nilai;
-      else if (jenis === "tugas 10") mapNilai[nama].t10 = item.nilai;
-      
-      // Pemetaan UH 1 - 5
-      else if (jenis === "uh 1" || jenis === "uh1") mapNilai[nama].uh1 = item.nilai;
-      else if (jenis === "uh 2" || jenis === "uh2") mapNilai[nama].uh2 = item.nilai;
-      else if (jenis === "uh 3" || jenis === "uh3") mapNilai[nama].uh3 = item.nilai;
-      else if (jenis === "uh 4" || jenis === "uh4") mapNilai[nama].uh4 = item.nilai;
-      else if (jenis === "uh 5" || jenis === "uh5") mapNilai[nama].uh5 = item.nilai;
-      
-      // Pemetaan Ujian (PTS & PAS)
-      else if (jenis === "pts" || jenis === "uts") mapNilai[nama].pts = item.nilai;
-      else if (jenis === "pas" || jenis === "uas") mapNilai[nama].pas = item.nilai;
+      // Deteksi siswa berdasarkan ref_id_siswa atau nama_siswa
+      let keyNama = String(item.nama_siswa || item.namaSiswa || item.nama || "").toLowerCase().trim();
+      let keyRef = String(item.ref_id_siswa || item.ref_id || item.nisn || "").toLowerCase().trim();
+
+      let targetSiswa = mapNilai[keyRef] || mapNilai[keyNama];
+
+      if (targetSiswa) {
+        let jenis = (item.jenis_penilaian || item.jenis || "").toLowerCase().trim();
+
+        // Pemetaan Tugas
+        if (jenis === "tugas 1" || jenis === "t1") targetSiswa.t1 = item.nilai;
+        else if (jenis === "tugas 2" || jenis === "t2") targetSiswa.t2 = item.nilai;
+        else if (jenis === "tugas 3" || jenis === "t3") targetSiswa.t3 = item.nilai;
+        else if (jenis === "tugas 4" || jenis === "t4") targetSiswa.t4 = item.nilai;
+        else if (jenis === "tugas 5" || jenis === "t5") targetSiswa.t5 = item.nilai;
+        else if (jenis === "tugas 6" || jenis === "t6") targetSiswa.t6 = item.nilai;
+        else if (jenis === "tugas 7" || jenis === "t7") targetSiswa.t7 = item.nilai;
+        else if (jenis === "tugas 8" || jenis === "t8") targetSiswa.t8 = item.nilai;
+        else if (jenis === "tugas 9" || jenis === "t9") targetSiswa.t9 = item.nilai;
+        else if (jenis === "tugas 10" || jenis === "t10") targetSiswa.t10 = item.nilai;
+
+        // Pemetaan UH
+        else if (jenis === "uh 1" || jenis === "uh1") targetSiswa.uh1 = item.nilai;
+        else if (jenis === "uh 2" || jenis === "uh2") targetSiswa.uh2 = item.nilai;
+        else if (jenis === "uh 3" || jenis === "uh3") targetSiswa.uh3 = item.nilai;
+        else if (jenis === "uh 4" || jenis === "uh4") targetSiswa.uh4 = item.nilai;
+        else if (jenis === "uh 5" || jenis === "uh5") targetSiswa.uh5 = item.nilai;
+
+        // Pemetaan Ujian
+        else if (jenis === "pts" || jenis === "uts") targetSiswa.pts = item.nilai;
+        else if (jenis === "pas" || jenis === "uas") targetSiswa.pas = item.nilai;
+      }
+    });
+  }
+
+  // 3. Render HTML Baris Matriks
+  let html = "";
+  listSiswaKelas.forEach(siswa => {
+    let keyRef = String(siswa.ref_id || "").toLowerCase().trim();
+    let keyNama = String(siswa.nama_siswa || siswa.nama || "").toLowerCase().trim();
+    let s = mapNilai[keyRef] || mapNilai[keyNama];
+
+    if (s) {
+      html += `
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="font-weight: 700; text-align: left; padding: 8px 10px; color: #1e293b; background: #ffffff;">${s.nama}</td>
+          
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t1)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t2)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t3)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t4)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t5)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t6)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t7)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t8)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t9)}</td>
+          <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t10)}</td>
+
+          <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh1)}</td>
+          <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh2)}</td>
+          <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh3)}</td>
+          <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh4)}</td>
+          <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh5)}</td>
+
+          <td class="col-kat-ujian" style="padding: 6px 4px; font-weight: 700; color: #2563eb;">${formatNilaiCell(s.pts)}</td>
+          <td class="col-kat-ujian" style="padding: 6px 4px; font-weight: 700; color: #16a34a;">${formatNilaiCell(s.pas)}</td>
+        </tr>
+      `;
     }
   });
 
-  // 3. Render HTML Baris Matriks Siswa
-  let html = "";
-  Object.values(mapNilai).forEach(s => {
-    html += `
-      <tr style="border-bottom: 1px solid #f1f5f9;">
-        <td style="font-weight: 700; text-align: left; padding: 8px 10px; color: #1e293b; background: #ffffff;">${s.nama}</td>
-        
-        <!-- KOLOM TUGAS -->
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t1)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t2)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t3)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t4)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t5)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t6)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t7)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t8)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t9)}</td>
-        <td class="col-kat-tugas" style="padding: 6px 4px;">${formatNilaiCell(s.t10)}</td>
-
-        <!-- KOLOM UH -->
-        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh1)}</td>
-        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh2)}</td>
-        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh3)}</td>
-        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh4)}</td>
-        <td class="col-kat-uh" style="padding: 6px 4px;">${formatNilaiCell(s.uh5)}</td>
-
-        <!-- KOLOM UJIAN -->
-        <td class="col-kat-ujian" style="padding: 6px 4px; font-weight: 700; color: #2563eb;">${formatNilaiCell(s.pts)}</td>
-        <td class="col-kat-ujian" style="padding: 6px 4px; font-weight: 700; color: #16a34a;">${formatNilaiCell(s.pas)}</td>
-      </tr>
-    `;
-  });
-
   tbody.innerHTML = html;
+}
 
   // Pastikan filter posisi ter-refresh sesuai tab yang sedang aktif
   const activeTab = document.querySelector('.btn-tab-kat.active');
