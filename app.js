@@ -2054,7 +2054,6 @@ function renderRiwayatNilaiMatriks(dataNilaiAll = [], listSiswaKelas = [], kelas
   });
 
   tbody.innerHTML = html;
-}
 
   // Pastikan filter posisi ter-refresh sesuai tab yang sedang aktif
   const activeTab = document.querySelector('.btn-tab-kat.active');
