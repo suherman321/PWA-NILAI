@@ -257,6 +257,17 @@
           Lihat Kehadiran
         </button>
       </div>
+	  <!-- CARD PBM -->
+        <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+          <div style="width: 48px; height: 48px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #16a34a; font-size: 18px;">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+          <h3 style="margin: 0 0 4px; font-size: 16px; color: #0f172a;">PBM</h3>
+          <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Catatan Proses Belajar Mengajar</p>
+          <button onclick="switchSiswaTab('pbm')" style="width: 100%; background: #16a34a; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Lihat PBM
+          </button>
+        </div>
     </div>
 
 
@@ -648,9 +659,34 @@
         </div>
       </div>
     </div>
-
+<!-- TAB CONTENT: PBM SISWA -->
+<div id="view-tab-pbm" class="dashboard-view hidden" style="margin-top: 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <h4 style="margin: 0; color: #16a34a; font-size: 16px;">Catatan PBM Siswa</h4>
+    <button onclick="loadSiswaPBMData(window.siswaLoginData.nisn)" style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #334155;">
+      <i class="fa-solid fa-rotate"></i> Refresh
+    </button>
+  </div>
+  
+  <div style="overflow-x: auto;">
+    <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; font-size: 13px; border-color: #e2e8f0; text-align: left;">
+      <thead>
+        <tr style="background-color: #f8fafc; color: #475569;">
+          <th>Tanggal/Waktu</th>
+          <th>Mata Pelajaran</th>
+          <th>Guru</th>
+          <th>Permasalahan</th>
+          <th>Penyelesaian</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-siswa-pbm-body">
+        <tr><td colspan="5" style="text-align: center; color: #64748b;">Memuat data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
   </div>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

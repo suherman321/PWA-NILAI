@@ -1,4 +1,4 @@
-// ==========================================
+F// ==========================================
 // 0. HELPER UI & FORM INTERACTION
 // ==========================================
 function updateRoleText() {
@@ -847,6 +847,9 @@ function switchSiswaTab(tabName) {
   const tabNilai = document.getElementById("view-tab-nilai");
   const tabKasus = document.getElementById("view-tab-kasus");
   const tabKehadiran = document.getElementById("view-tab-kehadiran");
+  const tabPbm = document.getElementById("view-tab-pbm");
+
+  if (tabPbm) tabPbm.classList.add("hidden");
   if (tabNilai) tabNilai.classList.add("hidden");
   if (tabKasus) tabKasus.classList.add("hidden");
   if (tabKehadiran) tabKehadiran.classList.add("hidden");
@@ -871,6 +874,9 @@ function switchSiswaTab(tabName) {
     if (typeof loadKehadiranSiswa === "function") {
       loadKehadiranSiswa();
     }
+  } else if (tabName === 'pbm') {
+    if (tabPbm) tabPbm.classList.remove("hidden");
+    loadSiswaPBMData();
   }
 }
 
@@ -878,12 +884,64 @@ function tutupMenuSiswa() {
   const tabNilai = document.getElementById("view-tab-nilai");
   const tabKasus = document.getElementById("view-tab-kasus");
   const tabKehadiran = document.getElementById("view-tab-kehadiran");
+  const tabPbm = document.getElementById("view-tab-pbm");
+
+  if (tabPbm) tabPbm.classList.add("hidden");
   if (tabNilai) tabNilai.classList.add("hidden");
   if (tabKasus) tabKasus.classList.add("hidden");
   if (tabKehadiran) tabKehadiran.classList.add("hidden");
 
   const dashboard = document.getElementById("siswa-dashboard");
   if (dashboard) dashboard.classList.remove("hidden");
+}
+
+async function loadSiswaPBMData() {
+  const tbody = document.getElementById("tbl-siswa-pbm-body");
+  if (!tbody) return;
+
+  const userSession = JSON.parse(localStorage.getItem("user_session") || "{}");
+  const nisnSiswa = userSession.username || userSession.nisn || userSession.ref_id_siswa;
+
+  if (!nisnSiswa) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal mengidentifikasi data siswa. Silakan login ulang.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Memuat data...</td></tr>';
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "getPBM",
+        ref_id_siswa: nisnSiswa
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success && result.data && result.data.length > 0) {
+      let html = '';
+      result.data.forEach(item => {
+        html += `
+          <tr>
+            <td>${item.tanggal || '-'}</td>
+            <td><b>${item.mapel || '-'}</b></td>
+            <td>${item.guru || '-'}</td>
+            <td>${item.permasalahan || '-'}</td>
+            <td>${item.penyelesaian || '-'}</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    } else {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">Tidak ada catatan PBM untuk Anda.</td></tr>';
+    }
+  } catch (err) {
+    console.error("Gagal memuat PBM siswa:", err);
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal terhubung ke server.</td></tr>';
+  }
 }
 
 async function loadBukuKasusSiswa() {
