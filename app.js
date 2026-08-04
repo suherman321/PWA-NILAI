@@ -1433,10 +1433,15 @@ function tampilkanNilaiAdmin() {
         return;
       }
 
-      globalDataNilai = dataNilai; // Simpan data ke variabel global
+      globalDataNilai = dataNilai.map(item => { // Simpan data ke variabel global
+	  return {
+          ...item,
+          kelas: item.kelas == item.id_transaksi ? "IX" : (item.kelas || "IX")
+        };
+      });
 
       // Ambil daftar Mapel unik yang HANYA ADA di data/database
-      const daftarMapel = [...new Set(dataNilai.map(item => item.mapel))].filter(Boolean);
+      const daftarMapel = [...new Set(globalDataNilai.map(item => item.mapel))].filter(Boolean);
 
       // Render tampilan Pilihan Mapel (Card/Tombol)
       renderKategoriMapel(daftarMapel);
