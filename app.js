@@ -1583,6 +1583,7 @@ function renderBarisTabelNilai(dataList) {
 
   let html = "";
   dataList.forEach((item) => {
+    // Ambil nilai kelas dari properti kelas (bukan id_transaksi/NIS)
     const kelasSiswa = item.kelas || '-';
     const namaSiswa = item.ref_id_siswa || item.namaSiswa || item.nama_siswa || '-';
     const jenisPenilaian = item.jenis_penilaian || item.jenis || '-';
@@ -1623,17 +1624,36 @@ function terapkanFilterNilai() {
   const hasilFilter = globalDataNilai.filter(item => {
     const cocokMapel = item.mapel === mapelAktifNilai;
     
+    // Pencocokan kelas berdasarkan string kelas asli (misal "IX")
     const kelasSiswa = item.kelas || "";
-    const cocokKelas = kelasPilihan === "" || String(kelasSiswa).toUpperCase() === String(kelasPilihan).toUpperCase();
+    const cocokKelas = kelasPilihan === "" || String(kelasSiswa).trim().toUpperCase() === String(kelasPilihan).trim().toUpperCase();
     
+    // Pencocokan nama & NIS
     const namaSiswa = (item.ref_id_siswa || item.namaSiswa || item.nama_siswa || "").toLowerCase();
-    const idSiswa = (item.id_transaksi || "").toString().toLowerCase();
-    const cocokNama = namaSiswa.includes(keywordNama) || idSiswa.includes(keywordNama);
+    const nisSiswa = (item.id_transaksi || "").toString().toLowerCase();
+    const cocokNama = namaSiswa.includes(keywordNama) || nisSiswa.includes(keywordNama);
 
     return cocokMapel && cocokKelas && cocokNama;
   });
 
   renderBarisTabelNilai(hasilFilter);
+}
+
+// Fungsi pendukung untuk mengisi Dropdown Filter Kelas secara BENAR
+function updateDropdownFilterKelas(dataList) {
+  const selectKelas = document.getElementById("filter-kelas-nilai-luar") || document.getElementById("filter-kelas-nilai");
+  if (!selectKelas) return;
+
+  // Mengambil daftar kelas unik dari properti item.kelas (bukan id_transaksi)
+  const listKelasUnik = [...new Set(dataList.map(item => item.kelas).filter(Boolean))];
+
+  let options = `<option value="">-- Semua Kelas --</option>`;
+  listKelasUnik.forEach(kls => {
+    options += `<option value="${kls}">${kls}</option>`;
+  });
+
+  selectKelas.innerHTML = options;
+}
 }
 
 function kembaliKeMapelNilai() {
