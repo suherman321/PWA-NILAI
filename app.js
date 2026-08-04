@@ -1654,7 +1654,6 @@ function updateDropdownFilterKelas(dataList) {
 
   selectKelas.innerHTML = options;
 }
-}
 
 function kembaliKeMapelNilai() {
   const filterBarContainer = document.getElementById("nilai-filter-bar");
