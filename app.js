@@ -1671,6 +1671,7 @@ function kembaliKeMapelNilai() {
   if (gridContainer) gridContainer.style.display = "grid";
 
   tampilkanNilaiAdmin();
+}
 
 // Variabel penampung global khusus data absen admin
 let globalDataAbsen = [];
