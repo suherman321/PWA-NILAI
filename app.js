@@ -2136,3 +2136,22 @@ function formatNilaiCell(val) {
   }
   return `<span style="font-weight: 600; color: #0f172a;">${val}</span>`;
 }
+// ==========================================
+// PENDAFTARAN SERVICE WORKER & AUTO RELOAD
+// ==========================================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then((reg) => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          window.location.reload();
+        }
+      });
+    });
+  });
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
