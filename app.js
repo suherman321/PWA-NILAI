@@ -1418,6 +1418,9 @@ let globalDataNilai = [];
 let mapelAktifNilai = "";
 
 function tampilkanNilaiAdmin() {
+  // 1. Sembunyikan otomatis komponen Guru (Kelas Binaan & Riwayat Nilai)
+  sembunyikanBagianGuru();
+
   const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
 
   if (!container) return;
@@ -1449,6 +1452,42 @@ function tampilkanNilaiAdmin() {
     .catch(err => {
       container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
+}
+
+// =========================================================================
+// FUNGSI KHUSUS MENYEMBUNYIKAN KELAS BINAAN & RIWAYAT NILAI PADA ADMIN
+// =========================================================================
+function sembunyikanBagianGuru() {
+  // Sembunyikan elemen pencarian/filter jika sedang di tampilan utama mapel
+  const filterBar = document.getElementById("nilai-filter-bar");
+  if (filterBar) filterBar.style.display = "none";
+
+  // Sembunyikan berdasarkan class/ID elemen guru jika ada
+  const selectorGuru = [
+    ".pilih-kelas-binaan", 
+    "#pilih-kelas-binaan",
+    ".riwayat-nilai-terinput",
+    "#riwayat-nilai-terinput",
+    "#guru-section-nilai"
+  ];
+
+  selectorGuru.forEach(selector => {
+    document.querySelectorAll(selector).forEach(el => {
+      el.style.display = "none";
+    });
+  });
+
+  // Menyapu & menyembunyikan berdasarkan teks judul elemen "Pilih Kelas Binaan" & "Riwayat Nilai"
+  document.querySelectorAll("h1, h2, h3, h4, h5, h6, div, p").forEach(el => {
+    const teks = el.innerText ? el.innerText.trim() : "";
+    if (teks.includes("Pilih Kelas Binaan") || teks.includes("Riwayat Nilai Terinput")) {
+      const parentContainer = el.closest(".card") || el.closest(".row") || el.parentElement;
+      if (parentContainer) {
+        parentContainer.style.display = "none";
+      }
+      el.style.display = "none";
+    }
+  });
 }
 
 function renderKategoriMapel(daftarMapel) {
@@ -1631,7 +1670,7 @@ function terapkanFilterNilai() {
     
     // Pencocokan kelas berdasarkan string kelas asli (misal "IX")
     const kelasSiswa = item.kelas || "";
-    const cocokKelas = kelasPilihan === "" || String(kelasSiswa).trim().toUpperCase() === String(kelasPilihan).trim().toUpperCase();
+    const cocokKelas = kelasPilihan === "" || String(kelasSiswa).trim().toUpperCase() === String(kelasPilihan).toUpperCase();
     
     // Pencocokan nama & NIS
     const namaSiswa = (item.ref_id_siswa || item.namaSiswa || item.nama_siswa || "").toLowerCase();
