@@ -439,3 +439,141 @@ td:nth-child(4),
 td:nth-child(5) {
   line-height: 1.6;
 }
+/* ==========================================================================
+   STYLE DASHBOARD GURU RESPONSIF
+   ========================================================================== */
+.dashboard-guru-container {
+  color: #1e293b;
+  background-color: #f8fafc;
+  padding: 15px;
+  border-radius: 16px;
+}
+
+/* Welcome Card */
+.welcome-card-guru {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 20px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 1px solid #bfdbfe;
+  display: flex;
+  justify-content: space-between;
+}
+
+.welcome-text-content {
+  max-width: 65%;
+  z-index: 2;
+}
+
+.welcome-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: #1d4ed8;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.guru-welcome-title {
+  font-size: clamp(16px, 4.5vw, 22px); /* Font otomatis menyesuaikan layar */
+  font-weight: 800;
+  color: #0f172a;
+  margin: 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Mengubah email/nama panjang jadi titik-titik jika melebihi batas */
+  max-width: 100%;
+}
+
+.guru-welcome-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.guru-quote {
+  font-size: 11px;
+  font-style: italic;
+  color: #3b82f6;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.guru-quote i {
+  font-size: 10px;
+}
+
+.welcome-avatar-container {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  top: 0;
+  display: flex;
+  align-items: flex-end;
+  z-index: 1;
+}
+
+.guru-avatar-img {
+  height: 110px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+/* Grid Statistik */
+.guru-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 Kolom di Ponsel */
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #ffffff;
+  padding: 12px 10px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.stat-icon {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.icon-blue { color: #2563eb; }
+.icon-green { color: #16a34a; }
+.icon-orange { color: #ea580c; }
+.icon-purple { color: #9333ea; }
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 2px 0;
+}
+
+.text-status-active {
+  font-size: 14px;
+  color: #16a34a;
+}
+
+.stat-sub {
+  font-size: 9px;
+  color: #94a3b8;
+}
+
+/* Media Query untuk Layar Tablet / Desktop */
+@media (min-width: 640px) {
+  .guru-stats-grid {
+    grid-template-columns: repeat(4, 1fr); /* 4 Kolom di Layar Lebar */
+  }
+}
