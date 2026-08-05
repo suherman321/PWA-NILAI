@@ -1458,9 +1458,21 @@ function tampilkanNilaiAdmin() {
 // FUNGSI KHUSUS MENYEMBUNYIKAN KELAS BINAAN & RIWAYAT NILAI PADA ADMIN
 // =========================================================================
 function sembunyikanBagianGuru() {
-  // Sembunyikan elemen pencarian/filter jika sedang di tampilan utama mapel
+  // Sembunyikan filter bar jika ada
   const filterBar = document.getElementById("nilai-filter-bar");
   if (filterBar) filterBar.style.display = "none";
+
+  // Hanya sembunyikan elemen teks/judulnya langsung, BUKAN parentContainer/row pembungkusnya
+  document.querySelectorAll("h1, h2, h3, h4, h5, h6, p, span, div").forEach(el => {
+    // Pastikan elemen langsung yang memiliki teks tersebut
+    if (el.children.length === 0 && el.innerText) {
+      const teks = el.innerText.trim();
+      if (teks === "Pilih Kelas Binaan" || teks === "Riwayat Nilai Terinput (Semua Kelas)") {
+        el.style.display = "none";
+      }
+    }
+  });
+}
 
   // Sembunyikan berdasarkan class/ID elemen guru jika ada
   const selectorGuru = [
