@@ -29,9 +29,11 @@ body {
 }
 
 .status-container {
-  position: absolute;
-  top: 20px;
-  right: 20px;
+  position: static;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 .badge-online {
   background: rgba(16, 185, 129, 0.2);
