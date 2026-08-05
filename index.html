@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SIDIG SMPN 2">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2991/2991108.png">
+  <link rel="apple-touch-icon" href="icon.png">
 
   <!-- FONT AWESOME & CSS EXTERNAL -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -717,5 +717,15 @@
 </div>
 
   <script src="app.js?v=10"></script>
+<!-- Registrasi Service Worker untuk PWA -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW Berhasil Didaftarkan:', reg))
+            .catch(err => console.error('SW Gagal Didaftarkan:', err));
+        });
+      }
+    </script>
 </body>
 </html>
