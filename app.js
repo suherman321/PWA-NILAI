@@ -1418,7 +1418,7 @@ let globalDataNilai = [];
 let mapelAktifNilai = "";
 
 function tampilkanNilaiAdmin() {
-  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  const container = document.getElementById("tbl-admin-nilai-body") || document.querySelector("#admin-view-nilai tbody");
 
   if (!container) return;
 
@@ -1447,18 +1447,24 @@ function tampilkanNilaiAdmin() {
 }
 
 function renderKategoriMapel(daftarMapel) {
-  const container = document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  const container = document.getElementById("tbl-admin-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   const tableElement = container ? container.closest("table") : null;
+  const adminViewWrapper = document.getElementById("admin-view-nilai");
   
   if (tableElement) {
     tableElement.style.display = "none";
   }
 
+  // Cari atau buat wadah grid khusus di dalam admin-view-nilai
   let gridContainer = document.getElementById("mapel-grid-container");
   if (!gridContainer) {
     gridContainer = document.createElement("div");
     gridContainer.id = "mapel-grid-container";
-    if (tableElement && tableElement.parentNode) {
+    
+    // Sisipkan dengan aman di dalam pembungkus Tab Nilai Admin
+    if (adminViewWrapper && tableElement) {
+      adminViewWrapper.insertBefore(gridContainer, tableElement.parentNode);
+    } else if (tableElement && tableElement.parentNode) {
       tableElement.parentNode.insertBefore(gridContainer, tableElement);
     }
   }
@@ -1532,7 +1538,7 @@ function renderKategoriMapel(daftarMapel) {
 function pilihMapelAdmin(mapelDipilih) {
   mapelAktifNilai = mapelDipilih;
   
-  const tbody = document.getElementById("tbl-admin-nilai-body") || document.getElementById("tbl-nilai-body");
+  const tbody = document.getElementById("tbl-admin-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   const tabel = tbody ? tbody.closest("table") : null;
   const gridContainer = document.getElementById("mapel-grid-container");
   const filterBarContainer = document.getElementById("nilai-filter-bar");
@@ -1571,7 +1577,7 @@ function pilihMapelAdmin(mapelDipilih) {
 }
 
 function renderBarisTabelNilai(dataList) {
-  const container = document.getElementById("tbl-admin-nilai-body") || document.getElementById("tbl-nilai-body") || document.querySelector("#admin-view-nilai tbody");
+  const container = document.getElementById("tbl-admin-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   if (!container) return;
 
   container.innerHTML = "";
@@ -1639,7 +1645,7 @@ function terapkanFilterNilai() {
 function kembaliKeMapelNilai() {
   const filterBarContainer = document.getElementById("nilai-filter-bar");
   const gridContainer = document.getElementById("mapel-grid-container");
-  const tbody = document.getElementById("tbl-admin-nilai-body") || document.getElementById("tbl-nilai-body");
+  const tbody = document.getElementById("tbl-admin-nilai-body") || document.querySelector("#admin-view-nilai tbody");
   const tabel = tbody ? tbody.closest("table") : null;
 
   if (filterBarContainer) filterBarContainer.style.display = "none";
