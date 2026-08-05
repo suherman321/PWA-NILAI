@@ -591,3 +591,19 @@ td:nth-child(5) {
   gap: 8px;
   margin-left: auto;
 }
+/* ==========================================================================
+   PEMBERSIPAN PAKSA - Sembunyikan Elemen Guru yang Bocor di Dashboard Admin
+   ========================================================================== */
+#admin-dashboard ~ .kelas-binaan-section,
+#admin-dashboard ~ .riwayat-nilai-section,
+#admin-dashboard #pilih-kelas-binaan,
+#admin-dashboard #riwayat-nilai-terinput,
+#admin-dashboard .kelas-binaan-container,
+#admin-dashboard .riwayat-nilai-container {
+  display: none !important;
+}
+
+/* Menyembunyikan berdasarkan pola pembungkus umum di bawah admin tab */
+#admin-dashboard > div:not(#admin-view-nilai):not(#admin-view-absen):not(#admin-view-kasus):not(#admin-view-user):not(.admin-tab-nav):not(.welcome-card-guru):not(.guru-stats-grid) {
+  display: none !important;
+}
