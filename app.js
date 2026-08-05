@@ -152,7 +152,7 @@ function showAppScreen(user) {
   const dashboardGuru = document.getElementById("guru-dashboard");
   const dashboardAdmin = document.getElementById("admin-dashboard");
 
-  // Reset tampilan awal dashboard
+  // Reset/Sembunyikan semua dashboard terlebih dahulu
   if (dashboardSiswa) dashboardSiswa.classList.add("hidden");
   if (dashboardGuru) dashboardGuru.classList.add("hidden");
   if (dashboardAdmin) dashboardAdmin.classList.add("hidden");
@@ -174,26 +174,25 @@ function showAppScreen(user) {
 
     tutupMenuSiswa();
     tampilkanRiwayatNilai();
+
   } else if (role === "ADMIN") {
-    // Tampilan Khusus Admin
+    // PASTI KAN HANYA BUKA DASHBOARD ADMIN (Tanpa fallback ke Guru)
     if (dashboardAdmin) {
-        dashboardAdmin.classList.remove("hidden");
-    } else if (dashboardGuru) {
-        // Fallback jika container khusus admin tidak ada di HTML, gunakan dashboard guru
-        dashboardGuru.classList.remove("hidden");
+      dashboardAdmin.classList.remove("hidden");
     }
 
     namaTampil = user.nama || user.username || 'Administrator';
 
     const elemUserInfo = document.getElementById("user-info");
-    const elemWelcomeAdmin = document.getElementById("admin-nama-welcome") || document.getElementById("guru-nama-welcome");
+    const elemWelcomeAdmin = document.getElementById("admin-nama-welcome");
     if (elemUserInfo) elemUserInfo.innerText = `${namaTampil} (Admin)`;
     if (elemWelcomeAdmin) elemWelcomeAdmin.innerText = namaTampil;
 
-    // --- TAMBAHAN UNTUK TAB ADMIN ---
+    // Inisialisasi tampilan khusus Admin
     switchAdminTab('nilai'); 
     initAdminTabListeners();
-} else {
+
+  } else {
     // Role GURU
     if (dashboardGuru) dashboardGuru.classList.remove("hidden");
     
