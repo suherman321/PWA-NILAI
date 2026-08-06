@@ -1924,7 +1924,7 @@ function tampilkanKasusAdmin() {
 }
 
 // 4. MANAJEMEN USER
-// Variabel penampung data dari fetch
+// Variabel penampung data user global
 let listDataUser = [];
 
 function tampilkanUserAdmin() {
@@ -1936,25 +1936,30 @@ function tampilkanUserAdmin() {
   fetch(`${SCRIPT_URL}?action=getUser`)
     .then(res => res.json())
     .then(data => {
-      const users = data.data || data; 
+      // Menangani format return { success: true, data: [...] } maupun array langsung [...]
+      const users = Array.isArray(data) ? data : (data.data || []);
+      
       if (!users || users.length === 0) {
         container.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada data user.</td></tr>`;
         return;
       }
       
-      listDataUser = users; // Simpan ke variabel global
+      listDataUser = users; // Simpan data ke variabel global
 
       let html = "";
-      users.forEach(item => {
+      users.forEach((item, index) => {
+        // Ambil row_index dari backend, jika tidak ada fallback pakai index urutan tabel (ditambah 2 untuk sheet header)
+        const rIndex = item.row_index || item.rowIndex || (index + 2);
+
         html += `<tr>
-          <td>${item.username}</td>
-          <td><b>${item.role}</b></td>
+          <td>${item.username || '-'}</td>
+          <td><b>${item.role || '-'}</b></td>
           <td>${item.ref_id || item.refId || '-'}</td>
           <td style="text-align: center;">
-            <button onclick="handleEditUser(${item.row_index})" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+            <button onclick="handleEditUser(${index}, ${rIndex})" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
               <i class="fa-solid fa-pen"></i>
             </button>
-            <button onclick="handleHapusUser(${item.row_index})" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+            <button onclick="handleHapusUser(${index}, ${rIndex})" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
@@ -1965,6 +1970,49 @@ function tampilkanUserAdmin() {
     .catch(err => {
       container.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data: ${err.message}</td></tr>`;
     });
+}
+
+// BUKA MODAL EDIT USER
+function handleEditUser(arrayIndex, rowIndex) {
+  const user = listDataUser[arrayIndex];
+  if (!user) {
+    alert("Data user tidak ditemukan di memori lokal!");
+    return;
+  }
+
+  // Simpan row_index sebenarnya dari Google Sheet
+  document.getElementById('editIndex').value = rowIndex;
+  document.getElementById('editUsername').value = user.username || '';
+  document.getElementById('editRole').value = (user.role || 'GURU').toUpperCase();
+  document.getElementById('editPassword').value = ''; 
+
+  document.getElementById('modalEditUser').style.display = 'flex';
+}
+
+// HAPUS USER
+function handleHapusUser(arrayIndex, rowIndex) {
+  const user = listDataUser[arrayIndex];
+  const namaUser = user ? user.username : 'user ini';
+
+  if (confirm(`Apakah Anda yakin ingin menghapus user "${namaUser}"?`)) {
+    const payload = {
+      action: 'deleteUser',
+      row_index: Number(rowIndex)
+    };
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+      alert('User berhasil dihapus!');
+      tampilkanUserAdmin();
+    })
+    .catch(err => {
+      alert('Gagal menghapus user: ' + err.message);
+    });
+  }
 }
 // ==========================================
 // 1. FUNGSI FILTER TAB (Tugas / UH / Ujian)
@@ -2161,90 +2209,4 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload();
   });
-}
-// ==========================================
-// FUNGSI AKSI EDIT & HAPUS USER (ADMIN)
-// ==========================================
-
-// BUKA MODAL EDIT
-function handleEditUser(rowIndex) {
-  const user = listDataUser.find(u => Number(u.row_index) === Number(rowIndex));
-  if (!user) {
-    alert("Data user tidak ditemukan!");
-    return;
-  }
-
-  document.getElementById('editIndex').value = user.row_index;
-  document.getElementById('editUsername').value = user.username || '';
-  document.getElementById('editRole').value = user.role || 'GURU';
-  document.getElementById('editPassword').value = '';
-
-  document.getElementById('modalEditUser').style.display = 'flex';
-}
-
-// TUTUP MODAL EDIT
-function tutupModalEdit() {
-  document.getElementById('modalEditUser').style.display = 'none';
-}
-
-// SIMPAN HASIL EDIT KE BACKEND
-function simpanEditUser(event) {
-  event.preventDefault();
-
-  const rowIndex = document.getElementById('editIndex').value;
-  const usernameBaru = document.getElementById('editUsername').value.trim();
-  const roleBaru = document.getElementById('editRole').value;
-  const passwordBaru = document.getElementById('editPassword').value.trim();
-
-  const userLama = listDataUser.find(u => Number(u.row_index) === Number(rowIndex));
-  const refIdLama = userLama ? (userLama.ref_id || userLama.refId) : '';
-
-  const payload = {
-    action: 'updateUser',
-    row_index: Number(rowIndex),
-    username: usernameBaru,
-    role: roleBaru,
-    ref_id: refIdLama,
-    password: passwordBaru
-  };
-
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(res => {
-    alert('User berhasil diperbarui!');
-    tutupModalEdit();
-    tampilkanUserAdmin();
-  })
-  .catch(err => {
-    alert('Gagal memperbarui user: ' + err.message);
-  });
-}
-
-// HAPUS USER KE BACKEND
-function handleHapusUser(rowIndex) {
-  const user = listDataUser.find(u => Number(u.row_index) === Number(rowIndex));
-  const namaUser = user ? user.username : 'user ini';
-
-  if (confirm(`Apakah Anda yakin ingin menghapus user "${namaUser}"?`)) {
-    const payload = {
-      action: 'deleteUser',
-      row_index: Number(rowIndex)
-    };
-
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(res => {
-      alert('User berhasil dihapus!');
-      tampilkanUserAdmin();
-    })
-    .catch(err => {
-      alert('Gagal menghapus user: ' + err.message);
-    });
-  }
 }
