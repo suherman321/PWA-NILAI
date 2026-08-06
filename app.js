@@ -2210,3 +2210,51 @@ if ('serviceWorker' in navigator) {
     window.location.reload();
   });
 }
+// FUNGSI TUTUP MODAL (UNTUK TOMBOL BATAL)
+function tutupModalEdit() {
+  const modal = document.getElementById('modalEditUser');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// FUNGSI SIMPAN EDIT USER
+function simpanEditUser(event) {
+  event.preventDefault();
+
+  const rowIndex = document.getElementById('editIndex').value;
+  const usernameBaru = document.getElementById('editUsername').value.trim();
+  const roleBaru = document.getElementById('editRole').value;
+  const passwordBaru = document.getElementById('editPassword').value.trim();
+
+  // Cari data lama berdasarkan row_index
+  const userLama = listDataUser.find(u => Number(u.row_index || u.rowIndex) === Number(rowIndex)) || {};
+  const refIdLama = userLama.ref_id || userLama.refId || '';
+
+  const payload = {
+    action: 'updateUser',
+    row_index: Number(rowIndex),
+    username: usernameBaru,
+    role: roleBaru,
+    ref_id: refIdLama,
+    password: passwordBaru
+  };
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(res => {
+    if (res.success || res.status === "success") {
+      alert('Data user & password berhasil diperbarui di database!');
+      tutupModalEdit();
+      tampilkanUserAdmin(); // Refresh tabel
+    } else {
+      alert('Gagal update: ' + (res.message || 'Terjadi kesalahan pada server'));
+    }
+  })
+  .catch(err => {
+    alert('Gagal memperbarui user: ' + err.message);
+  });
+}
