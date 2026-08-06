@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-nilai-v2'; // <-- [BARIS 1] Setiap ada update, naikkan versinya (misal v2 jadi v3)
+const CACHE_NAME = 'pwa-nilai-v4'; // <-- [BARIS 1] Setiap ada update, naikkan versinya (misal v2 jadi v3)
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

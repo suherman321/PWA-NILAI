@@ -715,7 +715,40 @@
 
 </div>
 
-  <script src="app.js?v=13"></script>
+<!-- Modal Edit User -->
+<div id="modalEditUser" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:20px; border-radius:8px; width:100%; max-width:400px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+    <h3 style="margin-top:0; color:#1e293b;">Edit User</h3>
+    <form id="formEditUser" onsubmit="simpanEditUser(event)">
+      <input type="hidden" id="editIndex">
+      
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px;">Username / Email</label>
+        <input type="text" id="editUsername" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:4px; box-sizing:border-box;">
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px;">Role</label>
+        <select id="editRole" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:4px; box-sizing:border-box;">
+          <option value="ADMIN">ADMIN</option>
+          <option value="GURU">GURU</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px;">Password Baru <span style="font-weight:normal; color:#64748b;">(Kosongkan jika tidak diubah)</span></label>
+        <input type="password" id="editPassword" placeholder="••••••••" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:4px; box-sizing:border-box;">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" onclick="tutupModalEdit()" style="padding:8px 16px; background:#94a3b8; color:#fff; border:none; border-radius:4px; cursor:pointer;">Batal</button>
+        <button type="submit" style="padding:8px 16px; background:#2563eb; color:#fff; border:none; border-radius:4px; cursor:pointer;">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  <script src="app.js?v=14"></script>
 <!-- Registrasi Service Worker untuk PWA -->
     <script>
       if ('serviceWorker' in navigator) {

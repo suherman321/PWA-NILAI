@@ -1924,8 +1924,11 @@ function tampilkanKasusAdmin() {
 }
 
 // 4. MANAJEMEN USER
+// Variabel penampung data dari fetch
+let listDataUser = [];
+
 function tampilkanUserAdmin() {
-  const container = document.getElementById("tbl-user-body") || document.querySelector("#admin-view-user tbody");
+  const container = document.getElementById("tbl-admin-user-body") || document.querySelector("#admin-view-user tbody");
   if (!container) return;
 
   container.innerHTML = `<tr><td colspan="4" style="text-align:center;">Memuat data user...</td></tr>`;
@@ -1933,21 +1936,25 @@ function tampilkanUserAdmin() {
   fetch(`${SCRIPT_URL}?action=getUser`)
     .then(res => res.json())
     .then(data => {
-      if (!data || data.length === 0) {
+      const users = data.data || data; 
+      if (!users || users.length === 0) {
         container.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada data user.</td></tr>`;
         return;
       }
+      
+      listDataUser = users; // Simpan ke variabel global
+
       let html = "";
-      data.forEach(item => {
+      users.forEach(item => {
         html += `<tr>
           <td>${item.username}</td>
           <td><b>${item.role}</b></td>
-          <td>${item.refId}</td>
-          <td>
-            <button onclick="handleEditUser('${item.id}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
+          <td>${item.ref_id || item.refId || '-'}</td>
+          <td style="text-align: center;">
+            <button onclick="handleEditUser(${item.row_index})" style="background-color: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; margin-right: 4px;" title="Edit">
               <i class="fa-solid fa-pen"></i>
             </button>
-            <button onclick="handleHapusUser('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
+            <button onclick="handleHapusUser(${item.row_index})" style="background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;" title="Hapus">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
@@ -2154,4 +2161,90 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload();
   });
+}
+// ==========================================
+// FUNGSI AKSI EDIT & HAPUS USER (ADMIN)
+// ==========================================
+
+// BUKA MODAL EDIT
+function handleEditUser(rowIndex) {
+  const user = listDataUser.find(u => Number(u.row_index) === Number(rowIndex));
+  if (!user) {
+    alert("Data user tidak ditemukan!");
+    return;
+  }
+
+  document.getElementById('editIndex').value = user.row_index;
+  document.getElementById('editUsername').value = user.username || '';
+  document.getElementById('editRole').value = user.role || 'GURU';
+  document.getElementById('editPassword').value = '';
+
+  document.getElementById('modalEditUser').style.display = 'flex';
+}
+
+// TUTUP MODAL EDIT
+function tutupModalEdit() {
+  document.getElementById('modalEditUser').style.display = 'none';
+}
+
+// SIMPAN HASIL EDIT KE BACKEND
+function simpanEditUser(event) {
+  event.preventDefault();
+
+  const rowIndex = document.getElementById('editIndex').value;
+  const usernameBaru = document.getElementById('editUsername').value.trim();
+  const roleBaru = document.getElementById('editRole').value;
+  const passwordBaru = document.getElementById('editPassword').value.trim();
+
+  const userLama = listDataUser.find(u => Number(u.row_index) === Number(rowIndex));
+  const refIdLama = userLama ? (userLama.ref_id || userLama.refId) : '';
+
+  const payload = {
+    action: 'updateUser',
+    row_index: Number(rowIndex),
+    username: usernameBaru,
+    role: roleBaru,
+    ref_id: refIdLama,
+    password: passwordBaru
+  };
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(res => {
+    alert('User berhasil diperbarui!');
+    tutupModalEdit();
+    tampilkanUserAdmin();
+  })
+  .catch(err => {
+    alert('Gagal memperbarui user: ' + err.message);
+  });
+}
+
+// HAPUS USER KE BACKEND
+function handleHapusUser(rowIndex) {
+  const user = listDataUser.find(u => Number(u.row_index) === Number(rowIndex));
+  const namaUser = user ? user.username : 'user ini';
+
+  if (confirm(`Apakah Anda yakin ingin menghapus user "${namaUser}"?`)) {
+    const payload = {
+      action: 'deleteUser',
+      row_index: Number(rowIndex)
+    };
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+      alert('User berhasil dihapus!');
+      tampilkanUserAdmin();
+    })
+    .catch(err => {
+      alert('Gagal menghapus user: ' + err.message);
+    });
+  }
 }
